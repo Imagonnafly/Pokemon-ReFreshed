@@ -46,30 +46,46 @@ export function getBattleStat(pokemon, stat, itemData = null) {
 }
 
 export function calculateAccuracy(attacker, defender, move) {
-  if (move.accuracy === null || move.accuracy === undefined) return 100;
+  // In the move data, 0 means “no accuracy check” (shown as — in Pokémon data).
+  if (move.accuracy === null || move.accuracy === undefined || Number(move.accuracy) === 0) return 100;
   const base = Number(move.accuracy ?? 100);
   const atk = accuracyStageMultiplier(attacker.statStages?.accuracy ?? 0);
   const eva = accuracyStageMultiplier(defender.statStages?.evasion ?? 0);
   return Math.max(1, Math.min(100, base * atk / eva));
 }
 
-export function calculateDamage({ attacker, defender, move, typeChart, rng = Math.random, damageModifier = 1, attackerItem = null, defenderItem = null, weather = null, terrain = null }) {
+export function calculateDamage({ attacker, defender, move, typeChart, rng = Math.random, damageModifier = 1, attackerItem = null, defenderItem = null, weather = null, terrain = null, criticalOverride = null }) {
   if (move.category === "status") return { damage: 0, effectiveness: 1, critical: false };
 
-  const attackStat = move.category === "physical" ? "attack" : "specialAttack";
-  const defenseStat = move.category === "physical" ? "defense" : "specialDefense";
+  const attackStat = move.damageStat || (move.category === "physical" ? "attack" : "specialAttack");
+  const defenseStat = move.defenseStat || (move.category === "physical" ? "defense" : "specialDefense");
   const atk = Math.max(1, getBattleStat(attacker, attackStat, attackerItem));
   const def = Math.max(1, getBattleStat(defender, defenseStat, defenderItem));
-  const power = move.power ?? 0;
+  const power = Math.max(1, Number(move.power ?? 0));
   const level = attacker.level;
 
   const base = Math.floor(Math.floor(Math.floor((2 * level) / 5 + 2) * power * atk / def) / 50) + 2;
   const stab = move.types.some(t => attacker.types.includes(t)) ? 1.5 : 1;
   const effectiveness = typeEffectiveness(move.types, defender.types, typeChart);
-  const environmentalModifier = weather === "Sun" && move.types.includes("Fire") ? 1.5 : weather === "Sun" && move.types.includes("Water") ? 0.5 : terrain === "Electric" && move.types.includes("Electric") ? 1.3 : 1;
+
+  let environmentalModifier = 1;
+  if (weather === "Sun" && move.types.includes("Fire")) environmentalModifier *= 1.5;
+  if (weather === "Sun" && move.types.includes("Water")) environmentalModifier *= 0.5;
+  if (terrain === "Electric" && move.types.includes("Electric") && !attacker.types.includes("Flying")) environmentalModifier *= 1.3;
+
   const signatureModifier = move.effects?.find(e => e.kind === "signature_super_effective_boost" && effectiveness > 1)?.multiplier ?? 1;
+  const critStage = Number(move.critStage ?? 0);
+  let criticalChance = 1 / 24;
+  if (critStage >= 3) criticalChance = 1;
+  else if (critStage === 2) criticalChance = 1 / 2;
+  else if (critStage === 1) criticalChance = 1 / 8;
+  const critical = criticalOverride ?? (rng() < criticalChance);
   const random = 0.85 + rng() * 0.15;
-  const critical = rng() < 1 / 24 ? 1.5 : 1;
+
+  let burnModifier = 1;
+  if (move.category === "physical" && attacker.status === "Burn" && !attacker.abilityIgnoreBurn) {
+    burnModifier = 0.5;
+  }
 
   let itemModifier = 1;
   const itemEffect = attackerItem?.effect;
@@ -79,7 +95,7 @@ export function calculateDamage({ attacker, defender, move, typeChart, rng = Mat
 
   const damage = effectiveness === 0
     ? 0
-    : Math.max(1, Math.floor(base * stab * effectiveness * critical * random * damageModifier * itemModifier * environmentalModifier * signatureModifier));
+    : Math.max(1, Math.floor(base * stab * effectiveness * (critical ? 1.5 : 1) * random * damageModifier * itemModifier * environmentalModifier * signatureModifier * burnModifier));
 
-  return { damage, effectiveness, critical: critical > 1, itemModifier };
+  return { damage, effectiveness, critical, itemModifier };
 }

@@ -166,7 +166,7 @@ function serializePokemon(p) {
   return {
     speciesId: p.speciesId, name: p.name, level: p.level, types: p.types, hp: p.hp, maxHP: p.maxHP,
     moveset: p.moves.map(m => ({ ...m })), ability: p.ability, item: p.item, itemUsed: p.itemUsed,
-    choiceMove: p.choiceMove, status: p.status, statusData: p.statusData, fainted: p.fainted, sprites: p.sprites
+    choiceMove: p.choiceMove, status: p.status, statusData: p.statusData, volatile: p.volatile, originalTypes: p.originalTypes, fainted: p.fainted, sprites: p.sprites
   };
 }
 

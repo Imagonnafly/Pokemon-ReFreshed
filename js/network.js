@@ -135,7 +135,7 @@ export class RemoteBattle {
     const allowed = new Set(Array.isArray(species?.learnset) ? species.learnset : []);
     const rawMoveset = Array.isArray(raw.moveset) ? raw.moveset : (Array.isArray(raw.moves) ? raw.moves : []);
     const moves = rawMoveset.filter(m => allowed.has(m.id)).map(m => ({ ...m })).slice(0, 4);
-    return { ...raw, moves, types: [...(raw.types || [])], sprites: { ...(raw.sprites || {}) }, statusData: { ...(raw.statusData || {}) }, canBattle() { return this.hp > 0 && !this.fainted; } };
+    return { ...raw, moves, types: [...(raw.types || [])], originalTypes: [...(raw.originalTypes || raw.types || [])], sprites: { ...(raw.sprites || {}) }, statusData: { ...(raw.statusData || {}) }, volatile: { ...(raw.volatile || {}) }, canBattle() { return this.hp > 0 && !this.fainted; } };
   }
 
   hydrateSide(side) {
@@ -143,14 +143,31 @@ export class RemoteBattle {
   }
 
   active(side) { return this[side]?.team?.[this[side]?.active] ?? null; }
-  getAvailableMoves() { return this.active("player")?.moves?.filter(m => (m.pp ?? 1) > 0) ?? []; }
+  getAvailableMoves() {
+    const pokemon = this.active("player");
+    if (!pokemon) return [];
+    return pokemon.moves.filter(m => {
+      const forced = pokemon.volatile?.charging === m.id ||
+        (pokemon.volatile?.outrageTurns > 0 && m.id === "outrage") ||
+        (pokemon.volatile?.uproarTurns > 0 && m.id === "uproar");
+      if ((m.pp ?? 1) <= 0 && !forced) return false;
+      if (pokemon.volatile?.tauntTurns > 0 && m.category === "status") return false;
+      return true;
+    });
+  }
 
   playerMove(moveId) {
     if (!this.ready || this.over || this.busy || this.locked || this.awaitingPlayerSwitch) return;
     const species = this.data.species.find(p => p.id === this.active("player")?.speciesId);
     const legal = new Set(Array.isArray(species?.learnset) ? species.learnset : []);
     if (!legal.has(moveId)) return;
-    if (!this.active("player")?.moves?.some(m => m.id === moveId && (m.pp ?? 1) > 0)) return;
+    const pokemon = this.active("player");
+    const move = pokemon?.moves?.find(m => m.id === moveId);
+    const forced = pokemon?.volatile?.charging === moveId ||
+      (pokemon?.volatile?.outrageTurns > 0 && moveId === "outrage") ||
+      (pokemon?.volatile?.uproarTurns > 0 && moveId === "uproar");
+    if (!move || ((move.pp ?? 1) <= 0 && !forced)) return;
+    if (pokemon.volatile?.tauntTurns > 0 && move.category === "status") return;
     this.busy = true; this.locked = true; this.pendingAction = true; this.pendingTurn = this.turn;
     this.localMoveSubmitted = true;
     this.onUpdate?.();

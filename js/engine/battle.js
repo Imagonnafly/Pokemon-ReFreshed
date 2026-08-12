@@ -1,5 +1,25 @@
 import { BattlePokemon } from "./pokemon.js";
-import { calculateDamage, getBattleStat, calculateAccuracy } from "./formulas.js";
+import { calculateDamage, getBattleStat, calculateAccuracy, typeEffectiveness } from "./formulas.js";
+
+const SPECIES_WEIGHTS_KG = {
+  bulbasaur: 6.9, charmander: 8.5, charizard: 90.5, squirtle: 9.0, blastoise: 85.5,
+  chespin: 9.0, chikorita: 6.4, chimchar: 6.2, cyndaquil: 7.9, dragonite: 210.0,
+  fennekin: 9.4, froakie: 7.0, fuecoco: 9.8, grookey: 5.0, koraidon: 303.0,
+  litten: 4.3, miraidon: 240.0, mudkip: 7.6, oshawott: 5.9, piplup: 5.2,
+  popplio: 7.5, quaxly: 6.1, rowlet: 1.5, scorbunny: 4.5, snivy: 8.1,
+  sobble: 4.0, sprigatito: 4.1, tepig: 9.9, torchic: 2.5, totodile: 9.5,
+  treecko: 5.0, turtwig: 10.2
+};
+const STATUS_MOVES = new Set([
+  "agility","bulk-up","dragon-cheer","endure","growl","helping-hand","meteor-beam",
+  "protect","rest","roar","roost","scary-face","screech","sleep-talk","solar-beam",
+  "substitute","sunny-day","swords-dance","taunt","uproar"
+]);
+const CHARGE_MOVES = new Set(["dig","fly","meteor-beam","solar-beam"]);
+const RECHARGE_MOVES = new Set(["giga-impact","hyper-beam"]);
+const MULTI_HIT_MOVES = new Set(["double-kick","dual-wingbeat","scale-shot"]);
+const CONTACT_STATUS = new Set(["body-slam","ember","fire-blast","fire-fang","flamethrower","flare-blitz","ice-fang","iron-head","rock-smash","thunder-fang","thunderbolt","water-pulse","zen-headbutt"]);
+
 
 export class Battle {
   constructor({data, playerTeam, opponentTeam, networkRole = null}) {
@@ -11,6 +31,8 @@ export class Battle {
     this.typeChart = data.types.chart;
     this.weather = null;
     this.terrain = null;
+    this.weatherTurns = 0;
+    this.terrainTurns = 0;
     this.species = data.species;
     this.movesData = data.moves;
     this.abilitiesData = data.abilities ?? [];
@@ -22,6 +44,7 @@ export class Battle {
     this.locked = false;
     this.log = [];
     this.onUpdate = null;
+    this.turnContext = { damageTaken: new Map(), physicalDamageTaken: new Map(), moveFailed: new Map() };
 
     this.player = { team: this.createTeam(playerTeam), active: 0 };
     this.opponent = { team: this.createTeam(opponentTeam), active: 0 };
@@ -88,7 +111,46 @@ export class Battle {
   }
 
   getAvailableMoves() {
-    return this.active("player").moves.filter(m => (m.pp ?? 1) > 0);
+    const pokemon = this.active("player");
+    if (!pokemon?.canBattle()) return [];
+    let moves = pokemon.moves.filter(m => {
+      const forcedContinuation = pokemon.volatile?.charging === m.id ||
+        (pokemon.volatile?.outrageTurns > 0 && m.id === "outrage") ||
+        (pokemon.volatile?.uproarTurns > 0 && m.id === "uproar");
+      if ((m.pp ?? 1) <= 0 && !forcedContinuation) return false;
+      if (pokemon.volatile?.tauntTurns > 0 && m.category === "status") return false;
+      return true;
+    });
+    if (pokemon.volatile?.charging) {
+      moves = moves.filter(m => m.id === pokemon.volatile.charging);
+    }
+    if (pokemon.volatile?.outrageTurns > 0) {
+      moves = moves.filter(m => m.id === "outrage");
+    }
+    if (pokemon.volatile?.uproarTurns > 0) {
+      moves = moves.filter(m => m.id === "uproar");
+    }
+    return moves;
+  }
+
+  canSelectMove(pokemon, move) {
+    if (!pokemon || !move || !pokemon.canBattle()) return false;
+    if ((move.pp ?? 1) <= 0) return false;
+    if (pokemon.volatile?.tauntTurns > 0 && move.category === "status") {
+      this.write(`${pokemon.name} can't use ${move.name} because it is taunted!`);
+      return false;
+    }
+    if (pokemon.status === "Sleep" && move.id !== "sleep-talk") {
+      if (pokemon.statusData?.sleepTurns > 0) {
+        this.write(`${pokemon.name} is fast asleep!`);
+        return false;
+      }
+    }
+    if (pokemon.volatile?.recharge) {
+      this.write(`${pokemon.name} must recharge!`);
+      return false;
+    }
+    return true;
   }
 
   async playerMove(moveId) {
@@ -111,6 +173,7 @@ export class Battle {
 
     const move = this.active("player").moves.find(m => m.id === moveId);
     const player = this.active("player");
+    if (!this.canSelectMove(player, move)) return;
     const opponent = this.active("opponent");
 
     if (!move || !player.canBattle() || !opponent.canBattle()) return;
@@ -252,6 +315,17 @@ export class Battle {
     if (first === "player") await this.performMove(player, opponent, move);
     else await this.performMove(opponent, player, opponentMove);
 
+    if (first === "player" && player.volatile?.pendingUturn && player.canBattle()) {
+      player.volatile.pendingUturn = false;
+      this.awaitingPlayerSwitch = true;
+      this.awaitingUturnSwitch = true;
+      this.busy = false;
+      this.locked = true;
+      this.write("Choose a Pokémon to switch into after U-turn!");
+      this.update();
+      return;
+    }
+
     if (!this.active("player").canBattle()) { await this.handlePlayerFaint(); return; }
     if (!this.active("opponent").canBattle()) {
       const switched = await this.handleOpponentFaint();
@@ -264,6 +338,19 @@ export class Battle {
     if (second.pokemon.canBattle()) {
       await this.pause(550);
       await this.performMove(second.pokemon, second.side === "player" ? this.active("opponent") : this.active("player"), second.move);
+    }
+
+    if (second.side === "player" && player.volatile?.pendingUturn && player.canBattle()) {
+      player.volatile.pendingUturn = false;
+      // The turn's opponent action has already happened, so U-turn's switch
+      // happens now and the next turn begins.
+      this.awaitingPlayerSwitch = true;
+      this.awaitingUturnSwitch = false;
+      this.busy = false;
+      this.locked = true;
+      this.write("Choose a Pokémon to switch into after U-turn!");
+      this.update();
+      return;
     }
 
     if (!this.active("player").canBattle()) { await this.handlePlayerFaint(); return; }
@@ -280,7 +367,18 @@ export class Battle {
     if (opponent.choiceMove) {
       return opponent.moves.find(m => m.id === opponent.choiceMove && (m.pp ?? 1) > 0) ?? null;
     }
-    const usable = opponent.moves.filter(m => (m.pp ?? 1) > 0);
+    let usable = opponent.moves.filter(m => {
+      const forcedContinuation = opponent.volatile?.charging === m.id ||
+        (opponent.volatile?.outrageTurns > 0 && m.id === "outrage") ||
+        (opponent.volatile?.uproarTurns > 0 && m.id === "uproar");
+      if ((m.pp ?? 1) <= 0 && !forcedContinuation) return false;
+      if (opponent.volatile?.tauntTurns > 0 && m.category === "status") return false;
+      if (opponent.status === "Sleep" && m.id !== "sleep-talk") return false;
+      return true;
+    });
+    if (opponent.volatile?.charging) usable = usable.filter(m => m.id === opponent.volatile.charging);
+    if (opponent.volatile?.outrageTurns > 0) usable = usable.filter(m => m.id === "outrage");
+    if (opponent.volatile?.uproarTurns > 0) usable = usable.filter(m => m.id === "uproar");
     const selected = usable.length
       ? usable[Math.floor(Math.random() * usable.length)]
       : null;
@@ -291,7 +389,13 @@ export class Battle {
   }
 
   getMovePriority(move) {
-    return Number(move?.priority ?? 0);
+    if (!move) return 0;
+    const builtIn = {
+      "protect": 4, "endure": 4, "helping-hand": 5,
+      "aqua-jet": 1, "quick-attack": 1,
+      "counter": -5, "focus-punch": -3, "roar": -6, "dragon-tail": -6
+    };
+    return Number(move.priority ?? builtIn[move.id] ?? 0);
   }
 
   getTurnOrder(player, playerMove, opponent, opponentMove) {
@@ -340,11 +444,152 @@ export class Battle {
   async performMove(attacker, defender, move) {
     if (!attacker?.canBattle() || !defender?.canBattle() || !move) return;
 
-    this.write(`${this.getBattleMessagePrefix(attacker)} ${attacker.name} used ${move.name}!`);
-    await this.pause(900);
+    // PP is consumed when a move sequence starts. Charge moves, Outrage and
+    // Uproar continue across turns without spending PP again.
+    const continuation = attacker.volatile?.charging === move.id ||
+      (attacker.volatile?.outrageTurns > 0 && move.id === "outrage") ||
+      (attacker.volatile?.uproarTurns > 0 && move.id === "uproar");
+    if (!continuation) move.pp = Math.max(0, (move.pp ?? 1) - 1);
 
-    this.executeMove(attacker, defender, move);
-    await this.pause(900);
+    // Flinch, paralysis, sleep, freeze and recharge are checked at action time.
+    if (attacker.volatile?.flinched) {
+      attacker.volatile.flinched = false;
+      this.write(`${attacker.name} flinched and couldn't move!`);
+      attacker.volatile.lastMove = move.id;
+      attacker.volatile.lastMoveFailed = true;
+      this.turnContext.moveFailed.set(attacker, true);
+      return;
+    }
+
+    if (attacker.status === "Paralysis" && Math.random() < 0.25) {
+      this.write(`${attacker.name} is paralyzed! It can't move!`);
+      attacker.volatile.lastMove = move.id;
+      attacker.volatile.lastMoveFailed = true;
+      this.turnContext.moveFailed.set(attacker, true);
+      return;
+    }
+
+    if (attacker.status === "Freeze") {
+      if (Math.random() < 0.2 || ["flare-blitz","fire-blast","flamethrower","fire-fang","ember","heat-wave","overheat","flame-charge","temper-flare"].includes(move.id)) {
+        attacker.status = null;
+        attacker.statusData = {};
+        this.write(`${attacker.name} thawed out!`);
+      } else {
+        this.write(`${attacker.name} is frozen solid!`);
+        this.turnContext.moveFailed.set(attacker, true);
+        return;
+      }
+    }
+
+    if (attacker.status === "Sleep" && move.id !== "sleep-talk") {
+      if ((attacker.statusData.sleepTurns ?? 0) > 0) {
+        attacker.statusData.sleepTurns -= 1;
+        this.write(`${attacker.name} is fast asleep!`);
+        if (attacker.statusData.sleepTurns <= 0) {
+          attacker.status = null;
+          attacker.statusData = {};
+          this.write(`${attacker.name} woke up!`);
+        }
+        this.turnContext.moveFailed.set(attacker, true);
+        return;
+      }
+    }
+
+    if (attacker.volatile?.recharge) {
+      attacker.volatile.recharge = false;
+      this.write(`${attacker.name} must recharge!`);
+      this.turnContext.moveFailed.set(attacker, true);
+      return;
+    }
+
+    if (attacker.volatile?.confusedTurns > 0 && move.id !== "sleep-talk") {
+      if (Math.random() < 1 / 3) {
+        const selfDamage = Math.max(1, Math.floor(calculateDamage({
+          attacker, defender: attacker,
+          move: { ...move, types: ["Normal"], category: "physical", power: 40 },
+          typeChart: this.typeChart,
+          rng: Math.random
+        }).damage));
+        attacker.receiveDamage(selfDamage);
+        attacker.volatile.confusedTurns -= 1;
+        this.write(`${attacker.name} hurt itself in its confusion!`);
+        if (attacker.volatile.confusedTurns <= 0) this.write(`${attacker.name} snapped out of confusion!`);
+        this.turnContext.moveFailed.set(attacker, true);
+        return;
+      }
+      attacker.volatile.confusedTurns -= 1;
+      if (attacker.volatile.confusedTurns <= 0) this.write(`${attacker.name} snapped out of confusion!`);
+    }
+
+    // Focus Punch only succeeds if the user was not damaged before it acts.
+    if (move.id === "focus-punch" && (this.turnContext.damageTaken.get(attacker) ?? 0) > 0) {
+      this.write(`${attacker.name} lost its focus and couldn't move!`);
+      this.turnContext.moveFailed.set(attacker, true);
+      return;
+    }
+
+    // Two-turn moves: the first action charges, the second action attacks.
+    if (CHARGE_MOVES.has(move.id) && attacker.volatile?.charging !== move.id) {
+      const sunny = this.weather === "Sun";
+      if (move.id === "solar-beam" && sunny) {
+        // Sun removes Solar Beam's charge turn.
+      } else {
+        attacker.volatile.charging = move.id;
+        if (move.id === "meteor-beam") this.changeStage(attacker, "specialAttack", 1);
+        this.write(`${attacker.name} began charging ${move.name}!`);
+        this.turnContext.moveFailed.set(attacker, false);
+        return;
+      }
+    }
+    if (attacker.volatile?.charging === move.id) {
+      attacker.volatile.charging = null;
+      this.write(`${attacker.name} unleashed ${move.name}!`);
+    }
+
+    // Sleep Talk chooses a random non-Sleep-Talk move while asleep.
+    if (move.id === "sleep-talk") {
+      if (attacker.status !== "Sleep") {
+        this.write(`${attacker.name} used Sleep Talk, but it failed!`);
+        this.turnContext.moveFailed.set(attacker, true);
+        return;
+      }
+      const pool = attacker.moves.filter(m => m.id !== "sleep-talk" && (m.pp ?? 1) > 0);
+      if (!pool.length) {
+        this.write(`${attacker.name}'s Sleep Talk failed!`);
+        this.turnContext.moveFailed.set(attacker, true);
+        return;
+      }
+      const chosen = pool[Math.floor(Math.random() * pool.length)];
+      this.write(`${attacker.name} used Sleep Talk and selected ${chosen.name}!`);
+      await this.pause(300);
+      await this.performMove(attacker, defender, { ...chosen, pp: 1 });
+      return;
+    }
+
+    this.write(`${this.getBattleMessagePrefix(attacker)} ${attacker.name} used ${move.name}!`);
+    await this.pause(700);
+
+    const succeeded = this.executeMove(attacker, defender, move);
+    attacker.volatile.lastMove = move.id;
+    attacker.volatile.lastMoveFailed = !succeeded;
+    this.turnContext.moveFailed.set(attacker, !succeeded);
+
+    // Giga Impact / Hyper Beam require a recharge turn after a successful attack.
+    if (RECHARGE_MOVES.has(move.id) && attacker.canBattle()) {
+      attacker.volatile.recharge = true;
+    }
+
+    // Outrage continues for 2–3 turns; after it ends the user becomes confused.
+    if (move.id === "outrage" && succeeded && attacker.canBattle()) {
+      const remaining = attacker.volatile.outrageTurns ?? (2 + Math.floor(Math.random() * 2));
+      attacker.volatile.outrageTurns = remaining - 1;
+      if (attacker.volatile.outrageTurns <= 0) {
+        attacker.volatile.outRageTurns = 0;
+        attacker.volatile.confusedTurns = 2 + Math.floor(Math.random() * 3);
+        this.write(`${attacker.name} became confused due to fatigue!`);
+      }
+    }
+    await this.pause(700);
   }
 
   getBattleMessagePrefix(pokemon) {
@@ -358,11 +603,56 @@ export class Battle {
     this.applyEndTurnStatus();
     this.applyEndTurnItems();
 
+    if (this.weatherTurns > 0) {
+      this.weatherTurns -= 1;
+      if (this.weatherTurns <= 0) {
+        this.weather = null;
+        this.write("The weather returned to normal.");
+      }
+    }
+    if (this.terrainTurns > 0) {
+      this.terrainTurns -= 1;
+      if (this.terrainTurns <= 0) {
+        this.terrain = null;
+        this.write("The terrain returned to normal.");
+      }
+    }
+
+    for (const side of ["player", "opponent"]) {
+      const p = this.active(side);
+      if (!p?.volatile) continue;
+      p.volatile.protected = false;
+      p.volatile.endure = false;
+      p.volatile.flinched = false;
+      if (p.volatile.roosted) {
+        p.types = [...(p.originalTypes || p.types)];
+        p.volatile.roosted = false;
+      }
+      p.volatile.lastDamageTaken = 0;
+      if (p.volatile.tauntTurns > 0) p.volatile.tauntTurns -= 1;
+      if (p.volatile.trapTurns > 0) {
+        p.volatile.trapTurns -= 1;
+        if (p.volatile.trapTurns <= 0) {
+          p.volatile.trapTurns = 0;
+          p.volatile.trapSource = null;
+          this.write(`${p.name} was freed from the trapping effect!`);
+        }
+      }
+      if (p.volatile.uproarTurns > 0) {
+        p.volatile.uproarTurns -= 1;
+        if (p.volatile.uproarTurns <= 0) this.write(`${p.name}'s uproar ended!`);
+      }
+      if (p.volatile.protectStreak !== undefined && !["protect","endure"].includes(p.volatile.lastMove)) {
+        p.volatile.protectStreak = 0;
+      }
+    }
+
     this.busy = false;
     this.locked = false;
     this.localMoveSubmitted = false;
     this.remoteMoveSubmitted = false;
     this.endTurn();
+    this.turnContext = { damageTaken: new Map(), physicalDamageTaken: new Map(), moveFailed: new Map() };
     this.update();
   }
 
@@ -401,78 +691,349 @@ export class Battle {
   }
 
   executeMove(attacker, defender, move) {
-    move.pp = Math.max(0, (move.pp ?? 1) - 1);
+    if (!this.checkAccuracy(attacker, defender, move)) return false;
 
-    if (!this.checkAccuracy(attacker, defender, move)) return;
-
-    // Ability can modify a move before damage is calculated.
-    const modified = this.applyAbilityMoveModifiers(attacker, defender, move);
-    const actualMove = modified.move;
-
-    if (actualMove.category === "status") {
-      this.applyEffects(attacker, defender, actualMove);
-      return;
+    if (["dig","fly"].includes(defender.volatile?.charging) && !["earthquake","magnitude","gust","thunder","twister","hurricane"].includes(move.id)) {
+      this.write(`${attacker.name}'s ${move.name} missed because ${defender.name} is out of reach!`);
+      return false;
     }
 
+    // Protect / Endure are handled before damage and can stop an attack entirely.
+    if (defender.volatile?.protected) {
+      this.write(`${defender.name} protected itself!`);
+      return true;
+    }
+
+    // Status moves are handled separately.
+    if (move.category === "status") {
+      return this.applyEffects(attacker, defender, move);
+    }
+
+    const actualMove = this.getEffectiveMove(attacker, defender, move);
+    const modified = this.applyAbilityMoveModifiers(attacker, defender, actualMove);
+    const finalMove = modified.move;
+
+    // Dynamic variable-power moves.
+    finalMove.power = this.getMovePower(attacker, defender, finalMove);
+
+    // Counter is a special retaliation move rather than a normal damage formula.
+    if (move.id === "counter") {
+      const taken = this.turnContext.physicalDamageTaken.get(attacker) ?? 0;
+      if (taken <= 0) {
+        this.write(`${attacker.name}'s Counter failed!`);
+        return false;
+      }
+      const effectiveness = typeEffectiveness(move.types, defender.types, this.typeChart);
+      if (effectiveness === 0) {
+        this.write("It had no effect!");
+        return false;
+      }
+      const damage = Math.max(1, taken * 2);
+      this.applyDamage(attacker, defender, damage, move);
+      return true;
+    }
+
+    // Focus Punch is handled by performMove; if it reaches here it succeeds.
     const result = calculateDamage({
       attacker,
       defender,
-      move: actualMove,
+      move: finalMove,
       typeChart: this.typeChart,
       rng: Math.random,
       damageModifier: modified.damageModifier,
       attackerItem: this.getItem(attacker),
       defenderItem: this.getItem(defender),
       weather: this.weather,
-      terrain: this.terrain
+      terrain: this.terrain,
+      criticalOverride: finalMove.criticalOverride
     });
 
-    const savedBySash = this.handleItemBeforeDamage(defender, result.damage);
-    if (savedBySash) defender.hp = 1;
-    else defender.receiveDamage(result.damage);
-    this.update();
-
-    if (result.effectiveness === 0) {
-      this.write("It had no effect!");
-    } else if (result.effectiveness > 1) {
-      this.write("It's super effective!");
-    } else if (result.effectiveness < 1) {
-      this.write("It's not very effective...");
+    let hitCount = 1;
+    if (MULTI_HIT_MOVES.has(move.id)) {
+      if (move.id === "double-kick" || move.id === "dual-wingbeat") hitCount = 2;
+      else hitCount = 2 + Math.floor(Math.random() * 4); // Scale Shot: 2–5
     }
 
-    if (result.critical) this.write("A critical hit!");
-    if (result.damage > 0) this.write(`${result.damage} damage!`);
+    let totalDamage = 0;
+    let anyHit = false;
+    for (let i = 0; i < hitCount; i++) {
+      if (!attacker.canBattle() || !defender.canBattle()) break;
 
-    this.applyEffects(attacker, defender, actualMove);
-    for (const effect of actualMove.effects ?? []) {
-      if (effect.kind === "recoil" && result.damage > 0 && attacker.canBattle()) {
-        const recoil = Math.max(1, Math.floor(result.damage * (effect.percent ?? 1 / 3)));
+      const hitResult = i === 0 ? result : calculateDamage({
+        attacker,
+        defender,
+        move: finalMove,
+        typeChart: this.typeChart,
+        rng: Math.random,
+        damageModifier: modified.damageModifier,
+        attackerItem: this.getItem(attacker),
+        defenderItem: this.getItem(defender),
+        weather: this.weather,
+        terrain: this.terrain,
+        criticalOverride: finalMove.criticalOverride
+      });
+
+      if (hitResult.effectiveness === 0) {
+        if (i === 0) this.write("It had no effect!");
+        break;
+      }
+
+      let damage = hitResult.damage;
+      if (this.handleItemBeforeDamage(defender, damage)) damage = Math.max(0, defender.hp - 1);
+
+      const substitute = defender.volatile?.substitute ?? 0;
+      if (substitute > 0 && damage > 0) {
+        const absorbed = Math.min(substitute, damage);
+        defender.volatile.substitute -= absorbed;
+        damage = 0;
+        this.write(`${defender.name}'s Substitute took the hit!`);
+        if (defender.volatile.substitute <= 0) {
+          defender.volatile.substitute = 0;
+          this.write(`${defender.name}'s Substitute broke!`);
+        }
+      }
+
+      if (damage > 0) {
+        if (defender.volatile?.endure && damage >= defender.hp) {
+          damage = Math.max(0, defender.hp - 1);
+          this.write(`${defender.name} endured the hit!`);
+        }
+        defender.receiveDamage(damage);
+        totalDamage += damage;
+        this.turnContext.damageTaken.set(defender, (this.turnContext.damageTaken.get(defender) ?? 0) + damage);
+        if (finalMove.category === "physical") {
+          this.turnContext.physicalDamageTaken.set(defender, (this.turnContext.physicalDamageTaken.get(defender) ?? 0) + damage);
+        }
+        defender.volatile.lastDamageTaken = damage;
+      }
+
+      anyHit = true;
+
+      if (i === 0) {
+        if (hitResult.effectiveness > 1) this.write("It's super effective!");
+        else if (hitResult.effectiveness < 1) this.write("It's not very effective...");
+        if (hitResult.critical) this.write("A critical hit!");
+      }
+      if (damage > 0) this.write(`${damage} damage${hitCount > 1 ? ` (${i + 1}/${hitCount})` : ""}!`);
+
+      // Secondary effects only apply if the hit did not hit a Substitute.
+      const blockedBySubstitute = substitute > 0 && damage === 0;
+      if (hitResult.effectiveness !== 0) this.applySecondaryEffects(attacker, defender, finalMove, hitResult, blockedBySubstitute);
+      if (!defender.canBattle()) break;
+    }
+
+    if (!anyHit) return false;
+
+    // Recoil and draining use the actual damage dealt.
+    if (finalMove.id === "flare-blitz" || finalMove.id === "double-edge" || finalMove.id === "wild-charge" || finalMove.id === "take-down") {
+      const fraction = (finalMove.id === "wild-charge" || finalMove.id === "take-down") ? 0.25 : 1 / 3;
+      if (totalDamage > 0 && attacker.canBattle()) {
+        const recoil = Math.max(1, Math.floor(totalDamage * fraction));
         attacker.receiveDamage(recoil);
         this.write(`${attacker.name} was hurt by recoil!`);
       }
-      if (effect.kind === "drain" && result.damage > 0 && attacker.canBattle()) {
-        const heal = Math.max(1, Math.floor(result.damage * (effect.percent ?? 0.5)));
+    }
+    if (finalMove.id === "drain-punch" || finalMove.id === "parabolic-charge") {
+      if (totalDamage > 0 && attacker.canBattle()) {
+        const heal = Math.max(1, Math.floor(totalDamage * 0.5));
         attacker.hp = Math.min(attacker.maxHP, attacker.hp + heal);
         this.write(`${attacker.name} restored HP!`);
       }
     }
+
     this.handleItemAfterDamage(defender);
-    this.handleItemAfterAttack(attacker, result);
+    this.handleItemAfterAttack(attacker, { ...result, damage: totalDamage });
 
-    // Defensive abilities react after damage.
     this.triggerAbility(defender, "onDamageTaken", {
-      attacker,
-      defender,
-      move: actualMove,
-      damage: result.damage
+      attacker, defender, move: finalMove, damage: totalDamage
+    });
+    this.triggerAbility(attacker, "onDamageDealt", {
+      attacker, defender, move: finalMove, damage: totalDamage
     });
 
-    this.triggerAbility(attacker, "onDamageDealt", {
-      attacker,
-      defender,
-      move: actualMove,
-      damage: result.damage
-    });
+    // Moves that modify stats after dealing damage.
+    this.applyMovePostDamageEffects(attacker, defender, finalMove, totalDamage);
+
+    return true;
+  }
+
+  applyDamage(attacker, defender, damage, move) {
+    if (defender.volatile?.protected) {
+      this.write(`${defender.name} protected itself!`);
+      return;
+    }
+    const finalDamage = Math.max(0, Math.min(defender.hp, damage));
+    defender.receiveDamage(finalDamage);
+    this.turnContext.damageTaken.set(defender, (this.turnContext.damageTaken.get(defender) ?? 0) + finalDamage);
+    this.write(`${defender.name} took ${finalDamage} damage!`);
+    if (!defender.canBattle()) this.write(`${defender.name} fainted!`);
+  }
+
+  getEffectiveMove(attacker, defender, move) {
+    const actual = { ...move, effects: [...(move.effects ?? [])] };
+    if (move.id === "gust" && defender.volatile?.charging === "fly") actual.power = Number(actual.power ?? 40) * 2;
+    if (move.id === "facade" && ["Burn","Paralysis","Poison","Bad Poison"].includes(attacker.status)) actual.power = 140;
+    if (move.id === "acrobatics" && (!attacker.item || attacker.itemUsed)) actual.power = 110;
+    if (move.id === "temper-flare" && attacker.volatile?.lastMoveFailed) actual.power = 150;
+    if (move.id === "stomping-tantrum" && attacker.volatile?.lastMoveFailed) actual.power = 150;
+    if (move.id === "body-press") actual.damageStat = "defense";
+    actual.critStage = attacker.volatile?.critStage ?? 0;
+    if (move.id === "razor-leaf" || move.id === "shadow-claw") actual.critStage = Math.max(actual.critStage, 1);
+    return actual;
+  }
+
+  getMovePower(attacker, defender, move) {
+    if (move.id === "low-kick" || move.id === "heat-crash" || move.id === "heavy-slam") {
+      const aWeight = SPECIES_WEIGHTS_KG[attacker.speciesId] ?? 50;
+      const dWeight = SPECIES_WEIGHTS_KG[defender.speciesId] ?? 50;
+      if (move.id === "low-kick") {
+        if (dWeight < 10) return 20;
+        if (dWeight < 25) return 40;
+        if (dWeight < 50) return 60;
+        if (dWeight < 100) return 80;
+        if (dWeight < 200) return 100;
+        return 120;
+      }
+      const ratio = dWeight > 0 ? aWeight / dWeight : 1;
+      if (ratio >= 5) return 120;
+      if (ratio >= 4) return 100;
+      if (ratio >= 3) return 80;
+      if (ratio >= 2) return 60;
+      return 40;
+    }
+    if (move.id === "reversal") {
+      const ratio = attacker.hp / attacker.maxHP;
+      if (ratio >= 0.7) return 20;
+      if (ratio >= 0.35) return 40;
+      if (ratio >= 0.2) return 80;
+      if (ratio >= 0.1) return 100;
+      if (ratio >= 0.04) return 120;
+      return 150;
+    }
+    if (move.id === "facade" && ["Burn","Paralysis","Poison","Bad Poison"].includes(attacker.status)) return 140;
+    if (move.id === "acrobatics" && (!attacker.item || attacker.itemUsed)) return 110;
+    if (move.id === "temper-flare" && attacker.volatile?.lastMoveFailed) return 150;
+    if (move.id === "stomping-tantrum" && attacker.volatile?.lastMoveFailed) return 150;
+    return Number(move.power ?? 0);
+  }
+
+  applyMovePostDamageEffects(attacker, defender, move, totalDamage) {
+    if (!attacker.canBattle()) return;
+    if (move.id === "giga-impact" || move.id === "hyper-beam") attacker.volatile.recharge = true;
+    if (move.id === "u-turn" && defender.canBattle()) {
+      if (attacker === this.active("player")) {
+        attacker.volatile.pendingUturn = true;
+      } else {
+        // Remote player's U-turn: choose the first legal replacement on the host.
+        const next = this.opponent.team.findIndex((p, i) => i !== this.opponent.active && p.canBattle());
+        if (next >= 0) {
+          this.opponent.active = next;
+          this.write(`Opponent sent out ${this.active("opponent").name}!`);
+          this.triggerAbility(this.active("opponent"), "onBattleStart");
+        }
+      }
+    }
+    if (move.id === "dragon-tail" && defender.canBattle() && totalDamage > 0) this.tryOpponentSwitch(true);
+    if (move.id === "roar" && defender.canBattle()) this.tryOpponentSwitch(true);
+    if (move.id === "scale-shot" && totalDamage > 0) {
+      this.changeStage(attacker, "speed", 1);
+      this.changeStage(attacker, "defense", -1);
+    }
+    if (move.id === "double-kick" || move.id === "dual-wingbeat") {
+      // fixed two-hit moves have no additional effect
+    }
+  }
+
+  applySecondaryEffects(attacker, defender, move, hitResult, blockedBySubstitute = false) {
+    // Data-driven effects remain supported for moves whose special effects are
+    // declared in their JSON definitions.
+    for (const effect of move.effects ?? []) {
+      if (effect.kind === "status" && !blockedBySubstitute && Math.random() < (effect.chance ?? 1)) {
+        this.inflictStatus(defender, effect.status);
+      }
+      if (effect.kind === "stat_stage") {
+        const target = effect.target === "opponent" ? defender : attacker;
+        if (target === attacker || !blockedBySubstitute) this.changeStage(target, effect.stat, Number(effect.stages ?? 0));
+      }
+    }
+
+    if (!blockedBySubstitute && move.id === "body-slam" && Math.random() < 0.30) this.inflictStatus(defender, "Paralysis");
+    if (!blockedBySubstitute && move.id === "ember" && Math.random() < 0.10) this.inflictStatus(defender, "Burn");
+    if (!blockedBySubstitute && move.id === "fire-blast" && Math.random() < 0.10) this.inflictStatus(defender, "Burn");
+    if (!blockedBySubstitute && move.id === "heat-wave" && Math.random() < 0.10) this.inflictStatus(defender, "Burn");
+    if (!blockedBySubstitute && move.id === "fire-spin" && defender.canBattle() && defender.volatile.trapTurns <= 0) {
+      defender.volatile.trapTurns = 4 + Math.floor(Math.random() * 2);
+      defender.volatile.trapSource = attacker.speciesId;
+      this.write(`${defender.name} became trapped in fire!`);
+    }
+    if (!blockedBySubstitute && move.id === "fire-fang") {
+      if (Math.random() < 0.10) this.inflictStatus(defender, "Burn");
+      if (Math.random() < 0.10) defender.volatile.flinched = true;
+    }
+    if (!blockedBySubstitute && move.id === "ice-fang") {
+      if (Math.random() < 0.10) this.inflictStatus(defender, "Freeze");
+      if (Math.random() < 0.10) defender.volatile.flinched = true;
+    }
+    if (!blockedBySubstitute && move.id === "iron-head" && Math.random() < 0.30) defender.volatile.flinched = true;
+    if (!blockedBySubstitute && move.id === "rock-smash" && Math.random() < 0.50) this.changeStage(defender, "defense", -1);
+    if (!blockedBySubstitute && move.id === "thunder-fang") {
+      if (Math.random() < 0.10) this.inflictStatus(defender, "Paralysis");
+      if (Math.random() < 0.10) defender.volatile.flinched = true;
+    }
+    if (!blockedBySubstitute && move.id === "water-pulse" && Math.random() < 0.20) this.confuse(defender);
+    if (!blockedBySubstitute && move.id === "zen-headbutt" && Math.random() < 0.20) defender.volatile.flinched = true;
+    if (move.id === "ancient-power" && Math.random() < 0.10) {
+      for (const stat of ["attack","defense","specialAttack","specialDefense","speed"]) this.changeStage(attacker, stat, 1);
+    }
+    if (!blockedBySubstitute && move.id === "focus-blast" && Math.random() < 0.10) this.changeStage(defender, "specialDefense", -1);
+    if (!blockedBySubstitute && move.id === "crunch" && Math.random() < 0.20) this.changeStage(defender, "defense", -1);
+    if (!blockedBySubstitute && move.id === "breaking-swipe") this.changeStage(defender, "attack", -1);
+    if (!blockedBySubstitute && (move.id === "bulldoze" || move.id === "low-sweep" || move.id === "mud-shot")) this.changeStage(defender, "speed", -1);
+    if (!blockedBySubstitute && move.id === "mud-slap") this.changeStage(defender, "accuracy", -1);
+    if (!blockedBySubstitute && move.id === "snarl") this.changeStage(defender, "specialAttack", -1);
+    if (move.id === "flame-charge") this.changeStage(attacker, "speed", 1);
+    if (move.id === "draco-meteor" || move.id === "overheat") this.changeStage(attacker, "specialAttack", -2);
+  }
+
+  changeStage(pokemon, stat, stages) {
+    if (!pokemon?.statStages || pokemon.statStages[stat] === undefined || !stages) return false;
+    const old = pokemon.statStages[stat];
+    const next = Math.max(-6, Math.min(6, old + stages));
+    pokemon.statStages[stat] = next;
+    if (next === old) {
+      this.write(`${pokemon.name}'s ${stat} won't go any higher!`);
+      return false;
+    }
+    const word = stages > 0 ? "rose" : "fell";
+    const magnitude = Math.abs(stages);
+    this.write(`${pokemon.name}'s ${this.prettyStat(stat)} ${word}${magnitude > 1 ? ` ${magnitude} stages` : ""}!`);
+    return true;
+  }
+
+  prettyStat(stat) {
+    return String(stat).replace(/([A-Z])/g, " $1").toLowerCase();
+  }
+
+  inflictStatus(pokemon, status) {
+    if (!pokemon?.canBattle() || pokemon.status) return false;
+    if (pokemon.volatile?.substitute > 0) return false;
+    if (status === "Burn" && pokemon.types.includes("Fire")) return false;
+    if (status === "Paralysis" && pokemon.types.includes("Electric")) return false;
+    if (status === "Freeze" && pokemon.types.includes("Ice")) return false;
+    if (status === "Sleep" && pokemon.volatile?.uproarTurns > 0) return false;
+    pokemon.status = status;
+    pokemon.statusData = {};
+    if (status === "Sleep") pokemon.statusData.sleepTurns = 1 + Math.floor(Math.random() * 3);
+    if (status === "Bad Poison") pokemon.statusData.toxicTurns = 1;
+    this.write(`${pokemon.name} was afflicted with ${status}!`);
+    return true;
+  }
+
+  confuse(pokemon) {
+    if (!pokemon?.canBattle() || pokemon.volatile?.substitute > 0 || pokemon.volatile.confusedTurns > 0) return false;
+    pokemon.volatile.confusedTurns = 2 + Math.floor(Math.random() * 3);
+    this.write(`${pokemon.name} became confused!`);
+    return true;
   }
 
   applyAbilityMoveModifiers(attacker, defender, move) {
@@ -519,6 +1080,7 @@ export class Battle {
     const effect = this.getAbility(pokemon)?.effect;
     if (effect?.kind === "weather_and_stat_boost" && this.weather === effect.weather && effect.stat === stat) value = Math.floor(value * (effect.multiplier ?? 1));
     if (effect?.kind === "terrain_and_stat_boost" && this.terrain === effect.terrain && effect.stat === stat) value = Math.floor(value * (effect.multiplier ?? 1));
+    if (pokemon.status === "Paralysis" && stat === "speed") value = Math.floor(value * 0.5);
     return value;
   }
 
@@ -600,6 +1162,12 @@ export class Battle {
         pokemon.receiveDamage(damage);
         this.write(`${pokemon.name} was hurt by its ${pokemon.status.toLowerCase()}!`);
       }
+
+      if (pokemon.volatile?.trapTurns > 0 && pokemon.canBattle()) {
+        const damage = Math.max(1, Math.floor(pokemon.maxHP / 8));
+        pokemon.receiveDamage(damage);
+        this.write(`${pokemon.name} was hurt by the trapping flames!`);
+      }
     }
   }
 
@@ -631,12 +1199,14 @@ export class Battle {
     if ((effect.kind === "weather" || effect.kind === "weather_and_stat_boost") && trigger === "onBattleStart") {
       this.write(`${pokemon.name}'s ${ability.name} activated!`);
       this.weather = effect.weather;
+      this.weatherTurns = 5;
       this.write(`The weather became ${effect.weather}!`);
     }
 
     if ((effect.kind === "terrain" || effect.kind === "terrain_and_stat_boost") && trigger === "onBattleStart") {
       this.write(`${pokemon.name}'s ${ability.name} activated!`);
       this.terrain = effect.terrain;
+      this.terrainTurns = 5;
       this.write(`${effect.terrain} Terrain spread across the field!`);
     }
 
@@ -654,37 +1224,183 @@ export class Battle {
   }
 
   applyEffects(attacker, defender, move) {
-    for (const effect of move.effects ?? []) {
-      if (effect.kind === "heal") {
-        const amount = Math.floor(attacker.maxHP * (effect.percent ?? 0.5));
-        attacker.hp = Math.min(attacker.maxHP, attacker.hp + amount);
-        this.update();
-        this.write(`${attacker.name} recovered HP!`);
-      }
+    if (!move) return false;
 
-      if (effect.kind === "status" && !defender.status) {
-        if (Math.random() <= (effect.chance ?? 1)) {
-          defender.status = effect.status;
-          this.write(`${defender.name} was afflicted with ${effect.status}!`);
+    const targetMoves = new Set(["body-slam","breaking-swipe","bulldoze","brick-break","crunch","dragon-tail","growl","fire-fang","focus-blast","ice-fang","mud-shot","mud-slap","low-sweep","roar","rock-smash","scary-face","screech","snarl","taunt","thunder-fang","water-pulse","zen-headbutt"]);
+    if (defender?.volatile?.protected && targetMoves.has(move.id)) {
+      this.write(`${defender.name} protected itself!`);
+      return true;
+    }
+
+    switch (move.id) {
+      case "agility":
+        this.changeStage(attacker, "speed", 2); return true;
+      case "bulk-up":
+        this.changeStage(attacker, "attack", 1); this.changeStage(attacker, "defense", 1); return true;
+      case "dragon-cheer":
+        attacker.volatile.critStage = Math.min(3, (attacker.volatile.critStage ?? 0) + (attacker.types.includes("Dragon") ? 2 : 1));
+        this.write(`${attacker.name}'s critical-hit ratio rose!`);
+        return true;
+      case "endure": {
+        const streak = attacker.volatile.protectStreak ?? 0;
+        const chance = Math.pow(1 / 3, streak);
+        if (Math.random() >= chance) {
+          attacker.volatile.protectStreak = 0;
+          this.write(`${attacker.name}'s Endure failed!`);
+          return false;
         }
+        attacker.volatile.endure = true;
+        attacker.volatile.protectStreak = streak + 1;
+        this.write(`${attacker.name} braced itself!`);
+        return true;
       }
-      if (effect.kind === "stat_stage") {
-        const target = effect.target === "opponent" ? defender : attacker;
-        if (target?.statStages?.[effect.stat] !== undefined) {
-          target.statStages[effect.stat] = Math.max(-6, Math.min(6, target.statStages[effect.stat] + Number(effect.stages ?? 0)));
-          const direction = Number(effect.stages ?? 0) > 0 ? "rose" : "fell";
-          this.write(`${target.name}'s ${String(effect.stat).replace(/([A-Z])/g, " $1").toLowerCase()} ${direction}!`);
+      case "protect": {
+        const streak = attacker.volatile.protectStreak ?? 0;
+        const chance = Math.pow(1 / 3, streak);
+        if (Math.random() >= chance) {
+          attacker.volatile.protectStreak = 0;
+          this.write(`${attacker.name}'s Protect failed!`);
+          return false;
         }
+        attacker.volatile.protected = true;
+        attacker.volatile.protectStreak = streak + 1;
+        this.write(`${attacker.name} protected itself!`);
+        return true;
       }
+      case "growl":
+        this.changeStage(defender, "attack", -1); return true;
+      case "scary-face":
+        this.changeStage(defender, "speed", -2); return true;
+      case "screech":
+        this.changeStage(defender, "defense", -2); return true;
+      case "swords-dance":
+        this.changeStage(attacker, "attack", 2); return true;
+      case "sunny-day":
+        this.weather = "Sun";
+        this.weatherTurns = 5;
+        this.write("The sunlight turned harsh!");
+        return true;
+      case "taunt":
+        if (defender.volatile.tauntTurns > 0) {
+          this.write(`${defender.name} is already taunted!`);
+          return false;
+        }
+        defender.volatile.tauntTurns = 3;
+        this.write(`${defender.name} fell for the taunt!`);
+        return true;
+      case "substitute": {
+        if (attacker.volatile.substitute > 0) {
+          this.write(`${attacker.name} already has a Substitute!`);
+          return false;
+        }
+        const cost = Math.max(1, Math.floor(attacker.maxHP / 4));
+        if (attacker.hp <= cost) {
+          this.write(`${attacker.name} does not have enough HP to make a Substitute!`);
+          return false;
+        }
+        attacker.hp -= cost;
+        attacker.volatile.substitute = cost;
+        this.write(`${attacker.name} put in a Substitute!`);
+        return true;
+      }
+      case "rest":
+        if (this.active("player")?.volatile?.uproarTurns > 0 || this.active("opponent")?.volatile?.uproarTurns > 0) {
+          this.write("The uproar prevented Rest!");
+          return false;
+        }
+        if (attacker.hp === attacker.maxHP && attacker.status !== "Sleep") {
+          this.write(`${attacker.name} is already at full HP!`);
+          return false;
+        }
+        attacker.hp = attacker.maxHP;
+        attacker.status = "Sleep";
+        attacker.statusData = { sleepTurns: 2 };
+        this.write(`${attacker.name} went to sleep and restored its HP!`);
+        return true;
+      case "roost":
+        if (attacker.hp === attacker.maxHP) {
+          this.write(`${attacker.name} is already at full HP!`);
+          return false;
+        }
+        attacker.hp = Math.min(attacker.maxHP, attacker.hp + Math.floor(attacker.maxHP / 2));
+        if (attacker.types.includes("Flying")) {
+          attacker.types = attacker.types.filter(t => t !== "Flying");
+          attacker.volatile.roosted = true;
+        }
+        this.write(`${attacker.name} restored HP!`);
+        return true;
+      case "meteor-beam":
+        // First use charges and raises Sp. Atk; the second use is the attack.
+        if (attacker.volatile.charging !== "meteor-beam") {
+          attacker.volatile.charging = "meteor-beam";
+          this.changeStage(attacker, "specialAttack", 1);
+          this.write(`${attacker.name} began charging Meteor Beam!`);
+          return false;
+        }
+        attacker.volatile.charging = null;
+        return true;
+      case "solar-beam":
+        return true;
+      case "roar":
+        if (!this.tryOpponentSwitch(true)) {
+          this.write(`${defender.name} has no Pokémon left to switch to!`);
+          return false;
+        }
+        return true;
+      case "helping-hand":
+        // This is a single-battle engine, so there is no ally target.
+        this.write(`${attacker.name} tried to use Helping Hand, but it has no ally!`);
+        return false;
+      case "sleep-talk":
+        return true;
+      case "uproar":
+        attacker.volatile.uproarTurns = 3;
+        this.write(`${attacker.name} caused an uproar!`);
+        return true;
+      default:
+        // Legacy effect data remains supported for simple healing/status/stage effects.
+        for (const effect of move.effects ?? []) {
+          if (effect.kind === "heal") {
+            const amount = Math.floor(attacker.maxHP * (effect.percent ?? 0.5));
+            attacker.hp = Math.min(attacker.maxHP, attacker.hp + amount);
+            this.write(`${attacker.name} recovered HP!`);
+          }
+          if (effect.kind === "status") {
+            if (Math.random() < (effect.chance ?? 1)) this.inflictStatus(defender, effect.status);
+          }
+          if (effect.kind === "stat_stage") {
+            const target = effect.target === "opponent" ? defender : attacker;
+            this.changeStage(target, effect.stat, Number(effect.stages ?? 0));
+          }
+        }
+        return true;
     }
   }
 
-  tryOpponentSwitch() {
+  resetOnSwitch(pokemon) {
+    if (!pokemon) return;
+    pokemon.statStages = { attack: 0, defense: 0, specialAttack: 0, specialDefense: 0, speed: 0, accuracy: 0, evasion: 0 };
+    const v = pokemon.volatile || {};
+    for (const key of ["protected","endure","substitute","charging","recharge","focusPunch","focusPunchHit","confusedTurns","flinched","tauntTurns","trapTurns","trapSource","outrageTurns","uproarTurns","pendingUturn","roosted","protectStreak","critStage","lastMove","lastMoveFailed","lastDamageTaken"]) {
+      if (key === "substitute" || key.endsWith("Turns") || key === "lastDamageTaken") v[key] = 0;
+      else if (key === "trapSource" || key === "lastMove") v[key] = null;
+      else v[key] = false;
+    }
+    pokemon.types = [...(pokemon.originalTypes || pokemon.types)];
+  }
+
+  tryOpponentSwitch(force = false) {
+    const current = this.active("opponent");
+    if (!force && current?.volatile?.trapTurns > 0) {
+      this.write(`${current.name} can't switch out because it is trapped!`);
+      return false;
+    }
     const next = this.opponent.team.findIndex(
       (p, i) => i !== this.opponent.active && p.canBattle()
     );
     if (next === -1) return false;
 
+    this.resetOnSwitch(current);
     this.opponent.active = next;
     const pokemon = this.active("opponent");
     this.write(`Opponent sent out ${pokemon.name}!`);
@@ -714,6 +1430,11 @@ export class Battle {
 
     const forced = this.awaitingPlayerSwitch;
 
+    if (!forced && this.active("player")?.volatile?.trapTurns > 0) {
+      this.write(`${this.active("player").name} can't switch out because it is trapped!`);
+      return false;
+    }
+
     // Normal switching cannot happen while an action is in progress.
     if (!forced && (this.busy || this.locked)) return false;
 
@@ -728,6 +1449,7 @@ export class Battle {
 
     await this.pause(500);
 
+    this.resetOnSwitch(this.active("player"));
     this.player.active = index;
     this.awaitingPlayerSwitch = false;
 
@@ -739,6 +1461,23 @@ export class Battle {
     // A forced switch happens after the fainted Pokémon's turn is over.
     // The opponent does not get an extra move just because the player switched.
     if (forced) {
+      if (this.awaitingUturnSwitch) {
+        this.awaitingUturnSwitch = false;
+        this.busy = true;
+        this.locked = true;
+        const opponent = this.active("opponent");
+        const opponentMove = opponent.canBattle() ? this.chooseOpponentMove() : null;
+        if (opponentMove) {
+          await this.pause(500);
+          await this.performMove(opponent, this.active("player"), opponentMove);
+        }
+        if (!this.active("player").canBattle()) {
+          await this.handlePlayerFaint();
+          return true;
+        }
+        this.finishActionTurn();
+        return true;
+      }
       this.applyEndTurnStatus();
       this.applyEndTurnItems();
       this.busy = false;
