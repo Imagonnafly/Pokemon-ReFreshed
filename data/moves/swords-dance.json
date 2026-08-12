@@ -2,7 +2,7 @@
   "id": "swords-dance",
   "name": "Swords Dance",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "status",
   "power": 0,

@@ -2,7 +2,7 @@
   "id": "scary-face",
   "name": "Scary Face",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "status",
   "power": 0,

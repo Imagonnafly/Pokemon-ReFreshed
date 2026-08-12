@@ -2,7 +2,7 @@
   "id": "dual-wingbeat",
   "name": "Dual Wingbeat",
   "types": [
-    "Flying"
+    "Air"
   ],
   "category": "physical",
   "power": 40,

@@ -2,7 +2,7 @@
   "id": "sleep-talk",
   "name": "Sleep Talk",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "status",
   "power": 0,

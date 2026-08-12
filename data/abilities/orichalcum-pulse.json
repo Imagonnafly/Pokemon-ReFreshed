@@ -2,10 +2,10 @@
   "id": "orichalcum-pulse",
   "name": "Orichalcum Pulse",
   "effect": {
-    "kind": "weather_and_stat_boost",
-    "weather": "Sun",
+    "kind": "field_and_stat_boost",
     "stat": "attack",
-    "multiplier": 1.3
+    "multiplier": 1.3,
+    "field": "Inferno"
   },
-  "description": "Summons harsh sunlight when Koraidon enters battle and boosts its Attack in sunlight."
+  "description": "Creates the Inferno field when Koraidon enters battle and boosts its Attack while it lasts."
 }

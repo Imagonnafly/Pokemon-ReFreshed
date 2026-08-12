@@ -2,7 +2,7 @@
   "id": "mud-shot",
   "name": "Mud Shot",
   "types": [
-    "Ground"
+    "Earth"
   ],
   "category": "special",
   "power": 55,

@@ -2,8 +2,8 @@
   "id": "dragonite",
   "name": "Dragonite",
   "types": [
-    "Dragon",
-    "Flying"
+    "Cosmos",
+    "Air"
   ],
   "baseStats": {
     "hp": 91,

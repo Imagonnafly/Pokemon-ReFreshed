@@ -2,7 +2,7 @@
   "id": "collision-course",
   "name": "Collision Course",
   "types": [
-    "Fighting"
+    "Earth"
   ],
   "category": "physical",
   "power": 100,

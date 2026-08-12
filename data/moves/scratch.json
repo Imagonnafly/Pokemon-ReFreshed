@@ -2,7 +2,7 @@
   "id": "scratch",
   "name": "Scratch",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "physical",
   "power": 40,

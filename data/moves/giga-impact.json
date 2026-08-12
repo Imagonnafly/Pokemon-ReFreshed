@@ -2,7 +2,7 @@
   "id": "giga-impact",
   "name": "Giga Impact",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "physical",
   "power": 150,

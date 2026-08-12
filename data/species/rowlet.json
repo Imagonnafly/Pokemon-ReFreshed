@@ -1,8 +1,8 @@
 {
   "name": "Rowlet",
   "types": [
-    "Grass",
-    "Flying"
+    "Nature",
+    "Air"
   ],
   "abilities": [
     "overgrow",

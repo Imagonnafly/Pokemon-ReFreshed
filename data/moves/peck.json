@@ -2,7 +2,7 @@
   "id": "peck",
   "name": "Peck",
   "types": [
-    "Flying"
+    "Air"
   ],
   "category": "physical",
   "power": 35,

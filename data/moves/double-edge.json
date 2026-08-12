@@ -2,7 +2,7 @@
   "id": "double-edge",
   "name": "Double-Edge",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "physical",
   "power": 120,

@@ -19,6 +19,13 @@ const CHARGE_MOVES = new Set(["dig","fly","meteor-beam","solar-beam"]);
 const RECHARGE_MOVES = new Set(["giga-impact","hyper-beam"]);
 const MULTI_HIT_MOVES = new Set(["double-kick","dual-wingbeat","scale-shot"]);
 const CONTACT_STATUS = new Set(["body-slam","ember","fire-blast","fire-fang","flamethrower","flare-blitz","ice-fang","iron-head","rock-smash","thunder-fang","thunderbolt","water-pulse","zen-headbutt"]);
+const LEGACY_STATUS_MAP = {
+  "Burn": "Scorch",
+  "Paralysis": "Shocked",
+  "Freeze": "Frostbite",
+  "Poison": "Haunted",
+  "Bad Poison": "Haunted"
+};
 
 
 export class Battle {
@@ -29,10 +36,8 @@ export class Battle {
     this.localMoveSubmitted = false;
     this.remoteMoveSubmitted = false;
     this.typeChart = data.types.chart;
-    this.weather = null;
-    this.terrain = null;
-    this.weatherTurns = 0;
-    this.terrainTurns = 0;
+    this.field = null;
+    this.fieldTurns = 0;
     this.species = data.species;
     this.movesData = data.moves;
     this.abilitiesData = data.abilities ?? [];
@@ -388,19 +393,22 @@ export class Battle {
     return selected;
   }
 
-  getMovePriority(move) {
+  getMovePriority(move, pokemon = null) {
     if (!move) return 0;
     const builtIn = {
       "protect": 4, "endure": 4, "helping-hand": 5,
       "aqua-jet": 1, "quick-attack": 1,
       "counter": -5, "focus-punch": -3, "roar": -6, "dragon-tail": -6
     };
-    return Number(move.priority ?? builtIn[move.id] ?? 0);
+    let priority = Number(move.priority ?? builtIn[move.id] ?? 0);
+    const statusPenalty = this.getStatusDef(pokemon)?.statusEffect?.priorityPenalty ?? 0;
+    const fieldPenalty = this.getFieldDef()?.priorityPenalty ?? 0;
+    return priority - Number(statusPenalty) - Number(fieldPenalty);
   }
 
   getTurnOrder(player, playerMove, opponent, opponentMove) {
-    const playerPriority = this.getMovePriority(playerMove);
-    const opponentPriority = this.getMovePriority(opponentMove);
+    const playerPriority = this.getMovePriority(playerMove, player);
+    const opponentPriority = this.getMovePriority(opponentMove, opponent);
 
     if (playerPriority !== opponentPriority) {
       return playerPriority > opponentPriority ? "player" : "opponent";
@@ -422,8 +430,8 @@ export class Battle {
       return `${player.name} is faster and will move first!`;
     }
 
-    const playerPriority = this.getMovePriority(playerMove);
-    const opponentPriority = this.getMovePriority(opponentMove);
+    const playerPriority = this.getMovePriority(playerMove, player);
+    const opponentPriority = this.getMovePriority(opponentMove, opponent);
 
     if (playerPriority !== opponentPriority) {
       const faster = first === "player" ? player.name : opponent.name;
@@ -451,7 +459,7 @@ export class Battle {
       (attacker.volatile?.uproarTurns > 0 && move.id === "uproar");
     if (!continuation) move.pp = Math.max(0, (move.pp ?? 1) - 1);
 
-    // Flinch, paralysis, sleep, freeze and recharge are checked at action time.
+    // Flinch, type-status action restrictions, sleep and recharge are checked at action time.
     if (attacker.volatile?.flinched) {
       attacker.volatile.flinched = false;
       this.write(`${attacker.name} flinched and couldn't move!`);
@@ -461,21 +469,24 @@ export class Battle {
       return;
     }
 
-    if (attacker.status === "Paralysis" && Math.random() < 0.25) {
-      this.write(`${attacker.name} is paralyzed! It can't move!`);
+    const attackerStatusDef = this.getStatusDef(attacker);
+    const attackerStatusEffect = attackerStatusDef?.statusEffect || {};
+
+    if (attackerStatusEffect.actionFailChance && Math.random() < attackerStatusEffect.actionFailChance) {
+      this.write(`${attacker.name} is ${String(attacker.status).toLowerCase()} and couldn't move!`);
       attacker.volatile.lastMove = move.id;
       attacker.volatile.lastMoveFailed = true;
       this.turnContext.moveFailed.set(attacker, true);
       return;
     }
 
-    if (attacker.status === "Freeze") {
+    if (attacker.status === "Frostbite") {
       if (Math.random() < 0.2 || ["flare-blitz","fire-blast","flamethrower","fire-fang","ember","heat-wave","overheat","flame-charge","temper-flare"].includes(move.id)) {
         attacker.status = null;
         attacker.statusData = {};
         this.write(`${attacker.name} thawed out!`);
       } else {
-        this.write(`${attacker.name} is frozen solid!`);
+        this.write(`${attacker.name} is frostbitten solid!`);
         this.turnContext.moveFailed.set(attacker, true);
         return;
       }
@@ -506,7 +517,7 @@ export class Battle {
       if (Math.random() < 1 / 3) {
         const selfDamage = Math.max(1, Math.floor(calculateDamage({
           attacker, defender: attacker,
-          move: { ...move, types: ["Normal"], category: "physical", power: 40 },
+          move: { ...move, types: ["Time"], category: "physical", power: 40 },
           typeChart: this.typeChart,
           rng: Math.random
         }).damage));
@@ -530,7 +541,7 @@ export class Battle {
 
     // Two-turn moves: the first action charges, the second action attacks.
     if (CHARGE_MOVES.has(move.id) && attacker.volatile?.charging !== move.id) {
-      const sunny = this.weather === "Sun";
+      const sunny = this.field === "Inferno";
       if (move.id === "solar-beam" && sunny) {
         // Sun removes Solar Beam's charge turn.
       } else {
@@ -603,18 +614,11 @@ export class Battle {
     this.applyEndTurnStatus();
     this.applyEndTurnItems();
 
-    if (this.weatherTurns > 0) {
-      this.weatherTurns -= 1;
-      if (this.weatherTurns <= 0) {
-        this.weather = null;
-        this.write("The weather returned to normal.");
-      }
-    }
-    if (this.terrainTurns > 0) {
-      this.terrainTurns -= 1;
-      if (this.terrainTurns <= 0) {
-        this.terrain = null;
-        this.write("The terrain returned to normal.");
+    if (this.fieldTurns > 0) {
+      this.fieldTurns -= 1;
+      if (this.fieldTurns <= 0) {
+        this.field = null;
+        this.write("The battlefield returned to normal.");
       }
     }
 
@@ -743,8 +747,11 @@ export class Battle {
       damageModifier: modified.damageModifier,
       attackerItem: this.getItem(attacker),
       defenderItem: this.getItem(defender),
-      weather: this.weather,
-      terrain: this.terrain,
+      weather: this.field,
+      terrain: this.field,
+      field: this.field,
+      statusEffects: this.data.types?.statuses,
+      fieldEffects: this.data.types?.fields,
       criticalOverride: finalMove.criticalOverride
     });
 
@@ -768,8 +775,11 @@ export class Battle {
         damageModifier: modified.damageModifier,
         attackerItem: this.getItem(attacker),
         defenderItem: this.getItem(defender),
-        weather: this.weather,
-        terrain: this.terrain,
+        weather: this.field,
+        terrain: this.field,
+        field: this.field,
+        statusEffects: this.data.types?.statuses,
+        fieldEffects: this.data.types?.fields,
         criticalOverride: finalMove.criticalOverride
       });
 
@@ -872,7 +882,7 @@ export class Battle {
   getEffectiveMove(attacker, defender, move) {
     const actual = { ...move, effects: [...(move.effects ?? [])] };
     if (move.id === "gust" && defender.volatile?.charging === "fly") actual.power = Number(actual.power ?? 40) * 2;
-    if (move.id === "facade" && ["Burn","Paralysis","Poison","Bad Poison"].includes(attacker.status)) actual.power = 140;
+    if (move.id === "facade" && ["Scorch","Shocked","Frostbite","Soaked","Fractured","Winded","Entangled","Rusted","Dazzled","Weakened","Confounded","Haunted","Starstruck","Time-Lagged"].includes(attacker.status)) actual.power = 140;
     if (move.id === "acrobatics" && (!attacker.item || attacker.itemUsed)) actual.power = 110;
     if (move.id === "temper-flare" && attacker.volatile?.lastMoveFailed) actual.power = 150;
     if (move.id === "stomping-tantrum" && attacker.volatile?.lastMoveFailed) actual.power = 150;
@@ -910,7 +920,7 @@ export class Battle {
       if (ratio >= 0.04) return 120;
       return 150;
     }
-    if (move.id === "facade" && ["Burn","Paralysis","Poison","Bad Poison"].includes(attacker.status)) return 140;
+    if (move.id === "facade" && ["Scorch","Shocked","Frostbite","Soaked","Fractured","Winded","Entangled","Rusted","Dazzled","Weakened","Confounded","Haunted","Starstruck","Time-Lagged"].includes(attacker.status)) return 140;
     if (move.id === "acrobatics" && (!attacker.item || attacker.itemUsed)) return 110;
     if (move.id === "temper-flare" && attacker.volatile?.lastMoveFailed) return 150;
     if (move.id === "stomping-tantrum" && attacker.volatile?.lastMoveFailed) return 150;
@@ -949,7 +959,7 @@ export class Battle {
     // declared in their JSON definitions.
     for (const effect of move.effects ?? []) {
       if (effect.kind === "status" && !blockedBySubstitute && Math.random() < (effect.chance ?? 1)) {
-        this.inflictStatus(defender, effect.status);
+        this.inflictStatus(defender, effect.status, `${attacker.name}'s ${move.name}`);
       }
       if (effect.kind === "stat_stage") {
         const target = effect.target === "opponent" ? defender : attacker;
@@ -957,29 +967,30 @@ export class Battle {
       }
     }
 
-    if (!blockedBySubstitute && move.id === "body-slam" && Math.random() < 0.30) this.inflictStatus(defender, "Paralysis");
-    if (!blockedBySubstitute && move.id === "ember" && Math.random() < 0.10) this.inflictStatus(defender, "Burn");
-    if (!blockedBySubstitute && move.id === "fire-blast" && Math.random() < 0.10) this.inflictStatus(defender, "Burn");
-    if (!blockedBySubstitute && move.id === "heat-wave" && Math.random() < 0.10) this.inflictStatus(defender, "Burn");
+    // Statuses and battlefield fields are intentionally independent.
+    // A move only inflicts a status when that move explicitly declares a
+    // status effect. A move only changes the battlefield when it explicitly
+    // declares a field effect (or when a dedicated ability does so).
+    // There is NO generic "move type -> status" chance and a status never
+    // creates a battlefield field.
+    for (const effect of move.effects ?? []) {
+      if (effect.kind === "field" && !blockedBySubstitute) {
+        const field = effect.field || effect.name;
+        if (field) this.setField(field, Number(effect.duration ?? 5), `${attacker.name}'s ${move.name}`);
+      }
+    }
+
+    if (!blockedBySubstitute && move.id === "body-slam" && Math.random() < 0.30) this.inflictStatus(defender, "Shocked", `${attacker.name}'s Body Slam`);
     if (!blockedBySubstitute && move.id === "fire-spin" && defender.canBattle() && defender.volatile.trapTurns <= 0) {
       defender.volatile.trapTurns = 4 + Math.floor(Math.random() * 2);
       defender.volatile.trapSource = attacker.speciesId;
       this.write(`${defender.name} became trapped in fire!`);
     }
-    if (!blockedBySubstitute && move.id === "fire-fang") {
-      if (Math.random() < 0.10) this.inflictStatus(defender, "Burn");
-      if (Math.random() < 0.10) defender.volatile.flinched = true;
-    }
-    if (!blockedBySubstitute && move.id === "ice-fang") {
-      if (Math.random() < 0.10) this.inflictStatus(defender, "Freeze");
-      if (Math.random() < 0.10) defender.volatile.flinched = true;
-    }
+    if (!blockedBySubstitute && move.id === "fire-fang" && Math.random() < 0.10) defender.volatile.flinched = true;
+    if (!blockedBySubstitute && move.id === "ice-fang" && Math.random() < 0.10) defender.volatile.flinched = true;
     if (!blockedBySubstitute && move.id === "iron-head" && Math.random() < 0.30) defender.volatile.flinched = true;
     if (!blockedBySubstitute && move.id === "rock-smash" && Math.random() < 0.50) this.changeStage(defender, "defense", -1);
-    if (!blockedBySubstitute && move.id === "thunder-fang") {
-      if (Math.random() < 0.10) this.inflictStatus(defender, "Paralysis");
-      if (Math.random() < 0.10) defender.volatile.flinched = true;
-    }
+    if (!blockedBySubstitute && move.id === "thunder-fang" && Math.random() < 0.10) defender.volatile.flinched = true;
     if (!blockedBySubstitute && move.id === "water-pulse" && Math.random() < 0.20) this.confuse(defender);
     if (!blockedBySubstitute && move.id === "zen-headbutt" && Math.random() < 0.20) defender.volatile.flinched = true;
     if (move.id === "ancient-power" && Math.random() < 0.10) {
@@ -1014,18 +1025,28 @@ export class Battle {
     return String(stat).replace(/([A-Z])/g, " $1").toLowerCase();
   }
 
-  inflictStatus(pokemon, status) {
+  inflictStatus(pokemon, status, source = null) {
+    status = LEGACY_STATUS_MAP[status] || status;
     if (!pokemon?.canBattle() || pokemon.status) return false;
     if (pokemon.volatile?.substitute > 0) return false;
-    if (status === "Burn" && pokemon.types.includes("Fire")) return false;
-    if (status === "Paralysis" && pokemon.types.includes("Electric")) return false;
-    if (status === "Freeze" && pokemon.types.includes("Ice")) return false;
-    if (status === "Sleep" && pokemon.volatile?.uproarTurns > 0) return false;
+
+    const def = this.getStatusDef(status);
+    if (!def) return false;
+
+    const statusEffect = def.statusEffect || {};
+    const immuneType = def.immuneType || Object.entries(this.data.types?.statuses || {}).find(([, d]) => d?.status === status)?.[0];
+    if (immuneType && pokemon.types.includes(immuneType)) {
+      this.write(`${pokemon.name} is immune to ${status}!`);
+      return false;
+    }
+
     pokemon.status = status;
-    pokemon.statusData = {};
-    if (status === "Sleep") pokemon.statusData.sleepTurns = 1 + Math.floor(Math.random() * 3);
-    if (status === "Bad Poison") pokemon.statusData.toxicTurns = 1;
+    pokemon.statusData = { turns: 0 };
+
     this.write(`${pokemon.name} was afflicted with ${status}!`);
+    // Status conditions affect the individual Pokémon only. They NEVER
+    // create or change the battlefield field. Fields must be created by an
+    // explicit move effect or an ability.
     return true;
   }
 
@@ -1075,13 +1096,45 @@ export class Battle {
     return this.itemsData.find(i => i.id === pokemon.item) ?? null;
   }
 
+  getStatusDef(pokemonOrStatus) {
+    const raw = typeof pokemonOrStatus === "string" ? pokemonOrStatus : pokemonOrStatus?.status;
+    const status = LEGACY_STATUS_MAP[raw] || raw;
+    if (!status) return null;
+    return Object.values(this.data.types?.statuses || {}).find(def => def?.status === status) || null;
+  }
+
+  getFieldDef(field = this.field) {
+    if (!field) return null;
+    return Object.values(this.data.types?.fields || {}).find(def => def?.name === field) || null;
+  }
+
+  setField(field, turns = 5, source = null) {
+    const def = this.getFieldDef(field);
+    if (!def) return false;
+    this.field = def.name;
+    this.fieldTurns = turns;
+    this.write(`${source ? `${source} caused ` : "The field became "}${def.name}!`);
+    return true;
+  }
+
   getStat(pokemon, stat) {
     let value = getBattleStat(pokemon, stat, this.getItem(pokemon));
     const effect = this.getAbility(pokemon)?.effect;
-    if (effect?.kind === "weather_and_stat_boost" && this.weather === effect.weather && effect.stat === stat) value = Math.floor(value * (effect.multiplier ?? 1));
-    if (effect?.kind === "terrain_and_stat_boost" && this.terrain === effect.terrain && effect.stat === stat) value = Math.floor(value * (effect.multiplier ?? 1));
-    if (pokemon.status === "Paralysis" && stat === "speed") value = Math.floor(value * 0.5);
-    return value;
+    const abilityField = effect?.field || effect?.weather || effect?.terrain;
+    if ((effect?.kind === "field_and_stat_boost" || effect?.kind === "weather_and_stat_boost" || effect?.kind === "terrain_and_stat_boost") &&
+        this.field === abilityField && effect.stat === stat) {
+      value = Math.floor(value * (effect.multiplier ?? 1));
+    }
+
+    const statusDef = this.getStatusDef(pokemon);
+    const statusEffect = statusDef?.statusEffect || {};
+    if (statusEffect[`${stat}Multiplier`]) value = Math.floor(value * statusEffect[`${stat}Multiplier`]);
+    if (statusEffect.speedMultiplier && stat === "speed") value = Math.floor(value * statusEffect.speedMultiplier);
+
+    const fieldDef = this.getFieldDef();
+    const fieldBoost = fieldDef?.statBoost?.[pokemon.types?.find(t => fieldDef?.statBoost?.[t])]?.[stat];
+    if (fieldBoost) value = Math.floor(value * fieldBoost);
+    return Math.max(1, value);
   }
 
   consumeItem(pokemon) {
@@ -1093,7 +1146,7 @@ export class Battle {
   }
 
   checkAccuracy(attacker, defender, move) {
-    const accuracy = calculateAccuracy(attacker, defender, move);
+    const accuracy = calculateAccuracy(attacker, defender, move, this.data.types?.statuses);
     if (accuracy >= 100) return true;
     if (Math.random() * 100 < accuracy) return true;
     this.write(`${attacker.name}'s ${move.name} missed!`);
@@ -1148,20 +1201,17 @@ export class Battle {
       const pokemon = this.active(side);
       if (!pokemon?.canBattle() || !pokemon.status) continue;
 
-      let percent = 0;
-      if (pokemon.status === "Burn") percent = 1 / 16;
-      if (pokemon.status === "Poison") percent = 1 / 8;
-      if (pokemon.status === "Bad Poison") {
-        const turns = Math.max(1, pokemon.statusData.toxicTurns ?? 1);
-        percent = Math.min(15, turns) / 16;
-        pokemon.statusData.toxicTurns = turns + 1;
-      }
+      const def = this.getStatusDef(pokemon);
+      const effect = def?.statusEffect || {};
+      const percent = Number(effect.endTurnDamage ?? 0);
 
       if (percent > 0) {
         const damage = Math.max(1, Math.floor(pokemon.maxHP * percent));
         pokemon.receiveDamage(damage);
-        this.write(`${pokemon.name} was hurt by its ${pokemon.status.toLowerCase()}!`);
+        this.write(`${pokemon.name} was hurt by ${pokemon.status}!`);
       }
+
+      if (pokemon.statusData) pokemon.statusData.turns = (pokemon.statusData.turns ?? 0) + 1;
 
       if (pokemon.volatile?.trapTurns > 0 && pokemon.canBattle()) {
         const damage = Math.max(1, Math.floor(pokemon.maxHP / 8));
@@ -1196,18 +1246,12 @@ export class Battle {
       this.write(`${pokemon.name}'s ${ability.name} activated!`);
     }
 
-    if ((effect.kind === "weather" || effect.kind === "weather_and_stat_boost") && trigger === "onBattleStart") {
+    if ((effect.kind === "field" || effect.kind === "field_and_stat_boost" ||
+         effect.kind === "weather" || effect.kind === "weather_and_stat_boost" ||
+         effect.kind === "terrain" || effect.kind === "terrain_and_stat_boost") && trigger === "onBattleStart") {
       this.write(`${pokemon.name}'s ${ability.name} activated!`);
-      this.weather = effect.weather;
-      this.weatherTurns = 5;
-      this.write(`The weather became ${effect.weather}!`);
-    }
-
-    if ((effect.kind === "terrain" || effect.kind === "terrain_and_stat_boost") && trigger === "onBattleStart") {
-      this.write(`${pokemon.name}'s ${ability.name} activated!`);
-      this.terrain = effect.terrain;
-      this.terrainTurns = 5;
-      this.write(`${effect.terrain} Terrain spread across the field!`);
+      const field = effect.field || effect.weather || effect.terrain;
+      if (field) this.setField(field, 5, `${pokemon.name}'s ${ability.name}`);
     }
 
     if (effect.kind === "heal_on_entry" && trigger === "onBattleStart") {
@@ -1238,7 +1282,7 @@ export class Battle {
       case "bulk-up":
         this.changeStage(attacker, "attack", 1); this.changeStage(attacker, "defense", 1); return true;
       case "dragon-cheer":
-        attacker.volatile.critStage = Math.min(3, (attacker.volatile.critStage ?? 0) + (attacker.types.includes("Dragon") ? 2 : 1));
+        attacker.volatile.critStage = Math.min(3, (attacker.volatile.critStage ?? 0) + (attacker.types.includes("Cosmos") ? 2 : 1));
         this.write(`${attacker.name}'s critical-hit ratio rose!`);
         return true;
       case "endure": {
@@ -1276,9 +1320,7 @@ export class Battle {
       case "swords-dance":
         this.changeStage(attacker, "attack", 2); return true;
       case "sunny-day":
-        this.weather = "Sun";
-        this.weatherTurns = 5;
-        this.write("The sunlight turned harsh!");
+        this.setField("Inferno", 5, attacker.name);
         return true;
       case "taunt":
         if (defender.volatile.tauntTurns > 0) {
@@ -1323,8 +1365,8 @@ export class Battle {
           return false;
         }
         attacker.hp = Math.min(attacker.maxHP, attacker.hp + Math.floor(attacker.maxHP / 2));
-        if (attacker.types.includes("Flying")) {
-          attacker.types = attacker.types.filter(t => t !== "Flying");
+        if (attacker.types.includes("Air")) {
+          attacker.types = attacker.types.filter(t => t !== "Air");
           attacker.volatile.roosted = true;
         }
         this.write(`${attacker.name} restored HP!`);
@@ -1391,8 +1433,8 @@ export class Battle {
 
   tryOpponentSwitch(force = false) {
     const current = this.active("opponent");
-    if (!force && current?.volatile?.trapTurns > 0) {
-      this.write(`${current.name} can't switch out because it is trapped!`);
+    if (!force && (current?.volatile?.trapTurns > 0 || this.getStatusDef(current)?.statusEffect?.switchBlock)) {
+      this.write(`${current.name} can't switch out right now!`);
       return false;
     }
     const next = this.opponent.team.findIndex(
@@ -1430,8 +1472,8 @@ export class Battle {
 
     const forced = this.awaitingPlayerSwitch;
 
-    if (!forced && this.active("player")?.volatile?.trapTurns > 0) {
-      this.write(`${this.active("player").name} can't switch out because it is trapped!`);
+    if (!forced && (this.active("player")?.volatile?.trapTurns > 0 || this.getStatusDef(this.active("player"))?.statusEffect?.switchBlock)) {
+      this.write(`${this.active("player").name} can't switch out right now!`);
       return false;
     }
 

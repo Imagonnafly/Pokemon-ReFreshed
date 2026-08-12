@@ -2,7 +2,7 @@
   "id": "fly",
   "name": "Fly",
   "types": [
-    "Flying"
+    "Air"
   ],
   "category": "physical",
   "power": 90,

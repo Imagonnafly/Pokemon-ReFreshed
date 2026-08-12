@@ -2,7 +2,7 @@
   "id": "meteor-beam",
   "name": "Meteor Beam",
   "types": [
-    "Rock"
+    "Earth"
   ],
   "category": "special",
   "power": 120,

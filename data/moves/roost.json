@@ -2,7 +2,7 @@
   "id": "roost",
   "name": "Roost",
   "types": [
-    "Flying"
+    "Air"
   ],
   "category": "status",
   "power": 0,

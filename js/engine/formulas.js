@@ -45,16 +45,23 @@ export function getBattleStat(pokemon, stat, itemData = null) {
   return Math.floor(value);
 }
 
-export function calculateAccuracy(attacker, defender, move) {
+export function calculateAccuracy(attacker, defender, move, statusEffects = null) {
   // In the move data, 0 means “no accuracy check” (shown as — in Pokémon data).
   if (move.accuracy === null || move.accuracy === undefined || Number(move.accuracy) === 0) return 100;
   const base = Number(move.accuracy ?? 100);
   const atk = accuracyStageMultiplier(attacker.statStages?.accuracy ?? 0);
   const eva = accuracyStageMultiplier(defender.statStages?.evasion ?? 0);
-  return Math.max(1, Math.min(100, base * atk / eva));
+  let multiplier = 1;
+  if (statusEffects) {
+    const attackerDef = Object.values(statusEffects).find(s => s?.status === attacker.status)?.statusEffect;
+    const defenderDef = Object.values(statusEffects).find(s => s?.status === defender.status)?.statusEffect;
+    multiplier *= Number(attackerDef?.accuracyMultiplier ?? 1);
+    if (defenderDef?.evasionMultiplier) multiplier /= Number(defenderDef.evasionMultiplier);
+  }
+  return Math.max(1, Math.min(100, base * atk / eva * multiplier));
 }
 
-export function calculateDamage({ attacker, defender, move, typeChart, rng = Math.random, damageModifier = 1, attackerItem = null, defenderItem = null, weather = null, terrain = null, criticalOverride = null }) {
+export function calculateDamage({ attacker, defender, move, typeChart, rng = Math.random, damageModifier = 1, attackerItem = null, defenderItem = null, weather = null, terrain = null, field = null, statusEffects = null, fieldEffects = null, criticalOverride = null }) {
   if (move.category === "status") return { damage: 0, effectiveness: 1, critical: false };
 
   const attackStat = move.damageStat || (move.category === "physical" ? "attack" : "specialAttack");
@@ -69,9 +76,19 @@ export function calculateDamage({ attacker, defender, move, typeChart, rng = Mat
   const effectiveness = typeEffectiveness(move.types, defender.types, typeChart);
 
   let environmentalModifier = 1;
-  if (weather === "Sun" && move.types.includes("Fire")) environmentalModifier *= 1.5;
-  if (weather === "Sun" && move.types.includes("Water")) environmentalModifier *= 0.5;
-  if (terrain === "Electric" && move.types.includes("Electric") && !attacker.types.includes("Flying")) environmentalModifier *= 1.3;
+  const activeField = field || weather || terrain || null;
+  if (activeField && fieldEffects) {
+    const fieldDef = Object.values(fieldEffects).find(f => f?.name === activeField);
+    const typeMods = fieldDef?.damage || {};
+    for (const moveType of move.types || []) {
+      environmentalModifier *= Number(typeMods[moveType] ?? 1);
+    }
+  } else {
+    // Legacy compatibility for older snapshots.
+    if (weather === "Sun" && move.types.includes("Fire")) environmentalModifier *= 1.5;
+    if (weather === "Sun" && move.types.includes("Water")) environmentalModifier *= 0.5;
+    if (terrain === "Electric" && move.types.includes("Electric") && !attacker.types.includes("Air")) environmentalModifier *= 1.3;
+  }
 
   const signatureModifier = move.effects?.find(e => e.kind === "signature_super_effective_boost" && effectiveness > 1)?.multiplier ?? 1;
   const critStage = Number(move.critStage ?? 0);
@@ -83,8 +100,22 @@ export function calculateDamage({ attacker, defender, move, typeChart, rng = Mat
   const random = 0.85 + rng() * 0.15;
 
   let burnModifier = 1;
-  if (move.category === "physical" && attacker.status === "Burn" && !attacker.abilityIgnoreBurn) {
-    burnModifier = 0.5;
+  const attackerStatusDef = statusEffects ? Object.values(statusEffects).find(s => s?.status === attacker.status)?.statusEffect : null;
+  const defenderStatusDef = statusEffects ? Object.values(statusEffects).find(s => s?.status === defender.status)?.statusEffect : null;
+  if (move.category === "physical" && attackerStatusDef?.physicalDamageMultiplier && !attacker.abilityIgnoreBurn) {
+    burnModifier *= Number(attackerStatusDef.physicalDamageMultiplier);
+  }
+  if (move.category === "special" && attackerStatusDef?.specialDamageMultiplier) {
+    burnModifier *= Number(attackerStatusDef.specialDamageMultiplier);
+  }
+  if (attackerStatusDef?.damageMultiplier) {
+    burnModifier *= Number(attackerStatusDef.damageMultiplier);
+  }
+  if (defenderStatusDef?.damageTakenMultiplier) {
+    burnModifier *= Number(defenderStatusDef.damageTakenMultiplier);
+  }
+  if (defenderStatusDef?.healingMultiplier && move.effects?.some(e => e.kind === "heal")) {
+    burnModifier *= Number(defenderStatusDef.healingMultiplier);
   }
 
   let itemModifier = 1;

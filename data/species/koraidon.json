@@ -2,8 +2,8 @@
   "id": "koraidon",
   "name": "Koraidon",
   "types": [
-    "Fighting",
-    "Dragon"
+    "Earth",
+    "Cosmos"
   ],
   "baseStats": {
     "hp": 100,

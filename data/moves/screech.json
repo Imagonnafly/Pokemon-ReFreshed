@@ -2,7 +2,7 @@
   "id": "screech",
   "name": "Screech",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "status",
   "power": 0,

@@ -284,3 +284,15 @@ button:disabled{opacity:.45;cursor:not-allowed!important;transform:none!importan
 .builder-toolbar { flex-wrap:wrap; }
 .builder-toolbar > button { min-height:44px; }
 @media (max-width: 900px) { .builder-toolbar > button { flex:1 1 180px; } .room-code-box strong { font-size:32px; } }
+
+/* Unified type-field and elemental-status UI */
+.field-pill {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.status-badge {
+  border-style: solid;
+  border-width: 1px;
+  opacity: .92;
+}

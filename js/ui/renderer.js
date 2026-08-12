@@ -4,6 +4,7 @@ export class Renderer {
     this.battle = battle;
     this.els = {
       turn: root.querySelector("#turnLabel"),
+      field: root.querySelector("#fieldLabel"),
       oppName: root.querySelector("#oppName"),
       playerName: root.querySelector("#playerName"),
       oppTypes: root.querySelector("#oppTypes"),
@@ -53,6 +54,12 @@ export class Renderer {
     }
 
     this.els.turn.textContent = `Turn ${this.battle.turn}`;
+    if (this.els.field) {
+      const field = this.battle.field;
+      const turns = this.battle.fieldTurns ?? 0;
+      this.els.field.textContent = field ? `${field}${turns ? ` · ${turns}T` : ""}` : "No Field";
+      this.els.field.title = field ? (this.battle.getFieldDef?.(field)?.description || "") : "The battlefield is neutral.";
+    }
 
     const visibleLog = this.battle.log.filter(x => {
       const text = String(x);
@@ -114,7 +121,8 @@ export class Renderer {
     name.textContent = `${p.name} Lv.${p.level}${ability ? ` • ${ability.name}` : ""}${item ? ` • ${item.name}` : ""}`;
     types.innerHTML = p.types
       .map(t => `<span class="type">${this.escape(t)}</span>`)
-      .join("");
+      .join("") +
+      (p.status ? ` <span class="type status-badge">${this.escape(p.status)}</span>` : "");
 
     fill.style.width = `${Math.max(0, (p.hp / p.maxHP) * 100)}%`;
     text.textContent = `${p.hp} / ${p.maxHP}`;

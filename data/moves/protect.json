@@ -2,7 +2,7 @@
   "id": "protect",
   "name": "Protect",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "status",
   "power": 0,

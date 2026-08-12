@@ -2,7 +2,7 @@
   "id": "uproar",
   "name": "Uproar",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "special",
   "power": 90,

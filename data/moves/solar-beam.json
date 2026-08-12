@@ -2,7 +2,7 @@
   "id": "solar-beam",
   "name": "Solar Beam",
   "types": [
-    "Grass"
+    "Nature"
   ],
   "category": "special",
   "power": 120,

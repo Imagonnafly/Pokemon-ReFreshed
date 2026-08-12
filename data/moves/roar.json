@@ -2,7 +2,7 @@
   "id": "roar",
   "name": "Roar",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "status",
   "power": 0,

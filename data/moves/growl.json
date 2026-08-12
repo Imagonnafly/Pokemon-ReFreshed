@@ -2,7 +2,7 @@
   "id": "growl",
   "name": "Growl",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "status",
   "power": 0,

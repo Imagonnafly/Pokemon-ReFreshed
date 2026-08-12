@@ -2,7 +2,7 @@
   "id": "tera-blast",
   "name": "Tera Blast",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "special",
   "power": 80,

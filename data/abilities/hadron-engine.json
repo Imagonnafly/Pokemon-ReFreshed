@@ -2,10 +2,10 @@
   "id": "hadron-engine",
   "name": "Hadron Engine",
   "effect": {
-    "kind": "terrain_and_stat_boost",
-    "terrain": "Electric",
+    "kind": "field_and_stat_boost",
     "stat": "specialAttack",
-    "multiplier": 1.3
+    "multiplier": 1.3,
+    "field": "Stormgrid"
   },
-  "description": "Creates Electric Terrain when Miraidon enters battle and boosts its Special Attack while Electric Terrain is active."
+  "description": "Creates the Stormgrid field when Miraidon enters battle and boosts its Special Attack while it lasts."
 }

@@ -1,23 +1,640 @@
 {
-  "types": ["Normal","Fire","Water","Electric","Grass","Ice","Fighting","Poison","Ground","Flying","Psychic","Bug","Rock","Ghost","Dragon","Dark","Steel","Fairy"],
+  "types": [
+    "Fire",
+    "Water",
+    "Earth",
+    "Air",
+    "Electric",
+    "Ice",
+    "Nature",
+    "Metal",
+    "Light",
+    "Dark",
+    "Mind",
+    "Spirit",
+    "Cosmos",
+    "Time"
+  ],
   "chart": {
-    "Fire":{"Grass":2,"Ice":2,"Bug":2,"Steel":2,"Fire":0.5,"Water":0.5,"Rock":0.5,"Dragon":0.5},
-    "Water":{"Fire":2,"Ground":2,"Rock":2,"Water":0.5,"Grass":0.5,"Dragon":0.5},
-    "Grass":{"Water":2,"Ground":2,"Rock":2,"Fire":0.5,"Grass":0.5,"Poison":0.5,"Flying":0.5,"Bug":0.5,"Dragon":0.5,"Steel":0.5},
-    "Electric":{"Water":2,"Flying":2,"Electric":0.5,"Grass":0.5,"Dragon":0.5,"Ground":0},
-    "Ground":{"Fire":2,"Electric":2,"Poison":2,"Rock":2,"Steel":2,"Grass":0.5,"Bug":0.5,"Flying":0},
-    "Flying":{"Grass":2,"Fighting":2,"Bug":2,"Electric":0.5,"Rock":0.5,"Steel":0.5},
-    "Dragon":{"Dragon":2,"Steel":0.5,"Fairy":0},
-    "Fairy":{"Fighting":2,"Dragon":2,"Dark":2,"Fire":0.5,"Poison":0.5,"Steel":0.5},
-    "Fighting":{"Normal":2,"Ice":2,"Rock":2,"Dark":2,"Steel":2,"Poison":0.5,"Flying":0.5,"Psychic":0.5,"Bug":0.5,"Fairy":0.5,"Ghost":0},
-    "Rock":{"Fire":2,"Ice":2,"Flying":2,"Bug":2,"Fighting":0.5,"Ground":0.5,"Steel":0.5},
-    "Ice":{"Grass":2,"Ground":2,"Flying":2,"Dragon":2,"Fire":0.5,"Water":0.5,"Ice":0.5,"Steel":0.5},
-    "Poison":{"Grass":2,"Fairy":2,"Poison":0.5,"Ground":0.5,"Rock":0.5,"Ghost":0.5,"Steel":0},
-    "Psychic":{"Fighting":2,"Poison":2,"Steel":0.5,"Psychic":0.5,"Dark":0},
-    "Bug":{"Grass":2,"Psychic":2,"Dark":2,"Fire":0.5,"Fighting":0.5,"Poison":0.5,"Flying":0.5,"Ghost":0.5,"Steel":0.5,"Fairy":0.5},
-    "Ghost":{"Psychic":2,"Ghost":2,"Dark":0.5,"Normal":0},
-    "Dark":{"Psychic":2,"Ghost":2,"Fighting":0.5,"Dark":0.5,"Fairy":0.5},
-    "Steel":{"Ice":2,"Rock":2,"Fairy":2,"Fire":0.5,"Water":0.5,"Electric":0.5,"Steel":0.5},
-    "Normal":{"Rock":0.5,"Steel":0.5,"Ghost":0}
+    "Fire": {
+      "Fire": 0.5,
+      "Water": 0.5,
+      "Earth": 0.5,
+      "Air": 1,
+      "Electric": 1,
+      "Ice": 2,
+      "Nature": 2,
+      "Metal": 2,
+      "Light": 1,
+      "Dark": 1,
+      "Mind": 1,
+      "Spirit": 1,
+      "Cosmos": 1,
+      "Time": 1
+    },
+    "Water": {
+      "Fire": 2,
+      "Water": 0.5,
+      "Earth": 2,
+      "Air": 1,
+      "Electric": 0.5,
+      "Ice": 1,
+      "Nature": 0.5,
+      "Metal": 2,
+      "Light": 1,
+      "Dark": 1,
+      "Mind": 1,
+      "Spirit": 1,
+      "Cosmos": 1,
+      "Time": 1
+    },
+    "Earth": {
+      "Fire": 2,
+      "Water": 0.5,
+      "Earth": 0.5,
+      "Air": 0.5,
+      "Electric": 2,
+      "Ice": 2,
+      "Nature": 0.5,
+      "Metal": 2,
+      "Light": 1,
+      "Dark": 1,
+      "Mind": 1,
+      "Spirit": 1,
+      "Cosmos": 1,
+      "Time": 1
+    },
+    "Air": {
+      "Fire": 1,
+      "Water": 1,
+      "Earth": 2,
+      "Air": 0.5,
+      "Electric": 0.5,
+      "Ice": 2,
+      "Nature": 0.5,
+      "Metal": 2,
+      "Light": 1,
+      "Dark": 1,
+      "Mind": 1,
+      "Spirit": 1,
+      "Cosmos": 2,
+      "Time": 0.5
+    },
+    "Electric": {
+      "Fire": 1,
+      "Water": 2,
+      "Earth": 0.5,
+      "Air": 2,
+      "Electric": 0.5,
+      "Ice": 1,
+      "Nature": 0.5,
+      "Metal": 2,
+      "Light": 1,
+      "Dark": 1,
+      "Mind": 1,
+      "Spirit": 1,
+      "Cosmos": 0.5,
+      "Time": 1
+    },
+    "Ice": {
+      "Fire": 0.5,
+      "Water": 0.5,
+      "Earth": 2,
+      "Air": 2,
+      "Electric": 1,
+      "Ice": 0.5,
+      "Nature": 2,
+      "Metal": 0.5,
+      "Light": 1,
+      "Dark": 1,
+      "Mind": 1,
+      "Spirit": 1,
+      "Cosmos": 1,
+      "Time": 1
+    },
+    "Nature": {
+      "Fire": 0.5,
+      "Water": 2,
+      "Earth": 2,
+      "Air": 0.5,
+      "Electric": 2,
+      "Ice": 0.5,
+      "Nature": 0.5,
+      "Metal": 0.5,
+      "Light": 1,
+      "Dark": 0.5,
+      "Mind": 1,
+      "Spirit": 1,
+      "Cosmos": 1,
+      "Time": 1
+    },
+    "Metal": {
+      "Fire": 0.5,
+      "Water": 0.5,
+      "Earth": 0.5,
+      "Air": 0.5,
+      "Electric": 0.5,
+      "Ice": 2,
+      "Nature": 2,
+      "Metal": 0.5,
+      "Light": 1,
+      "Dark": 1,
+      "Mind": 0.5,
+      "Spirit": 1,
+      "Cosmos": 2,
+      "Time": 0.5
+    },
+    "Light": {
+      "Fire": 1,
+      "Water": 1,
+      "Earth": 1,
+      "Air": 1,
+      "Electric": 1,
+      "Ice": 1,
+      "Nature": 2,
+      "Metal": 1,
+      "Light": 0.5,
+      "Dark": 2,
+      "Mind": 1,
+      "Spirit": 2,
+      "Cosmos": 0.5,
+      "Time": 1
+    },
+    "Dark": {
+      "Fire": 1,
+      "Water": 1,
+      "Earth": 1,
+      "Air": 1,
+      "Electric": 1,
+      "Ice": 0.5,
+      "Nature": 1,
+      "Metal": 1,
+      "Light": 0.5,
+      "Dark": 0.5,
+      "Mind": 2,
+      "Spirit": 2,
+      "Cosmos": 2,
+      "Time": 1
+    },
+    "Mind": {
+      "Fire": 1,
+      "Water": 1,
+      "Earth": 1,
+      "Air": 1,
+      "Electric": 1,
+      "Ice": 1,
+      "Nature": 1,
+      "Metal": 2,
+      "Light": 1,
+      "Dark": 0.5,
+      "Mind": 2,
+      "Spirit": 1,
+      "Cosmos": 1,
+      "Time": 2
+    },
+    "Spirit": {
+      "Fire": 1,
+      "Water": 1,
+      "Earth": 1,
+      "Air": 1,
+      "Electric": 1,
+      "Ice": 1,
+      "Nature": 1,
+      "Metal": 1,
+      "Light": 0.5,
+      "Dark": 0.5,
+      "Mind": 2,
+      "Spirit": 0.5,
+      "Cosmos": 2,
+      "Time": 0.5
+    },
+    "Cosmos": {
+      "Fire": 1,
+      "Water": 1,
+      "Earth": 2,
+      "Air": 1,
+      "Electric": 2,
+      "Ice": 1,
+      "Nature": 1,
+      "Metal": 0.5,
+      "Light": 2,
+      "Dark": 0.5,
+      "Mind": 1,
+      "Spirit": 0.5,
+      "Cosmos": 0.5,
+      "Time": 2
+    },
+    "Time": {
+      "Fire": 1,
+      "Water": 1,
+      "Earth": 1,
+      "Air": 2,
+      "Electric": 1,
+      "Ice": 2,
+      "Nature": 2,
+      "Metal": 1,
+      "Light": 1,
+      "Dark": 1,
+      "Mind": 0.5,
+      "Spirit": 2,
+      "Cosmos": 0.5,
+      "Time": 0.5
+    }
+  },
+  "statuses": {
+    "Fire": {
+      "status": "Scorch",
+      "statusEffect": {
+        "endTurnDamage": 0.0625,
+        "physicalDamageMultiplier": 0.5
+      },
+      "field": "Inferno",
+      "fieldEffect": {
+        "damage": {
+          "Fire": 1.5,
+          "Water": 0.5,
+          "Ice": 1.25
+        },
+        "endTurn": {
+          "Nature": 0.0625
+        }
+      },
+      "type": "Fire"
+    },
+    "Water": {
+      "status": "Soaked",
+      "statusEffect": {
+        "speedMultiplier": 0.75,
+        "damageTaken": {
+          "Fire": 1.25
+        }
+      },
+      "field": "Downpour",
+      "fieldEffect": {
+        "damage": {
+          "Water": 1.5,
+          "Fire": 0.5,
+          "Earth": 1.1
+        },
+        "statusImmunity": [
+          "Scorch"
+        ]
+      },
+      "type": "Water"
+    },
+    "Earth": {
+      "status": "Fractured",
+      "statusEffect": {
+        "defenseMultiplier": 0.75
+      },
+      "field": "Quakefield",
+      "fieldEffect": {
+        "damage": {
+          "Earth": 1.5,
+          "Electric": 0.5
+        },
+        "statBoost": {
+          "Earth": {
+            "defense": 1.1
+          }
+        }
+      },
+      "type": "Earth"
+    },
+    "Air": {
+      "status": "Winded",
+      "statusEffect": {
+        "speedMultiplier": 0.75
+      },
+      "field": "Jetstream",
+      "fieldEffect": {
+        "damage": {
+          "Air": 1.5,
+          "Earth": 0.75,
+          "Time": 1.15
+        }
+      },
+      "type": "Air"
+    },
+    "Electric": {
+      "status": "Shocked",
+      "statusEffect": {
+        "speedMultiplier": 0.5,
+        "actionFailChance": 0.25
+      },
+      "field": "Stormgrid",
+      "fieldEffect": {
+        "damage": {
+          "Electric": 1.5,
+          "Air": 1.15
+        },
+        "statusImmunity": [
+          "Shocked"
+        ]
+      },
+      "type": "Electric"
+    },
+    "Ice": {
+      "status": "Frostbite",
+      "statusEffect": {
+        "specialDamageMultiplier": 0.5,
+        "endTurnDamage": 0.0625
+      },
+      "field": "Snowveil",
+      "fieldEffect": {
+        "damage": {
+          "Ice": 1.5,
+          "Fire": 0.5
+        },
+        "endTurn": {
+          "Fire": 0.0625
+        }
+      },
+      "type": "Ice"
+    },
+    "Nature": {
+      "status": "Entangled",
+      "statusEffect": {
+        "speedMultiplier": 0.5,
+        "endTurnDamage": 0.0625,
+        "switchBlock": true
+      },
+      "field": "Verdant Field",
+      "fieldEffect": {
+        "damage": {
+          "Nature": 1.5,
+          "Water": 1.2,
+          "Fire": 0.8
+        },
+        "endTurn": {
+          "Nature": 0.0625
+        }
+      },
+      "type": "Nature"
+    },
+    "Metal": {
+      "status": "Rusted",
+      "statusEffect": {
+        "defenseMultiplier": 0.75
+      },
+      "field": "Ironworks",
+      "fieldEffect": {
+        "damage": {
+          "Metal": 1.5,
+          "Electric": 0.85
+        },
+        "statBoost": {
+          "Metal": {
+            "defense": 1.1
+          }
+        }
+      },
+      "type": "Metal"
+    },
+    "Light": {
+      "status": "Dazzled",
+      "statusEffect": {
+        "accuracyMultiplier": 0.7
+      },
+      "field": "Radiance",
+      "fieldEffect": {
+        "damage": {
+          "Light": 1.5,
+          "Dark": 0.8
+        },
+        "critStage": 1
+      },
+      "type": "Light"
+    },
+    "Dark": {
+      "status": "Weakened",
+      "statusEffect": {
+        "damageMultiplier": 0.75
+      },
+      "field": "Umbral Night",
+      "fieldEffect": {
+        "damage": {
+          "Dark": 1.5,
+          "Light": 0.8
+        },
+        "healingMultiplier": 0.8
+      },
+      "type": "Dark"
+    },
+    "Mind": {
+      "status": "Confounded",
+      "statusEffect": {
+        "actionFailChance": 0.25,
+        "specialDamageMultiplier": 0.75
+      },
+      "field": "Psionic Field",
+      "fieldEffect": {
+        "damage": {
+          "Mind": 1.5,
+          "Time": 1.15
+        },
+        "accuracy": 1.1
+      },
+      "type": "Mind"
+    },
+    "Spirit": {
+      "status": "Haunted",
+      "statusEffect": {
+        "endTurnDamage": 0.0625,
+        "healingMultiplier": 0.75
+      },
+      "field": "Spirit Veil",
+      "fieldEffect": {
+        "damage": {
+          "Spirit": 1.5,
+          "Dark": 1.15
+        },
+        "statusImmunity": [
+          "Haunted"
+        ]
+      },
+      "type": "Spirit"
+    },
+    "Cosmos": {
+      "status": "Starstruck",
+      "statusEffect": {
+        "specialDamageMultiplier": 0.75,
+        "accuracyMultiplier": 0.85
+      },
+      "field": "Astral Rift",
+      "fieldEffect": {
+        "damage": {
+          "Cosmos": 1.5,
+          "Metal": 0.8,
+          "Time": 1.2
+        }
+      },
+      "type": "Cosmos"
+    },
+    "Time": {
+      "status": "Time-Lagged",
+      "statusEffect": {
+        "speedMultiplier": 0.5,
+        "priorityPenalty": 1
+      },
+      "field": "Temporal Flux",
+      "fieldEffect": {
+        "damage": {
+          "Time": 1.5,
+          "Mind": 0.8
+        },
+        "priorityPenalty": 1
+      },
+      "type": "Time"
+    }
+  },
+  "fields": {
+    "Fire": {
+      "name": "Inferno",
+      "duration": 5,
+      "damage": {
+        "Fire": 1.5,
+        "Water": 0.5,
+        "Ice": 1.25
+      },
+      "description": "A blazing field empowers Fire moves and weakens Water moves."
+    },
+    "Water": {
+      "name": "Downpour",
+      "duration": 5,
+      "damage": {
+        "Water": 1.5,
+        "Fire": 0.5,
+        "Earth": 1.1
+      },
+      "description": "Heavy rain empowers Water moves and dampens Fire."
+    },
+    "Earth": {
+      "name": "Quakefield",
+      "duration": 5,
+      "damage": {
+        "Earth": 1.5,
+        "Electric": 0.5,
+        "Air": 0.9
+      },
+      "description": "The ground surges with seismic energy."
+    },
+    "Air": {
+      "name": "Jetstream",
+      "duration": 5,
+      "damage": {
+        "Air": 1.5,
+        "Earth": 0.75,
+        "Time": 1.15
+      },
+      "description": "A roaring current empowers Air moves and disrupts grounded attacks."
+    },
+    "Electric": {
+      "name": "Stormgrid",
+      "duration": 5,
+      "damage": {
+        "Electric": 1.5,
+        "Air": 1.15,
+        "Water": 1.15
+      },
+      "description": "A charged grid empowers Electric moves."
+    },
+    "Ice": {
+      "name": "Snowveil",
+      "duration": 5,
+      "damage": {
+        "Ice": 1.5,
+        "Fire": 0.5,
+        "Nature": 1.2
+      },
+      "description": "Freezing winds empower Ice moves."
+    },
+    "Nature": {
+      "name": "Verdant Field",
+      "duration": 5,
+      "damage": {
+        "Nature": 1.5,
+        "Water": 1.2,
+        "Fire": 0.8
+      },
+      "description": "Living growth empowers Nature moves."
+    },
+    "Metal": {
+      "name": "Ironworks",
+      "duration": 5,
+      "damage": {
+        "Metal": 1.5,
+        "Ice": 1.15,
+        "Fire": 0.8
+      },
+      "description": "A metallic field empowers Metal moves."
+    },
+    "Light": {
+      "name": "Radiance",
+      "duration": 5,
+      "damage": {
+        "Light": 1.5,
+        "Dark": 0.8,
+        "Spirit": 1.1
+      },
+      "description": "Radiant energy empowers Light moves."
+    },
+    "Dark": {
+      "name": "Umbral Night",
+      "duration": 5,
+      "damage": {
+        "Dark": 1.5,
+        "Light": 0.8,
+        "Mind": 1.1
+      },
+      "description": "Darkness empowers Dark moves."
+    },
+    "Mind": {
+      "name": "Psionic Field",
+      "duration": 5,
+      "damage": {
+        "Mind": 1.5,
+        "Time": 1.15,
+        "Dark": 0.8
+      },
+      "description": "Psychic energy empowers Mind moves."
+    },
+    "Spirit": {
+      "name": "Spirit Veil",
+      "duration": 5,
+      "damage": {
+        "Spirit": 1.5,
+        "Dark": 1.1,
+        "Light": 0.8
+      },
+      "description": "Spiritual energy empowers Spirit moves."
+    },
+    "Cosmos": {
+      "name": "Astral Rift",
+      "duration": 5,
+      "damage": {
+        "Cosmos": 1.5,
+        "Metal": 0.8,
+        "Time": 1.2
+      },
+      "description": "A tear in space empowers Cosmos moves."
+    },
+    "Time": {
+      "name": "Temporal Flux",
+      "duration": 5,
+      "damage": {
+        "Time": 1.5,
+        "Mind": 0.8,
+        "Spirit": 1.15
+      },
+      "description": "Time distortion empowers Time moves."
+    }
+  },
+  "fieldSystem": {
+    "description": "Weather and terrain are unified into one battlefield field. Only one field can be active at a time.",
+    "duration": 5,
+    "defaultStatusChance": 0.1,
+    "fieldTriggeredBy": "A damaging move has a 10% chance to inflict its type's status. Successfully inflicting a type status also establishes that type's field for 5 turns.",
+    "statusNote": "Sleep and Confusion remain universal volatile conditions; the fourteen entries below are the elemental major status conditions."
   }
 }

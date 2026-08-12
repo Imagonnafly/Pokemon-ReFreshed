@@ -2,7 +2,7 @@
   "id": "pound",
   "name": "Pound",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "physical",
   "power": 40,

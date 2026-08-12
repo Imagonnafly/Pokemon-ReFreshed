@@ -125,8 +125,8 @@ export class RemoteBattle {
     this.pendingAction = false;
     this.pendingTurn = null;
     this.result = null;
-    this.weather = null;
-    this.terrain = null;
+    this.field = null;
+    this.fieldTurns = 0;
   }
 
   hydratePokemon(raw) {
@@ -135,7 +135,9 @@ export class RemoteBattle {
     const allowed = new Set(Array.isArray(species?.learnset) ? species.learnset : []);
     const rawMoveset = Array.isArray(raw.moveset) ? raw.moveset : (Array.isArray(raw.moves) ? raw.moves : []);
     const moves = rawMoveset.filter(m => allowed.has(m.id)).map(m => ({ ...m })).slice(0, 4);
-    return { ...raw, moves, types: [...(raw.types || [])], originalTypes: [...(raw.originalTypes || raw.types || [])], sprites: { ...(raw.sprites || {}) }, statusData: { ...(raw.statusData || {}) }, volatile: { ...(raw.volatile || {}) }, canBattle() { return this.hp > 0 && !this.fainted; } };
+    const legacyStatusMap = { Burn: "Scorch", Paralysis: "Shocked", Freeze: "Frostbite", Poison: "Haunted", "Bad Poison": "Haunted" };
+    const normalizedStatus = legacyStatusMap[raw.status] || raw.status || null;
+    return { ...raw, status: normalizedStatus, moves, types: [...(raw.types || [])], originalTypes: [...(raw.originalTypes || raw.types || [])], sprites: { ...(raw.sprites || {}) }, statusData: { ...(raw.statusData || {}) }, volatile: { ...(raw.volatile || {}) }, canBattle() { return this.hp > 0 && !this.fainted; } };
   }
 
   hydrateSide(side) {
@@ -187,8 +189,8 @@ export class RemoteBattle {
     if (!snapshot?.player || !snapshot?.opponent) return;
     const orient = this.networkRole === "guest" ? { player: snapshot.opponent, opponent: snapshot.player } : { player: snapshot.player, opponent: snapshot.opponent };
     this.turn = Number(snapshot.turn) || 1;
-    this.weather = snapshot.weather || null;
-    this.terrain = snapshot.terrain || null;
+    this.field = snapshot.field || snapshot.weather || snapshot.terrain || null;
+    this.fieldTurns = Number(snapshot.fieldTurns) || 0;
     this.over = !!snapshot.over;
     this.result = snapshot.result || null;
     const turnAdvanced = this.pendingTurn !== null && this.turn > this.pendingTurn;

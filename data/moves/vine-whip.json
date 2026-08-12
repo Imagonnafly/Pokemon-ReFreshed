@@ -2,7 +2,7 @@
   "id": "vine-whip",
   "name": "Vine Whip",
   "types": [
-    "Grass"
+    "Nature"
   ],
   "category": "physical",
   "power": 45,

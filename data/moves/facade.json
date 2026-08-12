@@ -2,7 +2,7 @@
   "id": "facade",
   "name": "Facade",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "physical",
   "power": 70,

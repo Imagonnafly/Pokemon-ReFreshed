@@ -2,7 +2,7 @@
   "id": "u-turn",
   "name": "U-turn",
   "types": [
-    "Bug"
+    "Nature"
   ],
   "category": "physical",
   "power": 70,

@@ -2,7 +2,7 @@
   "id": "endure",
   "name": "Endure",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "status",
   "power": 0,

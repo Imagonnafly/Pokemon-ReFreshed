@@ -2,7 +2,7 @@
   "id": "hyper-beam",
   "name": "Hyper Beam",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "special",
   "power": 150,

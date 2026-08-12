@@ -2,7 +2,7 @@
   "id": "wing-attack",
   "name": "Wing Attack",
   "types": [
-    "Flying"
+    "Air"
   ],
   "category": "physical",
   "power": 60,

@@ -2,7 +2,7 @@
   "id": "tackle",
   "name": "Tackle",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "physical",
   "power": 40,

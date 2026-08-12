@@ -1,8 +1,8 @@
 {
   "name": "Bulbasaur",
   "types": [
-    "Grass",
-    "Poison"
+    "Nature",
+    "Dark"
   ],
   "abilities": [
     "overgrow",

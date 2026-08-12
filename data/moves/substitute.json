@@ -2,7 +2,7 @@
   "id": "substitute",
   "name": "Substitute",
   "types": [
-    "Normal"
+    "Time"
   ],
   "category": "status",
   "power": 0,

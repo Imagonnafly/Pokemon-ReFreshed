@@ -7,5 +7,12 @@
   "category": "status",
   "power": 0,
   "accuracy": 0,
-  "pp": 5
+  "pp": 5,
+  "effects": [
+    {
+      "kind": "field",
+      "field": "Inferno",
+      "duration": 5
+    }
+  ]
 }

@@ -11,7 +11,7 @@
   "effects": [
     {
       "kind": "status",
-      "status": "Paralysis",
+      "status": "Shocked",
       "chance": 0.1
     }
   ]

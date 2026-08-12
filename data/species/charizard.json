@@ -3,7 +3,7 @@
   "name": "Charizard",
   "types": [
     "Fire",
-    "Flying"
+    "Air"
   ],
   "baseStats": {
     "hp": 78,
