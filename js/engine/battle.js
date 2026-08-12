@@ -9,6 +9,8 @@ export class Battle {
     this.localMoveSubmitted = false;
     this.remoteMoveSubmitted = false;
     this.typeChart = data.types.chart;
+    this.weather = null;
+    this.terrain = null;
     this.species = data.species;
     this.movesData = data.moves;
     this.abilitiesData = data.abilities ?? [];
@@ -403,7 +405,9 @@ export class Battle {
       rng: Math.random,
       damageModifier: modified.damageModifier,
       attackerItem: this.getItem(attacker),
-      defenderItem: this.getItem(defender)
+      defenderItem: this.getItem(defender),
+      weather: this.weather,
+      terrain: this.terrain
     });
 
     const savedBySash = this.handleItemBeforeDamage(defender, result.damage);
@@ -423,6 +427,18 @@ export class Battle {
     if (result.damage > 0) this.write(`${result.damage} damage!`);
 
     this.applyEffects(attacker, defender, actualMove);
+    for (const effect of actualMove.effects ?? []) {
+      if (effect.kind === "recoil" && result.damage > 0 && attacker.canBattle()) {
+        const recoil = Math.max(1, Math.floor(result.damage * (effect.percent ?? 1 / 3)));
+        attacker.receiveDamage(recoil);
+        this.write(`${attacker.name} was hurt by recoil!`);
+      }
+      if (effect.kind === "drain" && result.damage > 0 && attacker.canBattle()) {
+        const heal = Math.max(1, Math.floor(result.damage * (effect.percent ?? 0.5)));
+        attacker.hp = Math.min(attacker.maxHP, attacker.hp + heal);
+        this.write(`${attacker.name} restored HP!`);
+      }
+    }
     this.handleItemAfterDamage(defender);
     this.handleItemAfterAttack(attacker, result);
 
@@ -482,7 +498,11 @@ export class Battle {
   }
 
   getStat(pokemon, stat) {
-    return getBattleStat(pokemon, stat, this.getItem(pokemon));
+    let value = getBattleStat(pokemon, stat, this.getItem(pokemon));
+    const effect = this.getAbility(pokemon)?.effect;
+    if (effect?.kind === "weather_and_stat_boost" && this.weather === effect.weather && effect.stat === stat) value = Math.floor(value * (effect.multiplier ?? 1));
+    if (effect?.kind === "terrain_and_stat_boost" && this.terrain === effect.terrain && effect.stat === stat) value = Math.floor(value * (effect.multiplier ?? 1));
+    return value;
   }
 
   consumeItem(pokemon) {
@@ -591,10 +611,16 @@ export class Battle {
       this.write(`${pokemon.name}'s ${ability.name} activated!`);
     }
 
-    if (effect.kind === "weather" && trigger === "onBattleStart") {
+    if ((effect.kind === "weather" || effect.kind === "weather_and_stat_boost") && trigger === "onBattleStart") {
       this.write(`${pokemon.name}'s ${ability.name} activated!`);
-      this.write(`The weather became ${effect.weather}!`);
       this.weather = effect.weather;
+      this.write(`The weather became ${effect.weather}!`);
+    }
+
+    if ((effect.kind === "terrain" || effect.kind === "terrain_and_stat_boost") && trigger === "onBattleStart") {
+      this.write(`${pokemon.name}'s ${ability.name} activated!`);
+      this.terrain = effect.terrain;
+      this.write(`${effect.terrain} Terrain spread across the field!`);
     }
 
     if (effect.kind === "heal_on_entry" && trigger === "onBattleStart") {
@@ -623,6 +649,14 @@ export class Battle {
         if (Math.random() <= (effect.chance ?? 1)) {
           defender.status = effect.status;
           this.write(`${defender.name} was afflicted with ${effect.status}!`);
+        }
+      }
+      if (effect.kind === "stat_stage") {
+        const target = effect.target === "opponent" ? defender : attacker;
+        if (target?.statStages?.[effect.stat] !== undefined) {
+          target.statStages[effect.stat] = Math.max(-6, Math.min(6, target.statStages[effect.stat] + Number(effect.stages ?? 0)));
+          const direction = Number(effect.stages ?? 0) > 0 ? "rose" : "fell";
+          this.write(`${target.name}'s ${String(effect.stat).replace(/([A-Z])/g, " $1").toLowerCase()} ${direction}!`);
         }
       }
     }

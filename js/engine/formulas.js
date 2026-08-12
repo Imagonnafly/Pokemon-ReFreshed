@@ -53,7 +53,7 @@ export function calculateAccuracy(attacker, defender, move) {
   return Math.max(1, Math.min(100, base * atk / eva));
 }
 
-export function calculateDamage({ attacker, defender, move, typeChart, rng = Math.random, damageModifier = 1, attackerItem = null, defenderItem = null }) {
+export function calculateDamage({ attacker, defender, move, typeChart, rng = Math.random, damageModifier = 1, attackerItem = null, defenderItem = null, weather = null, terrain = null }) {
   if (move.category === "status") return { damage: 0, effectiveness: 1, critical: false };
 
   const attackStat = move.category === "physical" ? "attack" : "specialAttack";
@@ -66,6 +66,8 @@ export function calculateDamage({ attacker, defender, move, typeChart, rng = Mat
   const base = Math.floor(Math.floor(Math.floor((2 * level) / 5 + 2) * power * atk / def) / 50) + 2;
   const stab = move.types.some(t => attacker.types.includes(t)) ? 1.5 : 1;
   const effectiveness = typeEffectiveness(move.types, defender.types, typeChart);
+  const environmentalModifier = weather === "Sun" && move.types.includes("Fire") ? 1.5 : weather === "Sun" && move.types.includes("Water") ? 0.5 : terrain === "Electric" && move.types.includes("Electric") ? 1.3 : 1;
+  const signatureModifier = move.effects?.find(e => e.kind === "signature_super_effective_boost" && effectiveness > 1)?.multiplier ?? 1;
   const random = 0.85 + rng() * 0.15;
   const critical = rng() < 1 / 24 ? 1.5 : 1;
 
@@ -77,7 +79,7 @@ export function calculateDamage({ attacker, defender, move, typeChart, rng = Mat
 
   const damage = effectiveness === 0
     ? 0
-    : Math.max(1, Math.floor(base * stab * effectiveness * critical * random * damageModifier * itemModifier));
+    : Math.max(1, Math.floor(base * stab * effectiveness * critical * random * damageModifier * itemModifier * environmentalModifier * signatureModifier));
 
   return { damage, effectiveness, critical: critical > 1, itemModifier };
 }

@@ -1,0 +1,17 @@
+{
+  "id": "parabolic-charge",
+  "name": "Parabolic Charge",
+  "types": [
+    "Electric"
+  ],
+  "category": "special",
+  "power": 65,
+  "accuracy": 100,
+  "pp": 20,
+  "effects": [
+    {
+      "kind": "drain",
+      "percent": 0.5
+    }
+  ]
+}

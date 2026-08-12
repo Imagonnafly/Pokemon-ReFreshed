@@ -1,0 +1,17 @@
+{
+  "id": "electro-drift",
+  "name": "Electro Drift",
+  "types": [
+    "Electric"
+  ],
+  "category": "special",
+  "power": 100,
+  "accuracy": 100,
+  "pp": 5,
+  "effects": [
+    {
+      "kind": "signature_super_effective_boost",
+      "multiplier": 1.3
+    }
+  ]
+}

@@ -332,6 +332,28 @@
         "water-gun"
       ],
       "ability": "torrent"
+    },
+    {
+      "species": "koraidon",
+      "level": 50,
+      "moves": [
+        "collision-course",
+        "flare-blitz",
+        "close-combat",
+        "dragon-claw"
+      ],
+      "ability": "orichalcum-pulse"
+    },
+    {
+      "species": "miraidon",
+      "level": 50,
+      "moves": [
+        "electro-drift",
+        "thunderbolt",
+        "dragon-pulse",
+        "parabolic-charge"
+      ],
+      "ability": "hadron-engine"
     }
   ]
 }

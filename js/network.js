@@ -125,6 +125,8 @@ export class RemoteBattle {
     this.pendingAction = false;
     this.pendingTurn = null;
     this.result = null;
+    this.weather = null;
+    this.terrain = null;
   }
 
   hydratePokemon(raw) {
@@ -161,6 +163,8 @@ export class RemoteBattle {
     if (!snapshot?.player || !snapshot?.opponent) return;
     const orient = this.networkRole === "guest" ? { player: snapshot.opponent, opponent: snapshot.player } : { player: snapshot.player, opponent: snapshot.opponent };
     this.turn = Number(snapshot.turn) || 1;
+    this.weather = snapshot.weather || null;
+    this.terrain = snapshot.terrain || null;
     this.over = !!snapshot.over;
     this.result = snapshot.result || null;
     const turnAdvanced = this.pendingTurn !== null && this.turn > this.pendingTurn;

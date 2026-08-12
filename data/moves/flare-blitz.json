@@ -1,0 +1,22 @@
+{
+  "id": "flare-blitz",
+  "name": "Flare Blitz",
+  "types": [
+    "Fire"
+  ],
+  "category": "physical",
+  "power": 120,
+  "accuracy": 100,
+  "pp": 15,
+  "effects": [
+    {
+      "kind": "recoil",
+      "percent": 0.3333333333333333
+    },
+    {
+      "kind": "status",
+      "status": "Burn",
+      "chance": 0.1
+    }
+  ]
+}

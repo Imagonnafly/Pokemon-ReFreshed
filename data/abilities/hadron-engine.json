@@ -1,0 +1,11 @@
+{
+  "id": "hadron-engine",
+  "name": "Hadron Engine",
+  "effect": {
+    "kind": "terrain_and_stat_boost",
+    "terrain": "Electric",
+    "stat": "specialAttack",
+    "multiplier": 1.3
+  },
+  "description": "Creates Electric Terrain when Miraidon enters battle and boosts its Special Attack while Electric Terrain is active."
+}

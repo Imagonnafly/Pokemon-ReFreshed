@@ -1,0 +1,11 @@
+{
+  "id": "dragon-pulse",
+  "name": "Dragon Pulse",
+  "types": [
+    "Dragon"
+  ],
+  "category": "special",
+  "power": 85,
+  "accuracy": 100,
+  "pp": 10
+}

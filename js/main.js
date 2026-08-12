@@ -173,6 +173,7 @@ function serializePokemon(p) {
 function serializeBattle(battle) {
   return {
     turn: battle.turn, over: battle.over, busy: battle.busy, locked: battle.locked,
+    weather: battle.weather || null, terrain: battle.terrain || null,
     result: battle.result || null,
     awaitingPlayerSwitch: battle.awaitingPlayerSwitch,
     playerMoveSubmitted: !!battle.localMoveSubmitted,

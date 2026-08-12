@@ -31,7 +31,9 @@
       "torchic",
       "totodile",
       "treecko",
-      "turtwig"
+      "turtwig",
+      "koraidon",
+      "miraidon"
     ],
     "moves": [
       "aqua-jet",
@@ -55,7 +57,13 @@
       "vine-whip",
       "water-gun",
       "water-pulse",
-      "wing-attack"
+      "wing-attack",
+      "collision-course",
+      "flare-blitz",
+      "close-combat",
+      "electro-drift",
+      "dragon-pulse",
+      "parabolic-charge"
     ],
     "abilities": [
       "blaze",
@@ -86,7 +94,9 @@
       "thick-fat",
       "torrent",
       "unaware",
-      "unburden"
+      "unburden",
+      "orichalcum-pulse",
+      "hadron-engine"
     ],
     "items": [
       "assault-vest",
