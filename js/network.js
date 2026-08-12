@@ -174,10 +174,14 @@ export class RemoteBattle {
     this.localMoveSubmitted = guestSubmitted;
     this.remoteMoveSubmitted = hostSubmitted;
 
-    // Once the host has started resolving a turn, neither player is "waiting
-    // to choose" anymore. Keep the local controls locked until the next turn.
-    const resolving = !!snapshot.busy || !!snapshot.locked || (hostSubmitted && guestSubmitted);
-    this.busy = resolving || this.pendingAction;
+    // The host uses `busy` as a battle-resolution lock. It must NOT lock the
+    // guest merely because the host has submitted first. A turn is resolving
+    // only after both actions have been submitted, or after the host has
+    // cleared both submission flags and is actively resolving the turn.
+    const bothSubmitted = hostSubmitted && guestSubmitted;
+    const oneSidedSubmission = hostSubmitted !== guestSubmitted;
+    const resolving = bothSubmitted || (!!snapshot.busy && !oneSidedSubmission);
+    this.busy = resolving;
     this.locked = resolving || this.pendingAction;
     this.player = this.hydrateSide(orient.player);
     this.opponent = this.hydrateSide(orient.opponent);

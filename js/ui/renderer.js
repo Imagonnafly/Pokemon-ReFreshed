@@ -142,7 +142,7 @@ export class Renderer {
         (!this.battle.ready && this.battle.networkRole === "guest") ||
         this.battle.busy ||
         this.battle.over ||
-        (this.battle.networkRole && (this.battle.localMoveSubmitted || this.battle.remoteMoveSubmitted));
+        (this.battle.networkRole && this.battle.localMoveSubmitted);
 
       button.addEventListener("click", async (event) => {
         event.preventDefault();
