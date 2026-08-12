@@ -1,0 +1,11 @@
+{
+  "id": "rest",
+  "name": "Rest",
+  "types": [
+    "Psychic"
+  ],
+  "category": "status",
+  "power": 0,
+  "accuracy": 0,
+  "pp": 5
+}

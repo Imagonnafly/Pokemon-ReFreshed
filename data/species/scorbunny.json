@@ -23,6 +23,16 @@
   "learnset": [
     "tackle",
     "growl",
+    "scratch",
+    "ember",
+    "flame-charge",
+    "quick-attack",
+    "double-kick"
+  ],
+  "moveset": [
+    "tackle",
+    "growl",
+    "scratch",
     "ember"
   ]
 }

@@ -1,0 +1,11 @@
+{
+  "id": "scary-face",
+  "name": "Scary Face",
+  "types": [
+    "Normal"
+  ],
+  "category": "status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 10
+}

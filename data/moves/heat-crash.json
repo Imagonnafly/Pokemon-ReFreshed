@@ -1,0 +1,11 @@
+{
+  "id": "heat-crash",
+  "name": "Heat Crash",
+  "types": [
+    "Fire"
+  ],
+  "category": "physical",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 10
+}

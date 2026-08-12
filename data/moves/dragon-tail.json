@@ -1,0 +1,11 @@
+{
+  "id": "dragon-tail",
+  "name": "Dragon Tail",
+  "types": [
+    "Dragon"
+  ],
+  "category": "physical",
+  "power": 60,
+  "accuracy": 90,
+  "pp": 10
+}

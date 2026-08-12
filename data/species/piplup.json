@@ -23,6 +23,15 @@
   "learnset": [
     "pound",
     "growl",
-    "water-gun"
+    "water-gun",
+    "water-pulse",
+    "aqua-jet",
+    "quick-attack"
+  ],
+  "moveset": [
+    "pound",
+    "growl",
+    "water-gun",
+    "water-pulse"
   ]
 }

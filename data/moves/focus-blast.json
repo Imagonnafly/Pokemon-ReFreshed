@@ -1,0 +1,11 @@
+{
+  "id": "focus-blast",
+  "name": "Focus Blast",
+  "types": [
+    "Fighting"
+  ],
+  "category": "special",
+  "power": 120,
+  "accuracy": 70,
+  "pp": 5
+}

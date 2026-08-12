@@ -1,0 +1,11 @@
+{
+  "id": "hyper-beam",
+  "name": "Hyper Beam",
+  "types": [
+    "Normal"
+  ],
+  "category": "special",
+  "power": 150,
+  "accuracy": 90,
+  "pp": 5
+}

@@ -1,0 +1,11 @@
+{
+  "id": "draco-meteor",
+  "name": "Draco Meteor",
+  "types": [
+    "Dragon"
+  ],
+  "category": "special",
+  "power": 130,
+  "accuracy": 90,
+  "pp": 5
+}

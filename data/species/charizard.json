@@ -19,5 +19,25 @@
   },
   "abilities": [
     "blaze"
+  ],
+  "learnset": [
+    "scratch",
+    "growl",
+    "ember",
+    "flame-charge",
+    "flamethrower",
+    "dragon-claw",
+    "flare-blitz",
+    "quick-attack",
+    "wing-attack",
+    "gust",
+    "fly",
+    "roost"
+  ],
+  "moveset": [
+    "scratch",
+    "growl",
+    "ember",
+    "flame-charge"
   ]
 }

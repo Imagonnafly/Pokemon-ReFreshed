@@ -1,0 +1,11 @@
+{
+  "id": "zen-headbutt",
+  "name": "Zen Headbutt",
+  "types": [
+    "Psychic"
+  ],
+  "category": "physical",
+  "power": 80,
+  "accuracy": 90,
+  "pp": 15
+}

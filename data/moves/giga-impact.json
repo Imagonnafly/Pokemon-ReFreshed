@@ -1,0 +1,11 @@
+{
+  "id": "giga-impact",
+  "name": "Giga Impact",
+  "types": [
+    "Normal"
+  ],
+  "category": "physical",
+  "power": 150,
+  "accuracy": 90,
+  "pp": 5
+}

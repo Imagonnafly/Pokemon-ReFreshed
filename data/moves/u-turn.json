@@ -1,0 +1,11 @@
+{
+  "id": "u-turn",
+  "name": "U-turn",
+  "types": [
+    "Bug"
+  ],
+  "category": "physical",
+  "power": 70,
+  "accuracy": 100,
+  "pp": 20
+}

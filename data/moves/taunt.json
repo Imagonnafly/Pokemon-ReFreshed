@@ -1,0 +1,11 @@
+{
+  "id": "taunt",
+  "name": "Taunt",
+  "types": [
+    "Dark"
+  ],
+  "category": "status",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 20
+}

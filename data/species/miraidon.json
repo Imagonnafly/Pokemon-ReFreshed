@@ -19,5 +19,18 @@
   },
   "abilities": [
     "hadron-engine"
+  ],
+  "learnset": [
+    "electro-drift",
+    "thunderbolt",
+    "dragon-pulse",
+    "parabolic-charge",
+    "quick-attack"
+  ],
+  "moveset": [
+    "electro-drift",
+    "thunderbolt",
+    "dragon-pulse",
+    "parabolic-charge"
   ]
 }

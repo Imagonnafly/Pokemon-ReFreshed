@@ -1,0 +1,11 @@
+{
+  "id": "dig",
+  "name": "Dig",
+  "types": [
+    "Ground"
+  ],
+  "category": "physical",
+  "power": 80,
+  "accuracy": 100,
+  "pp": 10
+}

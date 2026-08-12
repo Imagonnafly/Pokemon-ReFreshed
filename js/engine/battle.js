@@ -38,9 +38,26 @@ export class Battle {
       const species = this.species.find(p => p.id === slot.species);
       if (!species) throw new Error(`Unknown Pokémon species: ${slot.species}`);
 
-      const moves = slot.moves
+      // Enforce the species learnset at battle creation time. This is the
+      // authoritative guard used by both local and multiplayer battles.
+      const allowedLearnset = new Set(Array.isArray(species.learnset) ? species.learnset : []);
+      const requestedMoves = Array.isArray(slot.moveset) ? slot.moveset : (Array.isArray(slot.moves) ? slot.moves : []);
+      const moves = [...new Set(requestedMoves)]
+        .filter(id => allowedLearnset.has(id))
         .map(id => this.movesData.find(m => m.id === id))
-        .filter(Boolean);
+        .filter(Boolean)
+        .slice(0, 4);
+
+      // Never allow a Pokémon to enter battle with an illegal/empty move set.
+      // If a stale save or malformed network payload is received, fall back
+      // to the first four legal moves from that species' learnset.
+      if (!moves.length) {
+        for (const id of (species.learnset || [])) {
+          const move = this.movesData.find(m => m.id === id);
+          if (move) moves.push(move);
+          if (moves.length >= 4) break;
+        }
+      }
 
       return new BattlePokemon(
         species,

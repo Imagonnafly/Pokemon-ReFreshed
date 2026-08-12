@@ -1,0 +1,11 @@
+{
+  "id": "shadow-claw",
+  "name": "Shadow Claw",
+  "types": [
+    "Ghost"
+  ],
+  "category": "physical",
+  "power": 70,
+  "accuracy": 100,
+  "pp": 15
+}

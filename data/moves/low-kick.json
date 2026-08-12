@@ -1,0 +1,11 @@
+{
+  "id": "low-kick",
+  "name": "Low Kick",
+  "types": [
+    "Fighting"
+  ],
+  "category": "physical",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 20
+}

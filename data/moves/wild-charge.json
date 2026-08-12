@@ -1,0 +1,11 @@
+{
+  "id": "wild-charge",
+  "name": "Wild Charge",
+  "types": [
+    "Electric"
+  ],
+  "category": "physical",
+  "power": 90,
+  "accuracy": 100,
+  "pp": 15
+}

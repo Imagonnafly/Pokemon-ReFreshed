@@ -1,0 +1,11 @@
+{
+  "id": "roar",
+  "name": "Roar",
+  "types": [
+    "Normal"
+  ],
+  "category": "status",
+  "power": 0,
+  "accuracy": 0,
+  "pp": 20
+}

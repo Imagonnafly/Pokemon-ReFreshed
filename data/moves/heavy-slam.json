@@ -1,0 +1,11 @@
+{
+  "id": "heavy-slam",
+  "name": "Heavy Slam",
+  "types": [
+    "Steel"
+  ],
+  "category": "physical",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 10
+}

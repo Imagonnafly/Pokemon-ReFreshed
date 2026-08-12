@@ -1,0 +1,11 @@
+{
+  "id": "ice-fang",
+  "name": "Ice Fang",
+  "types": [
+    "Ice"
+  ],
+  "category": "physical",
+  "power": 65,
+  "accuracy": 95,
+  "pp": 15
+}

@@ -1,0 +1,11 @@
+{
+  "id": "uproar",
+  "name": "Uproar",
+  "types": [
+    "Normal"
+  ],
+  "category": "special",
+  "power": 90,
+  "accuracy": 100,
+  "pp": 10
+}

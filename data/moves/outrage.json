@@ -1,0 +1,11 @@
+{
+  "id": "outrage",
+  "name": "Outrage",
+  "types": [
+    "Dragon"
+  ],
+  "category": "physical",
+  "power": 120,
+  "accuracy": 100,
+  "pp": 10
+}

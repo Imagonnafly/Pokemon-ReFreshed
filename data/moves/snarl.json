@@ -1,0 +1,11 @@
+{
+  "id": "snarl",
+  "name": "Snarl",
+  "types": [
+    "Dark"
+  ],
+  "category": "special",
+  "power": 55,
+  "accuracy": 95,
+  "pp": 15
+}

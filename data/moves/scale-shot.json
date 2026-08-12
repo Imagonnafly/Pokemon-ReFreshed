@@ -1,0 +1,11 @@
+{
+  "id": "scale-shot",
+  "name": "Scale Shot",
+  "types": [
+    "Dragon"
+  ],
+  "category": "physical",
+  "power": 25,
+  "accuracy": 90,
+  "pp": 20
+}

@@ -1,0 +1,11 @@
+{
+  "id": "counter",
+  "name": "Counter",
+  "types": [
+    "Fighting"
+  ],
+  "category": "physical",
+  "power": 0,
+  "accuracy": 100,
+  "pp": 20
+}

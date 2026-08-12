@@ -131,7 +131,11 @@ export class RemoteBattle {
 
   hydratePokemon(raw) {
     if (!raw) return null;
-    return { ...raw, moves: Array.isArray(raw.moves) ? raw.moves.map(m => ({ ...m })) : [], types: [...(raw.types || [])], sprites: { ...(raw.sprites || {}) }, statusData: { ...(raw.statusData || {}) }, canBattle() { return this.hp > 0 && !this.fainted; } };
+    const species = this.data.species.find(p => p.id === raw.speciesId);
+    const allowed = new Set(Array.isArray(species?.learnset) ? species.learnset : []);
+    const rawMoveset = Array.isArray(raw.moveset) ? raw.moveset : (Array.isArray(raw.moves) ? raw.moves : []);
+    const moves = rawMoveset.filter(m => allowed.has(m.id)).map(m => ({ ...m })).slice(0, 4);
+    return { ...raw, moves, types: [...(raw.types || [])], sprites: { ...(raw.sprites || {}) }, statusData: { ...(raw.statusData || {}) }, canBattle() { return this.hp > 0 && !this.fainted; } };
   }
 
   hydrateSide(side) {
@@ -143,6 +147,9 @@ export class RemoteBattle {
 
   playerMove(moveId) {
     if (!this.ready || this.over || this.busy || this.locked || this.awaitingPlayerSwitch) return;
+    const species = this.data.species.find(p => p.id === this.active("player")?.speciesId);
+    const legal = new Set(Array.isArray(species?.learnset) ? species.learnset : []);
+    if (!legal.has(moveId)) return;
     if (!this.active("player")?.moves?.some(m => m.id === moveId && (m.pp ?? 1) > 0)) return;
     this.busy = true; this.locked = true; this.pendingAction = true; this.pendingTurn = this.turn;
     this.localMoveSubmitted = true;

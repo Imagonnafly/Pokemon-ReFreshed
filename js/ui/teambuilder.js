@@ -97,13 +97,13 @@ export class TeamBuilder {
 
     this.root.querySelector("#createRoom").addEventListener("click", () => {
       if (!this.team.length) return alert("Add at least one Pokémon to your team first.");
-      this.onMultiplayer("create", this.team.map(p => ({ species: p.species, level: p.level, moves: [...p.moves], ability: p.ability, item: p.item ?? null })));
+      this.onMultiplayer("create", this.team.map(p => ({ species: p.species, level: p.level, moveset: [...(p.moveset ?? p.moves ?? [])], ability: p.ability, item: p.item ?? null })));
     });
 
     this.root.querySelector("#joinRoom").addEventListener("click", () => {
       if (!this.team.length) return alert("Add at least one Pokémon to your team first.");
       const code = prompt("Enter the 5-character room code:");
-      if (code?.trim()) this.onMultiplayer("join", { code: code.trim().toUpperCase(), team: this.team.map(p => ({ species: p.species, level: p.level, moves: [...p.moves], ability: p.ability, item: p.item ?? null })) });
+      if (code?.trim()) this.onMultiplayer("join", { code: code.trim().toUpperCase(), team: this.team.map(p => ({ species: p.species, level: p.level, moveset: [...(p.moveset ?? p.moves ?? [])], ability: p.ability, item: p.item ?? null })) });
     });
 
     this.root.querySelector("#startBattle").addEventListener("click", () => {
@@ -115,7 +115,7 @@ export class TeamBuilder {
       this.onStart(this.team.map(p => ({
         species: p.species,
         level: p.level,
-        moves: [...p.moves],
+        moveset: [...(p.moveset ?? p.moves ?? [])],
         ability: p.ability,
         item: p.item ?? null
       })));
@@ -211,7 +211,7 @@ export class TeamBuilder {
         <div class="team-card-main">
           <strong>${this.escape(species.name)}</strong>
           <span>Lv. ${p.level}</span>
-          <small>${this.escape(ability?.name ?? "No ability")} · ${this.escape(item?.name ?? "No item")} · ${p.moves.length} move${p.moves.length === 1 ? "" : "s"}</small>
+          <small>${this.escape(ability?.name ?? "No ability")} · ${this.escape(item?.name ?? "No item")} · ${(p.moveset ?? p.moves ?? []).length} / 4 battle moves</small>
         </div>
         <button class="edit-team-button" type="button">Edit</button>
       `;
@@ -254,7 +254,11 @@ export class TeamBuilder {
     this.editingIndex = teamIndex;
     const defaultAbility = existing?.ability ?? species.abilities?.[0] ?? null;
     const defaultItem = existing?.item ?? null;
-    const defaultMoves = existing?.moves ?? this.availableMoves(species).slice(0, 4).map(m => m.id);
+    const legalMoveIds = new Set(this.availableMoves(species).map(m => m.id));
+    const defaultMoves = existing
+      ? [...new Set((existing.moveset ?? existing.moves ?? []).filter(id => legalMoveIds.has(id)))].slice(0, 4)
+      : [...(species.moveset ?? [])].filter(id => legalMoveIds.has(id)).slice(0, 4);
+    if (!defaultMoves.length) defaultMoves.push(...this.availableMoves(species).slice(0, 4).map(m => m.id));
     const level = existing?.level ?? 50;
 
     const abilityOptions = (species.abilities ?? []).map(id => {
@@ -310,12 +314,13 @@ export class TeamBuilder {
 
       <div class="move-editor">
         <div class="move-editor-heading">
-          <h3>Moves</h3>
+          <h3>Battle Moveset</h3>
           <span id="moveCount">${selectedMoves.length} / 4</span>
         </div>
         <div id="moveRows"></div>
         <button id="addMove" class="add-move-button" type="button">+ Add Move</button>
         <small class="editor-note">
+          Learnset: ${this.escape(String(species.learnset?.length ?? 0))} moves · Battle moveset: up to 4 moves.<br>
           ${species.learnset?.length
             ? "Showing moves listed in this Pokémon's learnset."
             : "No learnset has been defined for this species yet, so all currently loaded moves are available."}
@@ -394,7 +399,8 @@ export class TeamBuilder {
     const ability = abilityInput.value || species.abilities?.[0] || null;
     const item = this.root.querySelector("#editorItem")?.value || null;
 
-    const moves = state.selectedMoves.filter(Boolean);
+    const legalMoveIds = new Set(this.availableMoves(species).map(m => m.id));
+    const moves = state.selectedMoves.filter(id => id && legalMoveIds.has(id));
     const uniqueMoves = [...new Set(moves)];
 
     if (!uniqueMoves.length) {
@@ -405,7 +411,7 @@ export class TeamBuilder {
     const entry = {
       species: state.speciesId,
       level,
-      moves: uniqueMoves.slice(0, 4),
+      moveset: uniqueMoves.slice(0, 4),
       ability,
       item
     };

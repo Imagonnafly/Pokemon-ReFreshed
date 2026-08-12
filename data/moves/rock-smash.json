@@ -1,0 +1,11 @@
+{
+  "id": "rock-smash",
+  "name": "Rock Smash",
+  "types": [
+    "Fighting"
+  ],
+  "category": "physical",
+  "power": 40,
+  "accuracy": 100,
+  "pp": 15
+}

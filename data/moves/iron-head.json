@@ -1,0 +1,11 @@
+{
+  "id": "iron-head",
+  "name": "Iron Head",
+  "types": [
+    "Steel"
+  ],
+  "category": "physical",
+  "power": 80,
+  "accuracy": 100,
+  "pp": 15
+}

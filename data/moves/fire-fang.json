@@ -1,0 +1,11 @@
+{
+  "id": "fire-fang",
+  "name": "Fire Fang",
+  "types": [
+    "Fire"
+  ],
+  "category": "physical",
+  "power": 65,
+  "accuracy": 95,
+  "pp": 15
+}

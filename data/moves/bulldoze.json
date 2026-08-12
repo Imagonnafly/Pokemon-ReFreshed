@@ -1,0 +1,11 @@
+{
+  "id": "bulldoze",
+  "name": "Bulldoze",
+  "types": [
+    "Ground"
+  ],
+  "category": "physical",
+  "power": 60,
+  "accuracy": 100,
+  "pp": 20
+}

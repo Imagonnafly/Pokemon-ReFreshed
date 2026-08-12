@@ -23,6 +23,15 @@
   "learnset": [
     "scratch",
     "growl",
-    "leafage"
+    "leafage",
+    "vine-whip",
+    "razor-leaf",
+    "quick-attack"
+  ],
+  "moveset": [
+    "scratch",
+    "growl",
+    "leafage",
+    "vine-whip"
   ]
 }

@@ -23,6 +23,15 @@
   "learnset": [
     "pound",
     "growl",
-    "leafage"
+    "leafage",
+    "vine-whip",
+    "razor-leaf",
+    "quick-attack"
+  ],
+  "moveset": [
+    "pound",
+    "growl",
+    "leafage",
+    "vine-whip"
   ]
 }

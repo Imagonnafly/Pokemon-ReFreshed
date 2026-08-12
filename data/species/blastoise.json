@@ -18,5 +18,19 @@
   },
   "abilities": [
     "torrent"
+  ],
+  "learnset": [
+    "tackle",
+    "growl",
+    "water-gun",
+    "water-pulse",
+    "aqua-jet",
+    "quick-attack"
+  ],
+  "moveset": [
+    "tackle",
+    "growl",
+    "water-gun",
+    "water-pulse"
   ]
 }

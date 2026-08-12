@@ -1,0 +1,11 @@
+{
+  "id": "fire-blast",
+  "name": "Fire Blast",
+  "types": [
+    "Fire"
+  ],
+  "category": "special",
+  "power": 110,
+  "accuracy": 85,
+  "pp": 5
+}

@@ -1,0 +1,11 @@
+{
+  "id": "facade",
+  "name": "Facade",
+  "types": [
+    "Normal"
+  ],
+  "category": "physical",
+  "power": 70,
+  "accuracy": 100,
+  "pp": 20
+}

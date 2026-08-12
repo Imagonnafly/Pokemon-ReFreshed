@@ -19,5 +19,20 @@
   },
   "abilities": [
     "multiscale"
+  ],
+  "learnset": [
+    "gust",
+    "wing-attack",
+    "fly",
+    "roost",
+    "dragon-claw",
+    "dragon-pulse",
+    "quick-attack"
+  ],
+  "moveset": [
+    "gust",
+    "wing-attack",
+    "fly",
+    "roost"
   ]
 }

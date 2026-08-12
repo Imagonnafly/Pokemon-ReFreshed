@@ -1,0 +1,11 @@
+{
+  "id": "low-sweep",
+  "name": "Low Sweep",
+  "types": [
+    "Fighting"
+  ],
+  "category": "physical",
+  "power": 65,
+  "accuracy": 100,
+  "pp": 20
+}

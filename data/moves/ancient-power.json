@@ -1,0 +1,11 @@
+{
+  "id": "ancient-power",
+  "name": "Ancient Power",
+  "types": [
+    "Rock"
+  ],
+  "category": "special",
+  "power": 60,
+  "accuracy": 100,
+  "pp": 5
+}

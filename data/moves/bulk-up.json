@@ -1,0 +1,11 @@
+{
+  "id": "bulk-up",
+  "name": "Bulk Up",
+  "types": [
+    "Fighting"
+  ],
+  "category": "status",
+  "power": 0,
+  "accuracy": 0,
+  "pp": 20
+}
