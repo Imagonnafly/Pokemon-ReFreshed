@@ -320,7 +320,7 @@ export class TeamBuilder {
         <div id="moveRows"></div>
         <button id="addMove" class="add-move-button" type="button">+ Add Move</button>
         <small class="editor-note">
-          Learnset: ${this.escape(String(species.learnset?.length ?? 0))} moves · Battle moveset: up to 4 moves.<br>
+          Learnset: ${this.escape(String(species.learnset?.length ?? 0))} moves · Move database: ${this.escape(String(this.data.moves.length))} moves · Battle moveset: up to 4 moves.<br>
           ${species.learnset?.length
             ? "Showing moves listed in this Pokémon's learnset."
             : "No learnset has been defined for this species yet, so all currently loaded moves are available."}

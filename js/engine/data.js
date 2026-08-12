@@ -1,5 +1,80 @@
 const DATA_ROOT = new URL("../../data/", import.meta.url);
 
+const KORAIDON_FULL_LEARNSET = [
+  "acrobatics",
+  "agility",
+  "ancient-power",
+  "body-press",
+  "body-slam",
+  "breaking-swipe",
+  "brick-break",
+  "bulk-up",
+  "bulldoze",
+  "close-combat",
+  "collision-course",
+  "counter",
+  "crunch",
+  "dig",
+  "double-edge",
+  "draco-meteor",
+  "dragon-cheer",
+  "dragon-claw",
+  "dragon-pulse",
+  "dragon-tail",
+  "drain-punch",
+  "dual-wingbeat",
+  "endure",
+  "facade",
+  "fire-blast",
+  "fire-fang",
+  "fire-spin",
+  "flame-charge",
+  "flamethrower",
+  "flare-blitz",
+  "focus-blast",
+  "focus-punch",
+  "giga-impact",
+  "heat-crash",
+  "heat-wave",
+  "heavy-slam",
+  "helping-hand",
+  "hyper-beam",
+  "ice-fang",
+  "iron-head",
+  "low-kick",
+  "low-sweep",
+  "meteor-beam",
+  "mud-shot",
+  "mud-slap",
+  "outrage",
+  "overheat",
+  "protect",
+  "rest",
+  "reversal",
+  "roar",
+  "rock-smash",
+  "scale-shot",
+  "scary-face",
+  "screech",
+  "shadow-claw",
+  "sleep-talk",
+  "snarl",
+  "solar-beam",
+  "stomping-tantrum",
+  "substitute",
+  "sunny-day",
+  "swords-dance",
+  "take-down",
+  "taunt",
+  "temper-flare",
+  "tera-blast",
+  "thunder-fang",
+  "u-turn",
+  "uproar",
+  "wild-charge",
+  "zen-headbutt"
+];
+
 async function fetchJSON(relativePath) {
   const url = new URL(relativePath, DATA_ROOT);
   const response = await fetch(url.href, {
@@ -68,6 +143,13 @@ export const DataRepository = {
       loadCollection("abilities", abilityIds),
       loadCollection("items", itemIds)
     ]);
+
+    // Defensive data migration: Koraidon's complete learnset is authoritative.
+    // This also repairs deployments where an older koraidon.json was cached or uploaded.
+    const koraidon = species.find(s => s?.id === "koraidon");
+    if (koraidon && (!Array.isArray(koraidon.learnset) || koraidon.learnset.length < 72)) {
+      koraidon.learnset = KORAIDON_FULL_LEARNSET.filter(id => moves.some(m => m.id === id));
+    }
 
     return {
       types,
