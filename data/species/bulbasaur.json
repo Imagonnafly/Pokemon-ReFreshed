@@ -1,0 +1,29 @@
+{
+  "name": "Bulbasaur",
+  "types": [
+    "Grass",
+    "Poison"
+  ],
+  "abilities": [
+    "overgrow",
+    "chlorophyll"
+  ],
+  "baseStats": {
+    "hp": 45,
+    "attack": 49,
+    "defense": 49,
+    "specialAttack": 65,
+    "specialDefense": 65,
+    "speed": 45
+  },
+  "id": "bulbasaur",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/bulbasaur.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/bulbasaur.gif"
+  },
+  "learnset": [
+    "tackle",
+    "growl",
+    "vine-whip"
+  ]
+}

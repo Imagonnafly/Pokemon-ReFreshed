@@ -1,0 +1,28 @@
+{
+  "name": "Sprigatito",
+  "types": [
+    "Grass"
+  ],
+  "abilities": [
+    "overgrow",
+    "protean"
+  ],
+  "baseStats": {
+    "hp": 40,
+    "attack": 61,
+    "defense": 54,
+    "specialAttack": 45,
+    "specialDefense": 45,
+    "speed": 65
+  },
+  "id": "sprigatito",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/sprigatito.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/sprigatito.gif"
+  },
+  "learnset": [
+    "scratch",
+    "growl",
+    "leafage"
+  ]
+}

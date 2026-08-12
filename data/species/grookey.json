@@ -1,0 +1,28 @@
+{
+  "name": "Grookey",
+  "types": [
+    "Grass"
+  ],
+  "abilities": [
+    "overgrow",
+    "grassy-surge"
+  ],
+  "baseStats": {
+    "hp": 50,
+    "attack": 65,
+    "defense": 50,
+    "specialAttack": 40,
+    "specialDefense": 40,
+    "speed": 69
+  },
+  "id": "grookey",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/grookey.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/grookey.gif"
+  },
+  "learnset": [
+    "scratch",
+    "growl",
+    "leafage"
+  ]
+}

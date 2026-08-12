@@ -1,0 +1,11 @@
+{
+  "id": "muscle-band",
+  "name": "Muscle Band",
+  "category": "held",
+  "effect": {
+    "kind": "category_boost",
+    "category": "physical",
+    "multiplier": 1.1
+  },
+  "description": "Boosts physical move damage by 10%."
+}

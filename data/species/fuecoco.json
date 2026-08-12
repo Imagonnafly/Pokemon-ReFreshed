@@ -1,0 +1,28 @@
+{
+  "name": "Fuecoco",
+  "types": [
+    "Fire"
+  ],
+  "abilities": [
+    "blaze",
+    "unaware"
+  ],
+  "baseStats": {
+    "hp": 67,
+    "attack": 45,
+    "defense": 59,
+    "specialAttack": 63,
+    "specialDefense": 40,
+    "speed": 36
+  },
+  "id": "fuecoco",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/fuecoco.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/fuecoco.gif"
+  },
+  "learnset": [
+    "tackle",
+    "growl",
+    "ember"
+  ]
+}

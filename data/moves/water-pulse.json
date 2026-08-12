@@ -1,0 +1,11 @@
+{
+  "id": "water-pulse",
+  "name": "Water Pulse",
+  "types": [
+    "Water"
+  ],
+  "category": "special",
+  "power": 60,
+  "accuracy": 100,
+  "pp": 25
+}

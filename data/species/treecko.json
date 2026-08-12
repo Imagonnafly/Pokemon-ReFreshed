@@ -1,0 +1,28 @@
+{
+  "name": "Treecko",
+  "types": [
+    "Grass"
+  ],
+  "abilities": [
+    "overgrow",
+    "unburden"
+  ],
+  "baseStats": {
+    "hp": 40,
+    "attack": 45,
+    "defense": 35,
+    "specialAttack": 65,
+    "specialDefense": 55,
+    "speed": 70
+  },
+  "id": "treecko",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/treecko.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/treecko.gif"
+  },
+  "learnset": [
+    "pound",
+    "growl",
+    "leafage"
+  ]
+}

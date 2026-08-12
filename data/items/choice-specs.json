@@ -1,0 +1,11 @@
+{
+  "id": "choice-specs",
+  "name": "Choice Specs",
+  "category": "held",
+  "effect": {
+    "kind": "choice_boost",
+    "stat": "specialAttack",
+    "multiplier": 1.5
+  },
+  "description": "Boosts Special Attack by 50% and locks the holder into its first selected move."
+}

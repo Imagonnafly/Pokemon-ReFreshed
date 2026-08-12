@@ -1,0 +1,11 @@
+{
+  "id": "blaze",
+  "name": "Blaze",
+  "effect": {
+    "kind": "boost_low_hp",
+    "type": "Fire",
+    "multiplier": 1.5,
+    "threshold": 0.3333333333333333
+  },
+  "description": "Blaze."
+}

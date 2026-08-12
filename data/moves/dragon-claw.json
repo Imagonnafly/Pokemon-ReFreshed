@@ -1,0 +1,11 @@
+{
+  "id": "dragon-claw",
+  "name": "Dragon Claw",
+  "types": [
+    "Dragon"
+  ],
+  "category": "physical",
+  "power": 80,
+  "accuracy": 100,
+  "pp": 15
+}

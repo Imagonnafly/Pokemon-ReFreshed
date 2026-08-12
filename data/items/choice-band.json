@@ -1,0 +1,11 @@
+{
+  "id": "choice-band",
+  "name": "Choice Band",
+  "category": "held",
+  "effect": {
+    "kind": "choice_boost",
+    "stat": "attack",
+    "multiplier": 1.5
+  },
+  "description": "Boosts Attack by 50% and locks the holder into its first selected move."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "focus-sash",
+  "name": "Focus Sash",
+  "category": "held",
+  "effect": {
+    "kind": "survive_full_hp",
+    "once": true
+  },
+  "description": "At full HP, prevents a one-hit knockout and leaves the holder at 1 HP."
+}

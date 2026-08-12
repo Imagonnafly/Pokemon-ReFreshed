@@ -1,0 +1,28 @@
+{
+  "name": "Chimchar",
+  "types": [
+    "Fire"
+  ],
+  "abilities": [
+    "blaze",
+    "iron-fist"
+  ],
+  "baseStats": {
+    "hp": 44,
+    "attack": 58,
+    "defense": 44,
+    "specialAttack": 58,
+    "specialDefense": 44,
+    "speed": 61
+  },
+  "id": "chimchar",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/chimchar.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/chimchar.gif"
+  },
+  "learnset": [
+    "scratch",
+    "growl",
+    "ember"
+  ]
+}

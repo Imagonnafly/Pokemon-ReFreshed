@@ -1,0 +1,28 @@
+{
+  "name": "Scorbunny",
+  "types": [
+    "Fire"
+  ],
+  "abilities": [
+    "blaze",
+    "libero"
+  ],
+  "baseStats": {
+    "hp": 50,
+    "attack": 71,
+    "defense": 40,
+    "specialAttack": 40,
+    "specialDefense": 40,
+    "speed": 69
+  },
+  "id": "scorbunny",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/scorbunny.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/scorbunny.gif"
+  },
+  "learnset": [
+    "tackle",
+    "growl",
+    "ember"
+  ]
+}

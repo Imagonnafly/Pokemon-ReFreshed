@@ -1,0 +1,10 @@
+{
+  "id": "expert-belt",
+  "name": "Expert Belt",
+  "category": "held",
+  "effect": {
+    "kind": "super_effective_boost",
+    "multiplier": 1.2
+  },
+  "description": "Boosts super-effective moves by 20%."
+}

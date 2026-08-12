@@ -1,0 +1,23 @@
+{
+  "id": "dragonite",
+  "name": "Dragonite",
+  "types": [
+    "Dragon",
+    "Flying"
+  ],
+  "baseStats": {
+    "hp": 91,
+    "attack": 134,
+    "defense": 95,
+    "specialAttack": 100,
+    "specialDefense": 100,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/koraidon.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/koraidon.gif"
+  },
+  "abilities": [
+    "multiscale"
+  ]
+}

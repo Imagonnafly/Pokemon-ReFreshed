@@ -1,0 +1,8 @@
+{
+  "id": "magician",
+  "name": "Magician",
+  "effect": {
+    "kind": "none"
+  },
+  "description": "Magician."
+}

@@ -1,0 +1,28 @@
+{
+  "name": "Tepig",
+  "types": [
+    "Fire"
+  ],
+  "abilities": [
+    "blaze",
+    "thick-fat"
+  ],
+  "baseStats": {
+    "hp": 65,
+    "attack": 63,
+    "defense": 45,
+    "specialAttack": 45,
+    "specialDefense": 45,
+    "speed": 45
+  },
+  "id": "tepig",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/tepig.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/tepig.gif"
+  },
+  "learnset": [
+    "tackle",
+    "growl",
+    "ember"
+  ]
+}

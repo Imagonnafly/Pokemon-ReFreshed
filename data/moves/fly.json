@@ -1,0 +1,11 @@
+{
+  "id": "fly",
+  "name": "Fly",
+  "types": [
+    "Flying"
+  ],
+  "category": "physical",
+  "power": 90,
+  "accuracy": 95,
+  "pp": 15
+}

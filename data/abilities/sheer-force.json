@@ -1,0 +1,8 @@
+{
+  "id": "sheer-force",
+  "name": "Sheer Force",
+  "effect": {
+    "kind": "none"
+  },
+  "description": "Sheer Force."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "unburden",
+  "name": "Unburden",
+  "effect": {
+    "kind": "none"
+  },
+  "description": "Unburden."
+}

@@ -1,0 +1,28 @@
+{
+  "name": "Chespin",
+  "types": [
+    "Grass"
+  ],
+  "abilities": [
+    "overgrow",
+    "bulletproof"
+  ],
+  "baseStats": {
+    "hp": 56,
+    "attack": 61,
+    "defense": 65,
+    "specialAttack": 48,
+    "specialDefense": 45,
+    "speed": 38
+  },
+  "id": "chespin",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/chespin.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/chespin.gif"
+  },
+  "learnset": [
+    "tackle",
+    "growl",
+    "vine-whip"
+  ]
+}

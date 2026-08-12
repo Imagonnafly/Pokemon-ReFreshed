@@ -1,0 +1,18 @@
+{
+  "id": "flamethrower",
+  "name": "Flamethrower",
+  "types": [
+    "Fire"
+  ],
+  "category": "special",
+  "power": 90,
+  "accuracy": 100,
+  "pp": 15,
+  "effects": [
+    {
+      "kind": "status",
+      "status": "Burn",
+      "chance": 0.1
+    }
+  ]
+}

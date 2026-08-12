@@ -1,0 +1,8 @@
+{
+  "id": "grassy-surge",
+  "name": "Grassy Surge",
+  "effect": {
+    "kind": "none"
+  },
+  "description": "Grassy Surge."
+}

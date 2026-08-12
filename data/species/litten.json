@@ -1,0 +1,28 @@
+{
+  "name": "Litten",
+  "types": [
+    "Fire"
+  ],
+  "abilities": [
+    "blaze",
+    "intimidate"
+  ],
+  "baseStats": {
+    "hp": 45,
+    "attack": 65,
+    "defense": 40,
+    "specialAttack": 60,
+    "specialDefense": 40,
+    "speed": 70
+  },
+  "id": "litten",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/litten.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/litten.gif"
+  },
+  "learnset": [
+    "scratch",
+    "growl",
+    "ember"
+  ]
+}

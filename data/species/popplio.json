@@ -1,0 +1,28 @@
+{
+  "name": "Popplio",
+  "types": [
+    "Water"
+  ],
+  "abilities": [
+    "torrent",
+    "liquid-voice"
+  ],
+  "baseStats": {
+    "hp": 50,
+    "attack": 54,
+    "defense": 54,
+    "specialAttack": 66,
+    "specialDefense": 56,
+    "speed": 40
+  },
+  "id": "popplio",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/popplio.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/popplio.gif"
+  },
+  "learnset": [
+    "pound",
+    "growl",
+    "water-gun"
+  ]
+}

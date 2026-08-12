@@ -1,0 +1,23 @@
+{
+  "id": "charizard",
+  "name": "Charizard",
+  "types": [
+    "Fire",
+    "Flying"
+  ],
+  "baseStats": {
+    "hp": 78,
+    "attack": 84,
+    "defense": 78,
+    "specialAttack": 109,
+    "specialDefense": 85,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/charizard.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/charizard.gif"
+  },
+  "abilities": [
+    "blaze"
+  ]
+}

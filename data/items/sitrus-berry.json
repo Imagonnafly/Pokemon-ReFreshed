@@ -1,0 +1,12 @@
+{
+  "id": "sitrus-berry",
+  "name": "Sitrus Berry",
+  "category": "held",
+  "effect": {
+    "kind": "heal_threshold",
+    "threshold": 0.5,
+    "percent": 0.25,
+    "once": true
+  },
+  "description": "Restores 25% of maximum HP when the holder reaches half HP or less."
+}

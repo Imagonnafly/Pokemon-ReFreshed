@@ -1,0 +1,28 @@
+{
+  "name": "Mudkip",
+  "types": [
+    "Water"
+  ],
+  "abilities": [
+    "torrent",
+    "damp"
+  ],
+  "baseStats": {
+    "hp": 50,
+    "attack": 70,
+    "defense": 50,
+    "specialAttack": 50,
+    "specialDefense": 50,
+    "speed": 40
+  },
+  "id": "mudkip",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/mudkip.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/mudkip.gif"
+  },
+  "learnset": [
+    "tackle",
+    "growl",
+    "water-gun"
+  ]
+}

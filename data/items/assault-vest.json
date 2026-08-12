@@ -1,0 +1,11 @@
+{
+  "id": "assault-vest",
+  "name": "Assault Vest",
+  "category": "held",
+  "effect": {
+    "kind": "stat_multiplier",
+    "stat": "specialDefense",
+    "multiplier": 1.5
+  },
+  "description": "Boosts Special Defense by 50%."
+}

@@ -1,0 +1,8 @@
+{
+  "id": "solar-power",
+  "name": "Solar Power",
+  "effect": {
+    "kind": "none"
+  },
+  "description": "Solar Power."
+}

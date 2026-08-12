@@ -1,0 +1,8 @@
+{
+  "id": "damp",
+  "name": "Damp",
+  "effect": {
+    "kind": "none"
+  },
+  "description": "Damp."
+}

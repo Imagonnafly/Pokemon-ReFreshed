@@ -1,0 +1,11 @@
+{
+  "id": "peck",
+  "name": "Peck",
+  "types": [
+    "Flying"
+  ],
+  "category": "physical",
+  "power": 35,
+  "accuracy": 100,
+  "pp": 25
+}

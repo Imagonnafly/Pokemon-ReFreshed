@@ -1,0 +1,11 @@
+{
+  "id": "choice-scarf",
+  "name": "Choice Scarf",
+  "category": "held",
+  "effect": {
+    "kind": "stat_multiplier",
+    "stat": "speed",
+    "multiplier": 1.5
+  },
+  "description": "Boosts Speed by 50%."
+}

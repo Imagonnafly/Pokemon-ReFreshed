@@ -1,0 +1,22 @@
+{
+  "id": "blastoise",
+  "name": "Blastoise",
+  "types": [
+    "Water"
+  ],
+  "baseStats": {
+    "hp": 79,
+    "attack": 83,
+    "defense": 100,
+    "specialAttack": 85,
+    "specialDefense": 105,
+    "speed": 78
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/blastoise.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/blastoise.gif"
+  },
+  "abilities": [
+    "torrent"
+  ]
+}

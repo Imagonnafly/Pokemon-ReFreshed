@@ -1,0 +1,11 @@
+{
+  "id": "water-gun",
+  "name": "Water Gun",
+  "types": [
+    "Water"
+  ],
+  "category": "special",
+  "power": 40,
+  "accuracy": 100,
+  "pp": 25
+}

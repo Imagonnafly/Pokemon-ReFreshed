@@ -1,0 +1,28 @@
+{
+  "name": "Fennekin",
+  "types": [
+    "Fire"
+  ],
+  "abilities": [
+    "blaze",
+    "magician"
+  ],
+  "baseStats": {
+    "hp": 40,
+    "attack": 45,
+    "defense": 40,
+    "specialAttack": 62,
+    "specialDefense": 60,
+    "speed": 60
+  },
+  "id": "fennekin",
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/fennekin.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/fennekin.gif"
+  },
+  "learnset": [
+    "scratch",
+    "growl",
+    "ember"
+  ]
+}
