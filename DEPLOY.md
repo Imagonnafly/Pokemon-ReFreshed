@@ -26,6 +26,8 @@ For a static frontend, the publishable key is intended to be exposed to browser 
 
 ## 3. Deploy
 
+This version is a static Vercel deployment. The old `server.js`, Node package files, and local WebSocket server have been removed intentionally. Vercel should serve `index.html` and the `css/`, `js/`, and `data/` folders as static assets; Supabase Realtime handles multiplayer.
+
 ### Vercel
 
 Push the project to GitHub and import the repository into Vercel. No Node server is required.

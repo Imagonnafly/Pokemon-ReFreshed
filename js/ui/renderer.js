@@ -53,26 +53,38 @@ export class Renderer {
     }
 
     this.els.turn.textContent = `Turn ${this.battle.turn}`;
+
     const visibleLog = this.battle.log.filter(x => {
       const text = String(x);
       return !text.includes("Waiting for your opponent's move...") &&
         !text.includes("You chose your move. Waiting for your opponent to choose...") &&
         !text.includes("Opponent selected a move.") &&
+        !text.includes("Your move is locked in — waiting for the opponent to choose.") &&
+        !text.includes("The opponent has chosen a move — choose yours.") &&
         !text.includes("You won the battle!") &&
         !text.includes("You lost the battle!");
     });
+
     let status = "";
     if (this.battle.over && this.battle.result?.winnerRole) {
       const winner = this.battle.result.winnerRole === "host" ? "Player 1" :
         this.battle.result.winnerRole === "guest" ? "Player 2" :
         this.battle.result.winnerRole === "local" ? "You" : "Opponent";
-      let personal = "";
-      if (this.battle.networkRole === "host") personal = this.battle.result.winnerRole === "host" ? "You won!" : "You lost!";
-      else if (this.battle.networkRole === "guest") personal = this.battle.result.winnerRole === "guest" ? "You won!" : "You lost!";
-      status = `<div class="log-line"><strong>${this.escape(winner)} won the battle!</strong>${personal ? ` ${this.escape(personal)}` : ""}</div>`;
-    } else if (this.battle.localMoveSubmitted && !this.battle.remoteMoveSubmitted && !this.battle.over) {
+      const localWon =
+        this.battle.networkRole === "host"
+          ? this.battle.result.winnerRole === "host"
+          : this.battle.networkRole === "guest"
+            ? this.battle.result.winnerRole === "guest"
+            : this.battle.result.winnerRole === "local";
+      const personal = this.battle.networkRole
+        ? (localWon ? "You won!" : "You lost!")
+        : (localWon ? "You won!" : "You lost!");
+      status = `<div class="log-line result-line"><strong>${this.escape(winner)} won the battle!</strong> ${this.escape(personal)}</div>`;
+    } else if (this.battle.networkRole && this.battle.localMoveSubmitted && this.battle.remoteMoveSubmitted) {
+      status = `<div class="log-line">Both trainers have chosen — resolving the turn...</div>`;
+    } else if (this.battle.networkRole && this.battle.localMoveSubmitted && !this.battle.remoteMoveSubmitted) {
       status = `<div class="log-line">Your move is locked in — waiting for the opponent to choose.</div>`;
-    } else if (!this.battle.localMoveSubmitted && this.battle.remoteMoveSubmitted && !this.battle.over) {
+    } else if (this.battle.networkRole && !this.battle.localMoveSubmitted && this.battle.remoteMoveSubmitted) {
       status = `<div class="log-line">The opponent has chosen a move — choose yours.</div>`;
     }
     this.els.log.innerHTML = visibleLog
@@ -126,7 +138,11 @@ export class Renderer {
       button.type = "button";
       button.dataset.category = move.category || "status";
       button.innerHTML = `<strong>${this.escape(move.name)}</strong><span style="display:block;margin-top:4px;font-size:10px;color:#8a97a8;font-weight:800;text-transform:uppercase;letter-spacing:.05em">${this.escape(move.types.join(" / "))} · ${move.category || "status"}</span>`;
-      button.disabled = !this.battle.ready && this.battle.networkRole === "guest" || this.battle.busy || this.battle.over;
+      button.disabled =
+        (!this.battle.ready && this.battle.networkRole === "guest") ||
+        this.battle.busy ||
+        this.battle.over ||
+        (this.battle.networkRole && (this.battle.localMoveSubmitted || this.battle.remoteMoveSubmitted));
 
       button.addEventListener("click", async (event) => {
         event.preventDefault();

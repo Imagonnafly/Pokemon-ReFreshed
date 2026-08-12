@@ -6,6 +6,8 @@ export class Battle {
     this.data = data;
     this.networkRole = networkRole;
     this.pendingNetwork = {};
+    this.localMoveSubmitted = false;
+    this.remoteMoveSubmitted = false;
     this.typeChart = data.types.chart;
     this.species = data.species;
     this.movesData = data.moves;
@@ -75,10 +77,14 @@ export class Battle {
 
     if (this.networkRole === "host") {
       const move = this.active("player").moves.find(m => m.id === moveId);
-      if (!move) return;
+      if (!move || this.pendingNetwork?.playerMove) return;
+
       this.pendingNetwork = this.pendingNetwork || {};
       this.pendingNetwork.playerMove = move.id;
-      this.write(`You chose your move. Waiting for your opponent to choose...`);
+      this.localMoveSubmitted = true;
+      this.busy = true;
+      this.locked = true;
+      this.write(`Your move is locked in — waiting for the opponent to choose.`);
       this.updateNetworkState?.();
       await this.tryNetworkTurn();
       return;
@@ -110,8 +116,10 @@ export class Battle {
   async receiveRemoteMove(moveId) {
     if (this.networkRole !== "host" || this.over) return;
     this.pendingNetwork = this.pendingNetwork || {};
+    if (this.pendingNetwork.opponentMove) return;
     this.pendingNetwork.opponentMove = moveId;
-    this.write(`Opponent selected a move.`);
+    this.remoteMoveSubmitted = true;
+    this.write(`The opponent has chosen a move.`);
     this.updateNetworkState?.();
     if (this.pendingNetwork.playerSwitch !== undefined) await this.tryNetworkSwitchChoice();
     else await this.tryNetworkTurn();
@@ -165,6 +173,8 @@ export class Battle {
     const move = player.moves.find(m => m.id === pending.playerMove);
     const target = this.opponent.team[pending.opponentSwitch];
     this.pendingNetwork = {};
+    this.localMoveSubmitted = false;
+    this.remoteMoveSubmitted = false;
     if (!move || !target?.canBattle()) return;
 
     this.busy = true;
@@ -179,7 +189,7 @@ export class Battle {
   }
 
   async tryNetworkTurn() {
-    if (this.networkRole !== "host" || this.busy || this.over) return;
+    if (this.networkRole !== "host" || this.over) return;
     const pending = this.pendingNetwork;
     if (pending?.opponentSwitch !== undefined) { await this.tryNetworkSwitchTurn(); return; }
     if (!pending?.playerMove || !pending?.opponentMove) return;
@@ -189,6 +199,8 @@ export class Battle {
     const move = player.moves.find(m => m.id === pending.playerMove);
     const opponentMove = opponent.moves.find(m => m.id === pending.opponentMove);
     this.pendingNetwork = {};
+    this.localMoveSubmitted = false;
+    this.remoteMoveSubmitted = false;
     if (!move || !opponentMove || !player.canBattle() || !opponent.canBattle()) return;
 
     const heldItem = this.getItem(player);
@@ -329,6 +341,8 @@ export class Battle {
 
     this.busy = false;
     this.locked = false;
+    this.localMoveSubmitted = false;
+    this.remoteMoveSubmitted = false;
     this.endTurn();
     this.update();
   }

@@ -11,7 +11,7 @@ function configFromEnv() {
 
 export function isRealtimeConfigured() {
   const { url, key } = configFromEnv();
-  return !!url && !!key && !url.includes("YOUR_PROJECT_REF") && !key.includes("YOUR_SUPABASE_PUBLISHABLE_KEY");
+  return Boolean(url && key);
 }
 
 export class MultiplayerClient {
@@ -114,6 +114,7 @@ export class RemoteBattle {
     this.localMoveSubmitted = false;
     this.remoteMoveSubmitted = false;
     this.log = [];
+    this.lastSnapshotTurn = 0;
     this.team = team || [];
     this.player = { team: [], active: 0 };
     this.opponent = { team: [], active: 0 };
@@ -162,13 +163,22 @@ export class RemoteBattle {
     this.turn = Number(snapshot.turn) || 1;
     this.over = !!snapshot.over;
     this.result = snapshot.result || null;
-    if (this.pendingAction && this.pendingTurn !== null && this.turn > this.pendingTurn) { this.pendingAction = false; this.pendingTurn = null; }
-    this.busy = !!snapshot.busy || this.pendingAction;
-    this.locked = !!snapshot.locked || this.pendingAction;
+    const turnAdvanced = this.pendingTurn !== null && this.turn > this.pendingTurn;
+    if (turnAdvanced) {
+      this.pendingAction = false;
+      this.pendingTurn = null;
+    }
+
     const hostSubmitted = !!snapshot.playerMoveSubmitted;
     const guestSubmitted = !!snapshot.opponentMoveSubmitted;
     this.localMoveSubmitted = guestSubmitted;
     this.remoteMoveSubmitted = hostSubmitted;
+
+    // Once the host has started resolving a turn, neither player is "waiting
+    // to choose" anymore. Keep the local controls locked until the next turn.
+    const resolving = !!snapshot.busy || !!snapshot.locked || (hostSubmitted && guestSubmitted);
+    this.busy = resolving || this.pendingAction;
+    this.locked = resolving || this.pendingAction;
     this.player = this.hydrateSide(orient.player);
     this.opponent = this.hydrateSide(orient.opponent);
     this.log = this.orientLog(snapshot.log || []);

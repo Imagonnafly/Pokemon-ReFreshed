@@ -174,7 +174,10 @@ function serializeBattle(battle) {
   return {
     turn: battle.turn, over: battle.over, busy: battle.busy, locked: battle.locked,
     result: battle.result || null,
-    awaitingPlayerSwitch: battle.awaitingPlayerSwitch, playerMoveSubmitted: !!battle.pendingNetwork?.playerMove, opponentMoveSubmitted: !!battle.pendingNetwork?.opponentMove, log: battle.log.slice(-80),
+    awaitingPlayerSwitch: battle.awaitingPlayerSwitch,
+    playerMoveSubmitted: !!battle.localMoveSubmitted,
+    opponentMoveSubmitted: !!battle.remoteMoveSubmitted,
+    log: battle.log.slice(-80),
     player: { active: battle.player.active, team: battle.player.team.map(serializePokemon) },
     opponent: { active: battle.opponent.active, team: battle.opponent.team.map(serializePokemon) }
   };
