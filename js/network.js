@@ -340,3 +340,388 @@ export class RemoteMultiBattle {
     return Array.isArray(log) ? log.map(String) : [];
   }
 }
+
+function getTrainerIdentity() {
+  const key = "pokemon-trainer-id";
+  let id = localStorage.getItem(key);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(key, id);
+  }
+  let name = localStorage.getItem("pokemon-trainer-name");
+  if (!name) {
+    name = `Trainer ${id.slice(0, 4).toUpperCase()}`;
+    localStorage.setItem("pokemon-trainer-name", name);
+  }
+  return { id, name };
+}
+
+export class PartyMatchClient {
+  constructor({ data, team, onStatus, onParty, onMatch, onPartyAction, onPartySnapshot }) {
+    this.data = data;
+    this.team = team || [];
+    this.onStatus = onStatus || (() => {});
+    this.onParty = onParty || (() => {});
+    this.onMatch = onMatch || (() => {});
+    this.onPartyAction = onPartyAction || (() => {});
+    this.onPartySnapshot = onPartySnapshot || (() => {});
+    this.supabase = null;
+    this.queueChannel = null;
+    this.partyChannel = null;
+    this.matchChannel = null;
+    this.partyCode = null;
+    this.party = null;
+    this.queueTickets = new Map();
+    this.queueMode = null;
+    this.queueGroup = null;
+    this.match = null;
+    this.readyIds = new Set();
+    this.identity = getTrainerIdentity();
+  }
+
+  async connect() {
+    if (!isRealtimeConfigured()) throw new Error("Supabase Realtime is not configured.");
+    const { url, key } = configFromEnv();
+    this.supabase = createClient(url, key, { realtime: { params: { eventsPerSecond: 30 } } });
+    this.onStatus("Connected to matchmaking.");
+    return true;
+  }
+
+  async ensureQueueChannel() {
+    if (this.queueChannel) return;
+    this.queueChannel = this.supabase.channel("pokemon-matchmaking-v2", {
+      config: { broadcast: { self: false }, presence: { key: this.identity.id } }
+    });
+    this.queueChannel.on("broadcast", { event: "queue" }, ({ payload }) => this.handleQueueMessage(payload));
+    await this.subscribe(this.queueChannel);
+  }
+
+  async createParty() {
+    const code = this.randomCode();
+    await this.openParty(code, true);
+    return code;
+  }
+
+  async joinParty(code) {
+    await this.openParty(String(code).trim().toUpperCase(), false);
+  }
+
+  async openParty(code, isHost) {
+    if (!this.supabase) await this.connect();
+    if (this.partyChannel) await this.partyChannel.unsubscribe();
+    this.partyCode = code;
+    this.party = {
+      code,
+      hostId: isHost ? this.identity.id : null,
+      members: [{ id: this.identity.id, name: this.identity.name, team: this.team, host: !!isHost }]
+    };
+    this.partyChannel = this.supabase.channel(`pokemon-party-v2:${code}`, {
+      config: { broadcast: { self: false }, presence: { key: this.identity.id } }
+    });
+    this.partyChannel.on("broadcast", { event: "party" }, ({ payload }) => this.handlePartyMessage(payload));
+    await this.subscribe(this.partyChannel);
+    if (isHost) {
+      await this.partyChannel.send({ type: "broadcast", event: "party", payload: { type: "party_state", party: this.party } });
+    } else {
+      await this.partyChannel.send({ type: "broadcast", event: "party", payload: {
+        type: "party_join_request",
+        member: { id: this.identity.id, name: this.identity.name, team: this.team, host: false }
+      }});
+    }
+    this.onParty(this.party);
+  }
+
+  handlePartyMessage(message) {
+    if (message?.type === "party_state" && message.party) {
+      this.party = message.party;
+      this.onParty(this.party);
+      return;
+    }
+    if (message?.type === "party_join_request" && this.party?.hostId === this.identity.id) {
+      if (this.party.members.length >= 2) return;
+      this.party.members.push(message.member);
+      this.partyChannel?.send({ type: "broadcast", event: "party", payload: { type: "party_state", party: this.party } });
+      this.onParty(this.party);
+      return;
+    }
+    if (message?.type === "party_queue") {
+      const group = message.group;
+      if (Array.isArray(group?.members) && group.members.some(m => m.id === this.identity.id)) {
+        this.queueMode = message.mode || "team-2v2";
+        this.queueGroup = group;
+        this.joinQueue(this.queueMode, group);
+      }
+    }
+  }
+
+  async queueSolo(mode = "team-2v2") {
+    const group = { groupId: this.identity.id, members: [{ id: this.identity.id, name: this.identity.name, team: this.team }] };
+    this.queueMode = mode;
+    this.queueGroup = group;
+    await this.joinQueue(mode, group);
+  }
+
+  async queueParty(mode = "team-2v2") {
+    if (!this.party || this.party.members.length < 2) throw new Error("Your party needs two trainers before entering matchmaking.");
+    if (this.party.hostId !== this.identity.id) {
+      this.onStatus("Only the party leader can start matchmaking.");
+      return;
+    }
+    const group = {
+      groupId: this.party.code,
+      members: this.party.members.map(m => ({ id: m.id, name: m.name, team: m.team }))
+    };
+    this.queueMode = mode;
+    this.queueGroup = group;
+    await this.joinQueue(mode, group);
+    await this.partyChannel?.send({ type: "broadcast", event: "party", payload: { type: "party_queue", mode, group } });
+  }
+
+  async joinQueue(mode, group) {
+    await this.ensureQueueChannel();
+    const ticket = {
+      ticketId: `${group.groupId}:${Date.now()}`,
+      groupId: group.groupId,
+      mode,
+      createdAt: Date.now(),
+      leaderId: group.members.map(m => m.id).sort()[0],
+      members: group.members
+    };
+    this.queueTickets.set(ticket.groupId, ticket);
+    await this.queueChannel.send({ type: "broadcast", event: "queue", payload: { type: "queue_ticket", ticket } });
+    this.onStatus("Searching for trainers…");
+    this.attemptMatch();
+  }
+
+  async leaveQueue() {
+    if (this.queueChannel && this.queueGroup) {
+      this.queueTickets.delete(this.queueGroup.groupId);
+      await this.queueChannel.send({ type: "broadcast", event: "queue", payload: { type: "queue_leave", groupId: this.queueGroup.groupId } });
+    }
+    this.queueGroup = null;
+    this.queueMode = null;
+  }
+
+  handleQueueMessage(message) {
+    if (!message) return;
+    if (message.type === "queue_ticket" && message.ticket) {
+      if (message.ticket.mode !== "team-2v2") return;
+      this.queueTickets.set(message.ticket.groupId, message.ticket);
+      this.attemptMatch();
+    } else if (message.type === "queue_leave") {
+      this.queueTickets.delete(message.groupId);
+    } else if (message.type === "match_found" && message.match) {
+      const match = message.match;
+      const me = match.members.find(m => m.id === this.identity.id);
+      if (!me) return;
+      this.match = { ...match, localMemberId: this.identity.id, localSide: me.side };
+      this.leaveQueue();
+      this.openMatchChannel(match);
+    }
+  }
+
+  attemptMatch() {
+    const tickets = [...this.queueTickets.values()]
+      .filter(t => t.mode === "team-2v2")
+      .sort((a, b) => a.createdAt - b.createdAt || a.groupId.localeCompare(b.groupId));
+    if (!tickets.length || !this.queueGroup) return;
+    const myLeader = this.queueGroup.members.map(m => m.id).sort()[0];
+    const current = tickets.find(t => t.groupId === this.queueGroup.groupId);
+    if (!current || current.leaderId !== myLeader) return;
+
+    const picked = [];
+    let count = 0;
+    for (const ticket of tickets) {
+      if (picked.some(p => p.groupId === ticket.groupId)) continue;
+      const size = ticket.members.length;
+      if (size > 2 || count + size > 4) continue;
+      picked.push(ticket);
+      count += size;
+      if (count === 4) break;
+    }
+    if (count !== 4) return;
+
+    // The earliest waiting group is the coordinator. Everyone else simply
+    // receives the same match descriptor and joins the match channel.
+    if (picked[0].leaderId !== myLeader) return;
+    const alpha = [];
+    const beta = [];
+    for (const ticket of picked) {
+      const target = alpha.length + ticket.members.length <= 2 && beta.length === 0 ? alpha : (beta.length + ticket.members.length <= 2 ? beta : alpha);
+      target.push(...ticket.members.map(m => ({ ...m, side: target === alpha ? "alpha" : "beta" })));
+    }
+    // If a greedy grouping produced an unbalanced split, fall back to a simple
+    // deterministic first-two/last-two split while preserving party members.
+    if (alpha.length !== 2 || beta.length !== 2) {
+      const flat = picked.flatMap(t => t.members.map(m => ({ ...m })));
+      alpha.length = 0; beta.length = 0;
+      flat.forEach((m, i) => (i < 2 ? alpha : beta).push({ ...m, side: i < 2 ? "alpha" : "beta" }));
+    }
+    const members = [...alpha, ...beta];
+    const match = {
+      id: crypto.randomUUID(),
+      mode: "team-2v2",
+      coordinatorId: members[0]?.id,
+      members
+    };
+    this.queueChannel.send({ type: "broadcast", event: "queue", payload: { type: "match_found", match } });
+    // Broadcast channels do not echo to the sender, so the coordinator needs
+    // to consume the match descriptor locally as well.
+    this.handleQueueMessage({ type: "match_found", match });
+  }
+
+  async openMatchChannel(match) {
+    if (!this.supabase) return;
+    if (this.matchChannel) await this.matchChannel.unsubscribe();
+    this.readyIds = new Set();
+    this.matchChannel = this.supabase.channel(`pokemon-party-match-v2:${match.id}`, {
+      config: { broadcast: { self: false }, presence: { key: this.identity.id } }
+    });
+    this.matchChannel.on("broadcast", { event: "match" }, ({ payload }) => {
+      if (!payload) return;
+      if (payload.type === "match_ready") {
+        this.readyIds.add(payload.memberId);
+        this.onStatus(`Trainer ${this.readyIds.size}/${match.members.length} ready…`);
+        if (this.identity.id === match.coordinatorId && this.readyIds.size === match.members.length) {
+          this.match = { ...match, ready: true };
+          this.matchChannel?.send({ type: "broadcast", event: "match", payload: { type: "party_start", match: this.match } });
+          this.onMatch({ ...this.match, ready: true, started: true });
+        }
+      }
+      if (payload.type === "party_start" && payload.match) {
+        this.match = { ...payload.match, localMemberId: this.identity.id };
+        this.onMatch({ ...this.match, ready: true, started: true });
+      }
+      if (payload.type === "party_action") this.onPartyAction(payload.action);
+      if (payload.type === "party_snapshot") this.onPartySnapshot(payload.snapshot);
+    });
+    await this.subscribe(this.matchChannel);
+    this.readyIds.add(this.identity.id);
+    await this.matchChannel.send({ type: "broadcast", event: "match", payload: { type: "match_ready", memberId: this.identity.id } });
+    this.onMatch({ ...match, ready: false, waiting: true });
+  }
+
+  async sendPartyAction(action) {
+    await this.matchChannel?.send({ type: "broadcast", event: "match", payload: { type: "party_action", action } });
+  }
+
+  async sendPartySnapshot(snapshot) {
+    await this.matchChannel?.send({ type: "broadcast", event: "match", payload: { type: "party_snapshot", snapshot } });
+  }
+
+  subscribe(channel) {
+    return new Promise((resolve, reject) => {
+      channel.subscribe(status => {
+        if (status === "SUBSCRIBED") resolve(status);
+        else if (["CHANNEL_ERROR", "TIMED_OUT"].includes(status)) reject(new Error(`Realtime channel ${status.toLowerCase()}.`));
+      });
+    });
+  }
+
+  randomCode() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "";
+    for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
+  }
+
+  leave() {
+    this.leaveQueue().catch(() => {});
+    try { this.partyChannel?.unsubscribe(); } catch {}
+    try { this.matchChannel?.unsubscribe(); } catch {}
+    try { this.queueChannel?.unsubscribe(); } catch {}
+    this.partyChannel = null;
+    this.matchChannel = null;
+    this.queueChannel = null;
+  }
+}
+
+
+export class RemotePartyBattle {
+  constructor({ data, match, localMemberId }) {
+    this.data = data;
+    this.isParty = true;
+    this.partyMode = "2v2";
+    this.battleSize = 2;
+    this.networkRole = "member";
+    this.localMemberId = localMemberId;
+    this.turn = 1;
+    this.over = false;
+    this.busy = false;
+    this.locked = false;
+    this.field = null;
+    this.fieldTurns = 0;
+    this.result = null;
+    this.log = [];
+    this.members = (match.members || []).map(m => ({
+      id: m.id,
+      name: m.name,
+      side: m.side,
+      team: [],
+      active: 0
+    }));
+    this.memberMap = new Map(this.members.map(m => [m.id, m]));
+    this.localActions = new Map();
+    this.pendingIds = new Set();
+    this.onUpdate = null;
+    this.sendPartyAction = null;
+  }
+
+  getMember(id) { return this.memberMap.get(String(id)); }
+  activeMember(id) { const m = this.getMember(id); return m?.team?.[m.active] || null; }
+  getLocalMember() { return this.getMember(this.localMemberId); }
+  getMembersBySide(side) { return this.members.filter(m => m.side === side); }
+  getActiveMembers(side) { return this.getMembersBySide(side).filter(m => this.activeMember(m.id)?.canBattle()); }
+  activeIndices(side) { return this.getActiveMembers(side).map(m => this.members.indexOf(m)); }
+  active(side) { return this.activeMember(this.getMembersBySide(side)[0]?.id); }
+  getAvailableMovesForMember(id) {
+    const p = this.activeMember(id);
+    if (!p?.canBattle()) return [];
+    return (p.moves || []).filter(m => (m.pp ?? 1) > 0 && !(p.volatile?.tauntTurns > 0 && m.category === "status"));
+  }
+  getTargetsFor(id, move = null) {
+    const me = this.getMember(id);
+    if (!me) return [];
+    const sameSide = move?.id === "helping-hand" || move?.id === "dragon-cheer";
+    const pool = this.getMembersBySide(sameSide ? me.side : (me.side === "alpha" ? "beta" : "alpha"));
+    return pool.map(target => ({ memberId: target.id, pokemon: this.activeMember(target.id), label: `${target.name} · ${this.activeMember(target.id)?.name || "---"}` })).filter(x => x.pokemon?.canBattle());
+  }
+  submitAction(moveId, targetMemberId) {
+    if (this.over || this.busy || this.pendingIds.has(this.localMemberId)) return false;
+    const p = this.getLocalMember();
+    const move = p?.team ? p.team[p.active]?.moves?.find(m => m.id === moveId) : null;
+    const target = this.activeMember(targetMemberId);
+    const targetMember = this.getMember(targetMemberId);
+    if (!p || !move || !targetMember || !target?.canBattle()) return false;
+    this.localActions.set(this.localMemberId, { memberId: this.localMemberId, moveId, targetMemberId });
+    this.pendingIds.add(this.localMemberId);
+    this.sendPartyAction?.(this.localActions.get(this.localMemberId));
+    this.onUpdate?.();
+    return true;
+  }
+  hydratePokemon(raw) {
+    if (!raw) return null;
+    const species = this.data.species.find(p => p.id === raw.speciesId);
+    if (!species) return null;
+    const moves = (raw.moveset || raw.moves || []).map(m => typeof m === "string" ? this.data.moves.find(x => x.id === m) : m).filter(Boolean).slice(0,4);
+    const maxHP = Number(raw.maxHP ?? raw.hp ?? 1);
+    return { ...raw, name: raw.name || species.name, level: raw.level || 50, types: raw.types || species.types, originalTypes: raw.originalTypes || species.types, moves, hp: Number(raw.hp ?? maxHP), maxHP, sprites: raw.sprites || species.sprites, volatile: raw.volatile || {}, statusData: raw.statusData || {}, canBattle() { return !this.fainted && this.hp > 0; } };
+  }
+  applySnapshot(snapshot) {
+    if (!snapshot?.members) return;
+    this.turn = Number(snapshot.turn) || 1;
+    this.over = !!snapshot.over;
+    this.busy = !!snapshot.busy;
+    this.locked = !!snapshot.locked;
+    this.field = snapshot.field || null;
+    this.fieldTurns = Number(snapshot.fieldTurns) || 0;
+    this.result = snapshot.result || null;
+    this.log = Array.isArray(snapshot.log) ? snapshot.log : [];
+    this.pendingIds = new Set(snapshot.pendingIds || []);
+    this.members = snapshot.members.map(m => ({ ...m, team: (m.team || []).map(p => this.hydratePokemon(p)).filter(Boolean), active: Number(m.active) || 0 }));
+    this.memberMap = new Map(this.members.map(m => [m.id, m]));
+    if (this.pendingIds.has(this.localMemberId)) this.localActions.set(this.localMemberId, this.localActions.get(this.localMemberId) || null);
+    else this.localActions.delete(this.localMemberId);
+    this.onUpdate?.();
+  }
+}

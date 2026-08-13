@@ -39,6 +39,9 @@ export class TeamBuilder {
           <button id="startBattle" class="builder-primary" type="button">Enter Battle →</button>
           <button id="createRoom" class="builder-secondary" type="button">Create Multiplayer Room</button>
           <button id="joinRoom" class="builder-secondary" type="button">Join Room</button>
+          <button id="quickMatch2v2" class="builder-secondary social-action" type="button">⚡ Quick Match 2v2</button>
+          <button id="createParty" class="builder-secondary social-action" type="button">👥 Create Party</button>
+          <button id="joinParty" class="builder-secondary social-action" type="button">🔗 Join Party</button>
         </section>
 
         <section class="builder-layout">
@@ -129,6 +132,21 @@ export class TeamBuilder {
         battleSize: this.battleSize,
         team: this.team.map(p => ({ species: p.species, level: p.level, moveset: [...(p.moveset ?? p.moves ?? [])], ability: p.ability, item: p.item ?? null }))
       });
+    });
+
+    this.root.querySelector("#quickMatch2v2").addEventListener("click", () => {
+      if (!this.team.length) return alert("Add at least one Pokémon to your team first.");
+      this.onMultiplayer("quickMatch2v2", { team: this.serializeTeam() });
+    });
+
+    this.root.querySelector("#createParty").addEventListener("click", () => {
+      if (!this.team.length) return alert("Add at least one Pokémon to your team first.");
+      this.onMultiplayer("createParty", { team: this.serializeTeam() });
+    });
+
+    this.root.querySelector("#joinParty").addEventListener("click", () => {
+      if (!this.team.length) return alert("Add at least one Pokémon to your team first.");
+      this.onMultiplayer("joinParty", { team: this.serializeTeam() });
     });
 
     this.root.querySelector("#startBattle").addEventListener("click", () => {
@@ -473,6 +491,10 @@ export class TeamBuilder {
       : this.data.moves;
 
     return [...pool].sort((a,b) => a.name.localeCompare(b.name));
+  }
+
+  serializeTeam() {
+    return this.team.map(p => ({ species: p.species, level: p.level, moveset: [...(p.moveset ?? p.moves ?? [])], ability: p.ability, item: p.item ?? null }));
   }
 
   escape(value) {
