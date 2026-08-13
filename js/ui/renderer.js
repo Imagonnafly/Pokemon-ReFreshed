@@ -199,7 +199,9 @@ export class Renderer {
     if (!container) return;
     const battleSize = this.battle.battleSize;
     const columns = Math.min(5, Math.max(2, battleSize));
+    const rows = Math.max(1, Math.ceil(battleSize / columns));
     container.style.setProperty("--multi-cols", String(columns));
+    container.style.setProperty("--multi-rows", String(rows));
     container.innerHTML = "";
     const slots = Array.isArray(this.battle[side]?.active) ? this.battle[side].active : [this.battle[side]?.active];
     const pending = side === "player" ? this.getLocalPendingActions() : (Array.isArray(this.battle.pendingActions?.opponent) ? this.battle.pendingActions.opponent : []);

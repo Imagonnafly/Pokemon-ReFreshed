@@ -347,9 +347,13 @@ export class RemoteMultiBattle {
     this.battleSize = Number(snapshot.battleSize) || this.battleSize;
     this.log = this.orientLog(snapshot.log || []);
     if (this.over) this.localActions = [];
+    const expected = this.activeIndices("player").length;
     const localCount = this.networkRole === "guest" ? Number(snapshot.opponentActionsCount || 0) : Number(snapshot.playerActionsCount || 0);
-    this.localActions = this.localActions.filter(a => a.slot < this.activeIndices("player").length);
-    if (localCount >= this.activeIndices("player").length) this.busy = true;
+    this.localActions = this.localActions.filter(a => a.slot < expected);
+    // A remote snapshot may report partial opponent input; that must not lock
+    // this client's remaining action slots or make the UI look resolved.
+    const remoteCount = this.networkRole === "guest" ? Number(snapshot.playerActionsCount || 0) : Number(snapshot.opponentActionsCount || 0);
+    if (!this.busy && remoteCount >= expected && localCount >= expected) this.busy = true;
     this.onUpdate?.();
   }
 

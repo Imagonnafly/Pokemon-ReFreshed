@@ -165,11 +165,40 @@ export class MultiBattle extends Battle {
     }).filter(a => a.moveId && a.targetIndex !== undefined);
   }
 
+  expectedActionSlots(side) {
+    return this.activeIndices(side).map((_, slot) => slot);
+  }
+
+  isCompleteActionSet(actions, side) {
+    if (!Array.isArray(actions)) return false;
+    const expected = new Set(this.expectedActionSlots(side));
+    const slots = new Set();
+    for (const action of actions) {
+      const slot = Number(action?.slot);
+      if (!Number.isInteger(slot) || !expected.has(slot) || slots.has(slot)) return false;
+      slots.add(slot);
+    }
+    return slots.size === expected.size;
+  }
+
   async receiveRemoteActions(actions) {
     if (this.networkRole !== "host" || this.over || !this.isMulti) return;
+    const incoming = Array.isArray(actions) ? actions : [];
+    // Never start a turn from a partial remote submission. This is critical
+    // for 2v2 through 10v10: every active slot on the remote side must have
+    // an action before the coordinator may resolve anything.
+    if (!this.isCompleteActionSet(incoming, "opponent")) {
+      this.pendingNetwork = this.pendingNetwork || {};
+      this.pendingNetwork.opponentActions = incoming;
+      this.pendingActions.opponent = incoming;
+      this.remoteActionsSubmitted = false;
+      this.write(`The opponent has chosen ${incoming.length}/${this.expectedActionSlots("opponent").length} actions — waiting for the rest.`);
+      this.updateNetworkState?.();
+      return;
+    }
     this.pendingNetwork = this.pendingNetwork || {};
-    this.pendingNetwork.opponentActions = Array.isArray(actions) ? actions : [];
-    this.pendingActions.opponent = this.pendingNetwork.opponentActions;
+    this.pendingNetwork.opponentActions = incoming;
+    this.pendingActions.opponent = incoming;
     this.remoteActionsSubmitted = true;
     this.write("The opponent has chosen all of their actions.");
     this.updateNetworkState?.();
@@ -178,11 +207,12 @@ export class MultiBattle extends Battle {
 
   async tryResolveNetworkActions() {
     if (this.networkRole !== "host") return;
-    if (!this.pendingNetwork?.playerActions || !this.pendingNetwork?.opponentActions) return;
     if (this.busy || this.over) return;
+    const playerActions = this.pendingNetwork?.playerActions;
+    const opponentActions = this.pendingNetwork?.opponentActions;
+    if (!this.isCompleteActionSet(playerActions, "player")) return;
+    if (!this.isCompleteActionSet(opponentActions, "opponent")) return;
 
-    const playerActions = this.pendingNetwork.playerActions;
-    const opponentActions = this.pendingNetwork.opponentActions;
     this.pendingNetwork = {};
     this.pendingActions = { player: null, opponent: null };
     this.localActionsSubmitted = false;
