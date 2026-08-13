@@ -5,6 +5,7 @@ export class TeamBuilder {
     this.onStart = onStart;
     this.onMultiplayer = onMultiplayer || (() => {});
     this.team = [];
+    this.battleSize = 1;
     this.editingIndex = null;
 
     this.speciesById = new Map(data.species.map(p => [p.id, p]));
@@ -21,7 +22,7 @@ export class TeamBuilder {
             <div><h1>Build Your Team</h1>
             <p>Choose your squad, tune their loadouts, then enter the arena.</p></div>
           </div>
-          <div class="builder-count" id="builderCount">0 / 6 Pokémon</div>
+          <div class="builder-count" id="builderCount">0 / 10 Pokémon</div>
         </header>
 
         <section class="builder-toolbar">
@@ -30,6 +31,10 @@ export class TeamBuilder {
             <input id="speciesSearch" type="search" placeholder="Search by name or ID...">
           </label>
 
+          <label class="battle-size-wrap">
+            <span>Battle size</span>
+            <select id="battleSize" aria-label="Battle size"></select>
+          </label>
           <button id="clearTeam" class="builder-secondary" type="button">Clear Team</button>
           <button id="startBattle" class="builder-primary" type="button">Enter Battle →</button>
           <button id="createRoom" class="builder-secondary" type="button">Create Multiplayer Room</button>
@@ -48,7 +53,7 @@ export class TeamBuilder {
           <aside class="team-panel">
             <div class="section-title">
               <h2>Your Team</h2>
-              <span>Up to 6</span>
+              <span>Up to 10</span>
             </div>
             <div id="teamSlots" class="team-slots"></div>
           </aside>
@@ -79,6 +84,13 @@ export class TeamBuilder {
     `;
 
     this.bind();
+    const sizeSelect = this.root.querySelector("#battleSize");
+    sizeSelect.innerHTML = Array.from({length: 10}, (_, i) => `<option value="${i + 1}">${i + 1}v${i + 1}</option>`).join("");
+    sizeSelect.value = String(this.battleSize);
+    sizeSelect.addEventListener("change", () => {
+      this.battleSize = Math.max(1, Math.min(10, Number(sizeSelect.value) || 1));
+      this.renderTeam();
+    });
     this.renderSpecies();
     this.renderTeam();
   }
@@ -97,13 +109,26 @@ export class TeamBuilder {
 
     this.root.querySelector("#createRoom").addEventListener("click", () => {
       if (!this.team.length) return alert("Add at least one Pokémon to your team first.");
-      this.onMultiplayer("create", this.team.map(p => ({ species: p.species, level: p.level, moveset: [...(p.moveset ?? p.moves ?? [])], ability: p.ability, item: p.item ?? null })));
+      if (this.team.length < this.battleSize) {
+        return alert(`Add at least ${this.battleSize} Pokémon for a ${this.battleSize}v${this.battleSize} battle.`);
+      }
+      this.onMultiplayer("create", {
+        battleSize: this.battleSize,
+        team: this.team.map(p => ({ species: p.species, level: p.level, moveset: [...(p.moveset ?? p.moves ?? [])], ability: p.ability, item: p.item ?? null }))
+      });
     });
 
     this.root.querySelector("#joinRoom").addEventListener("click", () => {
       if (!this.team.length) return alert("Add at least one Pokémon to your team first.");
       const code = prompt("Enter the 5-character room code:");
-      if (code?.trim()) this.onMultiplayer("join", { code: code.trim().toUpperCase(), team: this.team.map(p => ({ species: p.species, level: p.level, moveset: [...(p.moveset ?? p.moves ?? [])], ability: p.ability, item: p.item ?? null })) });
+      if (this.team.length < this.battleSize) {
+        return alert(`Add at least ${this.battleSize} Pokémon for a ${this.battleSize}v${this.battleSize} battle.`);
+      }
+      if (code?.trim()) this.onMultiplayer("join", {
+        code: code.trim().toUpperCase(),
+        battleSize: this.battleSize,
+        team: this.team.map(p => ({ species: p.species, level: p.level, moveset: [...(p.moveset ?? p.moves ?? [])], ability: p.ability, item: p.item ?? null }))
+      });
     });
 
     this.root.querySelector("#startBattle").addEventListener("click", () => {
@@ -112,13 +137,20 @@ export class TeamBuilder {
         return;
       }
 
-      this.onStart(this.team.map(p => ({
-        species: p.species,
-        level: p.level,
-        moveset: [...(p.moveset ?? p.moves ?? [])],
-        ability: p.ability,
-        item: p.item ?? null
-      })));
+      if (this.team.length < this.battleSize) {
+        alert(`Add at least ${this.battleSize} Pokémon for a ${this.battleSize}v${this.battleSize} battle.`);
+        return;
+      }
+      this.onStart({
+        battleSize: this.battleSize,
+        team: this.team.map(p => ({
+          species: p.species,
+          level: p.level,
+          moveset: [...(p.moveset ?? p.moves ?? [])],
+          ability: p.ability,
+          item: p.item ?? null
+        }))
+      });
     });
 
     for (const id of ["closeEditor", "cancelEditor"]) {
@@ -179,11 +211,11 @@ export class TeamBuilder {
 
   renderTeam() {
     const slots = this.root.querySelector("#teamSlots");
-    this.root.querySelector("#builderCount").textContent = `${this.team.length} / 6 Pokémon`;
+    this.root.querySelector("#builderCount").textContent = `${this.team.length} / 10 Pokémon`;
 
     slots.innerHTML = "";
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 10; i++) {
       const p = this.team[i];
 
       if (!p) {
@@ -237,7 +269,7 @@ export class TeamBuilder {
     const species = this.speciesById.get(speciesId);
     if (!species) return;
 
-    if (teamIndex === null && this.team.length >= 6) {
+    if (teamIndex === null && this.team.length >= 10) {
       alert("Your team already has 6 Pokémon.");
       return;
     }

@@ -33,33 +33,114 @@
   ],
   "opponent": [
     {
-      "species": "blastoise",
+      "species": "venusaur",
       "level": 50,
-      "moves": [
-        "water-gun",
-        "tackle"
+      "moveset": [
+        "tackle",
+        "growl",
+        "vine-whip",
+        "leafage"
       ],
-      "ability": "torrent"
+      "ability": "overgrow"
     },
     {
       "species": "charizard",
       "level": 50,
-      "moves": [
-        "flamethrower",
-        "fly",
-        "dragon-claw"
+      "moveset": [
+        "scratch",
+        "growl",
+        "ember",
+        "flame-charge"
       ],
       "ability": "blaze"
     },
     {
-      "species": "dragonite",
+      "species": "blastoise",
       "level": 50,
-      "moves": [
-        "dragon-claw",
-        "fly",
-        "tackle"
+      "moveset": [
+        "tackle",
+        "growl",
+        "water-gun",
+        "water-pulse"
       ],
-      "ability": "multiscale"
+      "ability": "torrent"
+    },
+    {
+      "species": "meganium",
+      "level": 50,
+      "moveset": [
+        "tackle",
+        "growl",
+        "leafage",
+        "vine-whip"
+      ],
+      "ability": "overgrow"
+    },
+    {
+      "species": "typhlosion",
+      "level": 50,
+      "moveset": [
+        "tackle",
+        "growl",
+        "ember",
+        "flame-charge"
+      ],
+      "ability": "blaze"
+    },
+    {
+      "species": "feraligatr",
+      "level": 50,
+      "moveset": [
+        "scratch",
+        "growl",
+        "water-gun",
+        "water-pulse"
+      ],
+      "ability": "torrent"
+    },
+    {
+      "species": "sceptile",
+      "level": 50,
+      "moveset": [
+        "pound",
+        "growl",
+        "leafage",
+        "vine-whip"
+      ],
+      "ability": "overgrow"
+    },
+    {
+      "species": "blaziken",
+      "level": 50,
+      "moveset": [
+        "scratch",
+        "growl",
+        "ember",
+        "flame-charge"
+      ],
+      "ability": "blaze"
+    },
+    {
+      "species": "swampert",
+      "level": 50,
+      "moveset": [
+        "tackle",
+        "growl",
+        "water-gun",
+        "water-pulse"
+      ],
+      "ability": "torrent"
+    },
+    {
+      "species": "torterra",
+      "level": 50,
+      "moveset": [
+        "tackle",
+        "growl",
+        "leafage",
+        "vine-whip"
+      ],
+      "ability": "overgrow"
     }
   ],
   "starterShowcase": [

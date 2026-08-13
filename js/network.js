@@ -85,6 +85,7 @@ export class MultiplayerClient {
 
   sendMove(moveId) { return this.send("remote_move", { moveId }); }
   sendSwitch(index) { return this.send("remote_switch", { index }); }
+  sendActions(actions) { return this.send("remote_actions", { actions }); }
   leave() {
     try { this.channel?.unsubscribe(); } catch {}
     this.channel = null;
@@ -223,5 +224,119 @@ export class RemoteBattle {
   orientLog(lines) {
     if (this.networkRole !== "guest") return lines;
     return lines.map(line => String(line).replace(/^(Your Pokémon|The opposing Pokémon)/, prefix => prefix === "Your Pokémon" ? "The opposing Pokémon" : "Your Pokémon"));
+  }
+}
+
+
+export class RemoteMultiBattle {
+  constructor({ data, role, team, battleSize = 1 }) {
+    this.data = data;
+    this.networkRole = role;
+    this.isMulti = true;
+    this.battleSize = Math.max(1, Math.min(10, Number(battleSize) || 1));
+    this.turn = 1;
+    this.over = false;
+    this.busy = false;
+    this.locked = false;
+    this.field = null;
+    this.fieldTurns = 0;
+    this.result = null;
+    this.log = [];
+    this.localActions = [];
+    this.player = { team: [], active: [] };
+    this.opponent = { team: [], active: [] };
+    this.onUpdate = null;
+  }
+
+  hydratePokemon(raw) {
+    if (!raw) return null;
+    const species = this.data.species.find(p => p.id === raw.speciesId);
+    if (!species) return null;
+    const moves = (raw.moveset || raw.moves || []).map(m => typeof m === "string" ? this.data.moves.find(x => x.id === m) : m).filter(Boolean);
+    const BattlePokemonCtor = this.data.BattlePokemon;
+    // Use a minimal shape identical to BattlePokemon for rendering.
+    const maxHP = Number(raw.maxHP ?? raw.hp ?? 1);
+    return {
+      ...raw,
+      speciesId: raw.speciesId,
+      name: raw.name ?? species.name,
+      level: raw.level ?? 50,
+      types: raw.types ?? species.types,
+      originalTypes: raw.originalTypes ?? species.types,
+      moves,
+      hp: Number(raw.hp ?? maxHP),
+      maxHP,
+      status: raw.status ?? null,
+      statusData: raw.statusData ?? {},
+      volatile: raw.volatile ?? {},
+      sprites: raw.sprites ?? species.sprites,
+      canBattle() { return !this.fainted && this.hp > 0; }
+    };
+  }
+
+  applySide(side) {
+    const team = (side?.team || []).map(p => this.hydratePokemon(p)).filter(Boolean);
+    return { team, active: Array.isArray(side?.active) ? side.active : [Number(side?.active ?? 0)] };
+  }
+
+  active(side) {
+    return this[side]?.team?.[this[side]?.active?.[0]] ?? null;
+  }
+
+  activePokemon(side) {
+    return (this[side]?.active || []).map(i => this[side]?.team?.[i]).filter(p => p?.canBattle());
+  }
+
+  activeIndices(side) {
+    return (this[side]?.active || []).filter(i => this[side]?.team?.[i]?.canBattle());
+  }
+
+  getAvailableMovesFor(pokemon) {
+    if (!pokemon?.canBattle()) return [];
+    return (pokemon.moves || []).filter(m => (m.pp ?? 1) > 0 && !(pokemon.volatile?.tauntTurns > 0 && m.category === "status"));
+  }
+
+  submitAction(slot, moveId, targetSide, targetIndex) {
+    if (this.over || this.busy) return false;
+    const activeIndex = this.player.active[slot];
+    const p = this.player.team[activeIndex];
+    const move = p?.moves?.find(m => m.id === moveId);
+    if (!p || !move || !p.canBattle()) return false;
+    this.localActions = this.localActions.filter(a => a.slot !== slot);
+    this.localActions.push({ slot, pokemonIndex: activeIndex, moveId, targetSide, targetIndex });
+    if (this.localActions.length >= this.activeIndices("player").length) {
+      this.busy = true;
+      this.locked = true;
+      this.sendActions?.(this.localActions);
+    }
+    this.onUpdate?.();
+    return true;
+  }
+
+  applySnapshot(snapshot) {
+    if (!snapshot?.player || !snapshot?.opponent) return;
+    const orient = this.networkRole === "guest"
+      ? { player: snapshot.opponent, opponent: snapshot.player }
+      : { player: snapshot.player, opponent: snapshot.opponent };
+    this.turn = Number(snapshot.turn) || 1;
+    this.field = snapshot.field || null;
+    this.fieldTurns = Number(snapshot.fieldTurns) || 0;
+    this.over = !!snapshot.over;
+    this.result = snapshot.result || null;
+    this.busy = !!snapshot.busy;
+    this.locked = !!snapshot.locked;
+    this.player = this.applySide(orient.player);
+    this.opponent = this.applySide(orient.opponent);
+    this.battleSize = Number(snapshot.battleSize) || this.battleSize;
+    this.log = this.orientLog(snapshot.log || []);
+    if (this.over) this.localActions = [];
+    const localCount = this.networkRole === "guest" ? Number(snapshot.opponentActionsCount || 0) : Number(snapshot.playerActionsCount || 0);
+    this.localActions = this.localActions.filter(a => a.slot < this.activeIndices("player").length);
+    if (localCount >= this.activeIndices("player").length) this.busy = true;
+    this.onUpdate?.();
+  }
+
+  orientLog(log) {
+    return Array.isArray(log) ? log.map(String) : [];
   }
 }

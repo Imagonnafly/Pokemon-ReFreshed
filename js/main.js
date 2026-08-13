@@ -1,13 +1,14 @@
 import { Battle } from "./engine/battle.js";
+import { MultiBattle } from "./engine/multi-battle.js";
 import { DataRepository } from "./engine/data.js";
 import { Renderer } from "./ui/renderer.js";
 import { TeamBuilder } from "./ui/teambuilder.js";
-import { MultiplayerClient, RemoteBattle, isRealtimeConfigured } from "./network.js";
+import { MultiplayerClient, RemoteBattle, RemoteMultiBattle, isRealtimeConfigured } from "./network.js";
 
 let data = null;
 let app = null;
 let multiplayer = null;
-let multiplayerState = { role: null, team: null, opponentTeam: null, battleStarted: false };
+let multiplayerState = { role: null, team: null, opponentTeam: null, battleStarted: false, battleSize: 1 };
 
 function setStartupMessage(title, detail = "", isError = false) {
   if (!app) app = document.querySelector("#app");
@@ -36,7 +37,7 @@ function mountBuilder() {
   const builder = new TeamBuilder({
     root: app,
     data,
-    onStart: team => startBattle(team),
+    onStart: payload => startBattle(payload),
     onMultiplayer: (mode, payload) => startMultiplayer(mode, payload)
   });
   builder.mount();
@@ -57,7 +58,7 @@ async function startMultiplayer(mode, payload) {
     },
     onMessage: handleMultiplayerMessage
   });
-  multiplayerState = { role: mode === "create" ? "host" : "guest", team: mode === "create" ? payload : payload.team, opponentTeam: null, battleStarted: false };
+  multiplayerState = { role: mode === "create" ? "host" : "guest", team: mode === "create" ? payload.team : payload.team, opponentTeam: null, battleStarted: false, battleSize: Number(payload.battleSize) || 1 };
   showMultiplayerLobby(mode, payload);
   try {
     await multiplayer.connect();
@@ -83,19 +84,22 @@ function handleMultiplayerMessage(message) {
   }
   if (message.type === "join_request" && multiplayerState.role === "host") {
     multiplayerState.opponentTeam = message.guestTeam;
-    app.querySelector("#mpStatus").textContent = "Opponent connected! Starting battle…";
-    multiplayer.send("match_start", { hostTeam: multiplayerState.team, guestTeam: multiplayerState.opponentTeam });
+    multiplayerState.battleSize = Math.max(1, Math.min(10, Number(message.battleSize) || multiplayerState.battleSize || 1));
+    app.querySelector("#mpStatus").textContent = `Opponent connected! Starting ${multiplayerState.battleSize}v${multiplayerState.battleSize} battle…`;
+    multiplayer.send("match_start", { hostTeam: multiplayerState.team, guestTeam: multiplayerState.opponentTeam, battleSize: multiplayerState.battleSize });
     startHostNetworkBattle();
     return;
   }
   if (message.type === "match_start" && multiplayerState.role === "guest") {
     multiplayerState.opponentTeam = message.hostTeam;
-    app.querySelector("#mpStatus").textContent = "Opponent connected! Starting battle…";
+    multiplayerState.battleSize = Math.max(1, Math.min(10, Number(message.battleSize) || multiplayerState.battleSize || 1));
+    app.querySelector("#mpStatus").textContent = `Opponent connected! Starting ${multiplayerState.battleSize}v${multiplayerState.battleSize} battle…`;
     startGuestNetworkBattle();
     return;
   }
   if (message.type === "remote_move") { window.__networkBattle?.receiveRemoteMove?.(message.moveId); return; }
   if (message.type === "remote_switch") { window.__networkBattle?.receiveRemoteSwitch?.(message.index); return; }
+  if (message.type === "remote_actions") { window.__networkBattle?.receiveRemoteActions?.(message.actions); return; }
   if (message.type === "snapshot") { window.__networkBattle?.applySnapshot?.(message.snapshot); return; }
   if (message.type === "opponent_left") { alert("Your opponent left the battle."); multiplayer?.leave(); multiplayer = null; mountBuilder(); return; }
   if (message.type === "error") alert(message.message || "Multiplayer error.");
@@ -105,7 +109,14 @@ function startHostNetworkBattle() {
   if (multiplayerState.battleStarted) return;
   multiplayerState.battleStarted = true;
   multiplayer.send("start");
-  const battle = new Battle({ data, playerTeam: multiplayerState.team, opponentTeam: multiplayerState.opponentTeam, networkRole: "host" });
+  const BattleClass = multiplayerState.battleSize > 1 ? MultiBattle : Battle;
+  const battle = new BattleClass({
+    data,
+    playerTeam: multiplayerState.team,
+    opponentTeam: multiplayerState.opponentTeam,
+    networkRole: "host",
+    battleSize: multiplayerState.battleSize
+  });
   window.__networkBattle = battle;
   mountBattleUI(battle, "host");
   battle.updateNetworkState = () => multiplayer?.send("snapshot", { snapshot: serializeBattle(battle) });
@@ -122,9 +133,16 @@ function startHostNetworkBattle() {
 function startGuestNetworkBattle() {
   if (multiplayerState.battleStarted) return;
   multiplayerState.battleStarted = true;
-  const battle = new RemoteBattle({ data, role: "guest", team: multiplayerState.team });
-  battle.sendMove = moveId => multiplayer.sendMove(moveId);
-  battle.sendSwitch = index => multiplayer.sendSwitch(index);
+  const multi = multiplayerState.battleSize > 1;
+  const battle = multi
+    ? new RemoteMultiBattle({ data, role: "guest", team: multiplayerState.team, battleSize: multiplayerState.battleSize })
+    : new RemoteBattle({ data, role: "guest", team: multiplayerState.team });
+  if (multi) {
+    battle.sendActions = actions => multiplayer.sendActions(actions);
+  } else {
+    battle.sendMove = moveId => multiplayer.sendMove(moveId);
+    battle.sendSwitch = index => multiplayer.sendSwitch(index);
+  }
   window.__networkBattle = battle;
   mountBattleUI(battle, "guest");
   renderer = new Renderer({ root: document, battle });
@@ -135,22 +153,35 @@ function startGuestNetworkBattle() {
 let renderer = null;
 
 function mountBattleUI(battle, role = "local") {
-  app.innerHTML = `<div class="battle-page"><header class="topbar"><div class="topbar-brand"><div class="brand-mark">◉</div><div><h1>Pokémon Battle</h1><span class="topbar-sub">${role === "local" ? "Trainer Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div><div class="battle-header-actions"><span id="turnLabel" class="turn-pill">Turn 1</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="backToBuilder" class="header-button" type="button">← Team Builder</button></div></header><main><section class="battlefield"><span class="arena-label">Battle Arena · ${role === "local" ? "Practice Match" : "Live Multiplayer"}</span><div class="side opponent"><div class="pokemon-info"><div class="sprite-box"><img id="oppSprite" alt=""></div><div class="pokemon-card"><h2 id="oppName">---</h2><div id="oppTypes" class="types"></div><div class="pokemon-meta">The opposing Pokémon</div><div class="hp-row"><div class="hpbar"><div id="oppHPFill"></div></div><span id="oppHPText" class="hp-text">0 / 0</span></div></div></div></div><div class="side player"><div class="pokemon-info"><div class="pokemon-card"><h2 id="playerName">---</h2><div id="playerTypes" class="types"></div><div class="pokemon-meta">Your Pokémon</div><div class="hp-row"><div class="hpbar"><div id="playerHPFill"></div></div><span id="playerHPText" class="hp-text">0 / 0</span></div></div><div class="sprite-box"><img id="playerSprite" alt=""></div></div></div></section><section class="battle-log" id="battleLog" aria-live="polite"></section><section class="controls"><div id="moveButtons" class="moves"></div><button id="switchButton" class="secondary control-button" type="button">Switch Pokémon</button><button id="restartButton" class="secondary control-button" type="button">Team Builder</button></section><section id="partyPanel" class="party hidden"></section></main></div>`;
+  if (battle.isMulti && battle.battleSize > 1) {
+    app.innerHTML = `<div class="battle-page multi-battle-page">
+      <header class="topbar"><div class="topbar-brand"><div class="brand-mark">◉</div><div><h1>Pokémon Battle</h1><span class="topbar-sub">${role === "local" ? "N-vs-N Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div>
+      <div class="battle-header-actions"><span id="turnLabel" class="turn-pill">Turn 1</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="backToBuilder" class="header-button" type="button">← Team Builder</button></div></header>
+      <main><section class="multi-field"><span class="arena-label">Battle Arena · ${battle.battleSize}v${battle.battleSize}</span><div id="multiOppGrid" class="multi-side-grid"></div><div id="multiPlayerGrid" class="multi-side-grid player-side"></div></section>
+      <section class="battle-log" id="battleLog" aria-live="polite"></section><section class="multi-controls"><div id="multiActionPanel"></div><button id="restartButton" class="secondary control-button" type="button">Team Builder</button></section></main></div>`;
+  } else {
+    app.innerHTML = `<div class="battle-page"><header class="topbar"><div class="topbar-brand"><div class="brand-mark">◉</div><div><h1>Pokémon Battle</h1><span class="topbar-sub">${role === "local" ? "Trainer Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div><div class="battle-header-actions"><span id="turnLabel" class="turn-pill">Turn 1</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="backToBuilder" class="header-button" type="button">← Team Builder</button></div></header><main><section class="battlefield"><span class="arena-label">Battle Arena · ${role === "local" ? "Practice Match" : "Live Multiplayer"}</span><div class="side opponent"><div class="pokemon-info"><div class="sprite-box"><img id="oppSprite" alt=""></div><div class="pokemon-card"><h2 id="oppName">---</h2><div id="oppTypes" class="types"></div><div class="pokemon-meta">The opposing Pokémon</div><div class="hp-row"><div class="hpbar"><div id="oppHPFill"></div></div><span id="oppHPText" class="hp-text">0 / 0</span></div></div></div></div><div class="side player"><div class="pokemon-info"><div class="pokemon-card"><h2 id="playerName">---</h2><div id="playerTypes" class="types"></div><div class="pokemon-meta">Your Pokémon</div><div class="hp-row"><div class="hpbar"><div id="playerHPFill"></div></div><span id="playerHPText" class="hp-text">0 / 0</span></div></div><div class="sprite-box"><img id="playerSprite" alt=""></div></div></div></section><section class="battle-log" id="battleLog" aria-live="polite"></section><section class="controls"><div id="moveButtons" class="moves"></div><button id="switchButton" class="secondary control-button" type="button">Switch Pokémon</button><button id="restartButton" class="secondary control-button" type="button">Team Builder</button></section><section id="partyPanel" class="party hidden"></section></main></div>`;
+  }
   document.querySelector("#backToBuilder").onclick = returnToBuilder;
   document.querySelector("#restartButton").onclick = returnToBuilder;
 }
-
 function returnToBuilder() {
   multiplayer?.leave();
   multiplayer = null;
   window.__networkBattle = null;
-  multiplayerState = { role: null, team: null, opponentTeam: null, battleStarted: false };
+  multiplayerState = { role: null, team: null, opponentTeam: null, battleStarted: false, battleSize: 1 };
   mountBuilder();
 }
 
-function startBattle(playerTeam) {
+function startBattle(payload) {
   try {
-    const battle = new Battle({ data, playerTeam, opponentTeam: data.teams.opponent });
+    const team = Array.isArray(payload) ? payload : payload.team;
+    const battleSize = Array.isArray(payload) ? 1 : Math.max(1, Math.min(10, Number(payload.battleSize) || 1));
+    if (battleSize > team.length) {
+      throw new Error(`You need at least ${battleSize} Pokémon for a ${battleSize}v${battleSize} battle.`);
+    }
+    const BattleClass = battleSize > 1 ? MultiBattle : Battle;
+    const battle = new BattleClass({ data, playerTeam: team, opponentTeam: data.teams.opponent, battleSize });
     mountBattleUI(battle, "local");
     renderer = new Renderer({ root: document, battle });
     renderer.bind();
@@ -171,11 +202,10 @@ function serializePokemon(p) {
 }
 
 function serializeBattle(battle) {
-  return {
+  const base = {
     turn: battle.turn, over: battle.over, busy: battle.busy, locked: battle.locked,
+    battleSize: battle.battleSize || 1,
     field: battle.field || null,
-    // Legacy aliases keep older clients from crashing while the field system
-    // is rolled out; both represent the same single battlefield condition.
     weather: battle.field || null,
     terrain: battle.field || null,
     fieldTurns: battle.fieldTurns || 0,
@@ -183,10 +213,13 @@ function serializeBattle(battle) {
     awaitingPlayerSwitch: battle.awaitingPlayerSwitch,
     playerMoveSubmitted: !!battle.localMoveSubmitted,
     opponentMoveSubmitted: !!battle.remoteMoveSubmitted,
-    log: battle.log.slice(-80),
+    playerActionsCount: battle.isMulti ? (battle.pendingActions?.player?.length || 0) : 0,
+    opponentActionsCount: battle.isMulti ? (battle.pendingActions?.opponent?.length || 0) : 0,
+    log: battle.log.slice(-100),
     player: { active: battle.player.active, team: battle.player.team.map(serializePokemon) },
     opponent: { active: battle.opponent.active, team: battle.opponent.team.map(serializePokemon) }
   };
+  return base;
 }
 
 function escapeHTML(value) { return String(value ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[c])); }
