@@ -25,38 +25,15 @@
     "tackle",
     "growl",
     "vine-whip",
+    "leafage",
     "razor-leaf",
-    "growth",
-    "leech-seed",
-    "petal-blizzard",
-    "solar-beam",
-    "energy-ball",
-    "giga-drain",
-    "sludge-bomb",
-    "earthquake",
-    "bulldoze",
-    "body-slam",
-    "double-edge",
-    "protect",
-    "rest",
-    "sleep-talk",
-    "roar",
-    "swords-dance",
-    "facade",
-    "substitute",
-    "hyper-beam",
-    "giga-impact",
-    "helping-hand",
-    "grass-knot",
-    "weather-ball",
-    "sunny-day",
-    "endure",
-    "outrage"
+    "quick-attack",
+    "solar-beam"
   ],
   "moveset": [
     "tackle",
     "growl",
     "vine-whip",
-    "razor-leaf"
+    "leafage"
   ]
 }

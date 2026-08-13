@@ -2,7 +2,8 @@
   "id": "feraligatr",
   "name": "Feraligatr",
   "types": [
-    "Water"
+    "Water",
+    "Dark"
   ],
   "baseStats": {
     "hp": 85,
@@ -22,44 +23,18 @@
   ],
   "learnset": [
     "scratch",
-    "leer",
+    "growl",
     "water-gun",
-    "rage",
-    "bite",
-    "ice-fang",
-    "crunch",
+    "water-pulse",
     "aqua-jet",
-    "waterfall",
-    "liquidation",
-    "hydro-pump",
-    "ice-beam",
-    "ice-punch",
-    "dragon-claw",
-    "dragon-tail",
-    "earthquake",
-    "bulldoze",
-    "rock-slide",
-    "rock-smash",
-    "brick-break",
-    "body-slam",
-    "swords-dance",
-    "scary-face",
-    "roar",
-    "protect",
-    "rest",
-    "sleep-talk",
-    "substitute",
-    "facade",
-    "superpower",
-    "outrage",
-    "hyper-beam",
-    "giga-impact",
-    "endure"
+    "quick-attack",
+    "ice-fang",
+    "crunch"
   ],
   "moveset": [
     "scratch",
-    "leer",
+    "growl",
     "water-gun",
-    "rage"
+    "water-pulse"
   ]
 }

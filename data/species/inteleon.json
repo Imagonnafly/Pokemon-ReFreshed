@@ -2,7 +2,8 @@
   "id": "inteleon",
   "name": "Inteleon",
   "types": [
-    "Water"
+    "Water",
+    "Air"
   ],
   "baseStats": {
     "hp": 70,
@@ -22,40 +23,17 @@
   ],
   "learnset": [
     "pound",
+    "growl",
     "water-gun",
-    "snipe-shot",
     "water-pulse",
     "aqua-jet",
-    "surf",
-    "hydro-pump",
-    "waterfall",
-    "liquidation",
-    "ice-beam",
-    "ice-spinner",
-    "dark-pulse",
-    "shadow-ball",
-    "air-slash",
-    "acrobatics",
-    "u-turn",
-    "dragon-pulse",
-    "focus-energy",
-    "agility",
-    "swords-dance",
-    "protect",
-    "rest",
-    "sleep-talk",
-    "substitute",
-    "facade",
-    "scary-face",
-    "roar",
-    "hyper-beam",
-    "giga-impact",
-    "endure"
+    "quick-attack",
+    "acrobatics"
   ],
   "moveset": [
     "pound",
+    "growl",
     "water-gun",
-    "snipe-shot",
     "water-pulse"
   ]
 }

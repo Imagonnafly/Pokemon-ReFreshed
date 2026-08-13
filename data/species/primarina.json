@@ -23,43 +23,16 @@
   ],
   "learnset": [
     "pound",
+    "growl",
     "water-gun",
-    "disarming-voice",
-    "sing",
+    "water-pulse",
     "aqua-jet",
-    "bubble-beam",
-    "sparkling-aria",
-    "moonblast",
-    "hydro-pump",
-    "surf",
-    "waterfall",
-    "liquidation",
-    "ice-beam",
-    "ice-spinner",
-    "psychic",
-    "psyshock",
-    "shadow-ball",
-    "energy-ball",
-    "hyper-voice",
-    "calm-mind",
-    "light-screen",
-    "reflect",
-    "helping-hand",
-    "protect",
-    "rest",
-    "sleep-talk",
-    "substitute",
-    "facade",
-    "misty-terrain",
-    "roar",
-    "hyper-beam",
-    "giga-impact",
-    "endure"
+    "quick-attack"
   ],
   "moveset": [
     "pound",
+    "growl",
     "water-gun",
-    "disarming-voice",
-    "sing"
+    "water-pulse"
   ]
 }

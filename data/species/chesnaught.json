@@ -3,7 +3,7 @@
   "name": "Chesnaught",
   "types": [
     "Nature",
-    "Earth"
+    "Metal"
   ],
   "baseStats": {
     "hp": 88,
@@ -25,48 +25,16 @@
     "tackle",
     "growl",
     "vine-whip",
-    "rollout",
-    "bite",
-    "needle-arm",
-    "pin-missile",
-    "leech-seed",
-    "wood-hammer",
-    "seed-bomb",
-    "giga-drain",
-    "solar-beam",
-    "brick-break",
+    "leafage",
+    "razor-leaf",
+    "quick-attack",
     "drain-punch",
-    "hammer-arm",
-    "close-combat",
-    "low-kick",
-    "low-sweep",
-    "spiky-shield",
-    "bulk-up",
-    "swords-dance",
-    "earthquake",
-    "bulldoze",
-    "rock-slide",
-    "rock-smash",
-    "body-press",
-    "iron-defense",
-    "iron-head",
-    "shadow-claw",
-    "payback",
-    "roar",
-    "protect",
-    "rest",
-    "sleep-talk",
-    "substitute",
-    "facade",
-    "superpower",
-    "hyper-beam",
-    "giga-impact",
-    "endure"
+    "body-press"
   ],
   "moveset": [
     "tackle",
     "growl",
     "vine-whip",
-    "rollout"
+    "leafage"
   ]
 }

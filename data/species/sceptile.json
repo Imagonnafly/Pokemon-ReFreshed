@@ -2,7 +2,8 @@
   "id": "sceptile",
   "name": "Sceptile",
   "types": [
-    "Nature"
+    "Nature",
+    "Air"
   ],
   "baseStats": {
     "hp": 70,
@@ -22,46 +23,17 @@
   ],
   "learnset": [
     "pound",
-    "leer",
-    "absorb",
-    "quick-attack",
+    "growl",
     "leafage",
+    "vine-whip",
     "razor-leaf",
-    "screech",
-    "agility",
-    "leaf-blade",
-    "energy-ball",
-    "giga-drain",
-    "solar-beam",
-    "x-scissor",
-    "dragon-claw",
-    "dragon-pulse",
-    "brick-break",
-    "focus-blast",
-    "rock-slide",
-    "earthquake",
-    "bulldoze",
-    "night-slash",
-    "shadow-claw",
-    "thunder-punch",
-    "swords-dance",
-    "detect",
-    "protect",
-    "rest",
-    "substitute",
-    "facade",
-    "roar",
-    "endeavor",
-    "acrobatics",
-    "u-turn",
-    "giga-impact",
-    "hyper-beam",
-    "endure"
+    "quick-attack",
+    "dual-wingbeat"
   ],
   "moveset": [
     "pound",
-    "leer",
-    "absorb",
-    "quick-attack"
+    "growl",
+    "leafage",
+    "vine-whip"
   ]
 }

@@ -22,42 +22,18 @@
     "unaware"
   ],
   "learnset": [
-    "ember",
     "tackle",
-    "bite",
-    "incinerate",
-    "snarl",
-    "torch-song",
-    "shadow-ball",
-    "hex",
+    "growl",
+    "ember",
+    "flame-charge",
     "flamethrower",
-    "fire-blast",
-    "fire-spin",
-    "heat-wave",
-    "overheat",
-    "flare-blitz",
-    "will-o-wisp",
-    "solar-beam",
-    "earth-power",
-    "earthquake",
-    "bulldoze",
-    "crunch",
-    "shadow-claw",
-    "scary-face",
-    "roar",
-    "protect",
-    "rest",
-    "sleep-talk",
-    "substitute",
-    "facade",
-    "hyper-beam",
-    "giga-impact",
-    "endure"
+    "quick-attack",
+    "snarl"
   ],
   "moveset": [
-    "ember",
     "tackle",
-    "bite",
-    "incinerate"
+    "growl",
+    "ember",
+    "flame-charge"
   ]
 }

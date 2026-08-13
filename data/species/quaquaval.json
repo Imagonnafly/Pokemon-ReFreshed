@@ -3,7 +3,7 @@
   "name": "Quaquaval",
   "types": [
     "Water",
-    "Earth"
+    "Air"
   ],
   "baseStats": {
     "hp": 85,
@@ -19,50 +19,24 @@
   },
   "abilities": [
     "torrent",
-    "moxie"
+    "defiant"
   ],
   "learnset": [
     "pound",
     "growl",
     "water-gun",
+    "water-pulse",
     "aqua-jet",
-    "double-hit",
-    "wing-attack",
-    "aqua-step",
+    "quick-attack",
+    "double-kick",
+    "peck",
     "close-combat",
-    "liquidation",
-    "waterfall",
-    "hydro-pump",
-    "surf",
-    "ice-spinner",
-    "ice-beam",
-    "brave-bird",
-    "acrobatics",
-    "aerial-ace",
-    "brick-break",
-    "low-kick",
-    "low-sweep",
-    "rock-slide",
-    "earthquake",
-    "bulldoze",
-    "roost",
-    "swords-dance",
-    "bulk-up",
-    "protect",
-    "rest",
-    "sleep-talk",
-    "substitute",
-    "facade",
-    "u-turn",
-    "roar",
-    "hyper-beam",
-    "giga-impact",
-    "endure"
+    "acrobatics"
   ],
   "moveset": [
     "pound",
     "growl",
     "water-gun",
-    "aqua-jet"
+    "water-pulse"
   ]
 }

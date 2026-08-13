@@ -2,7 +2,8 @@
   "id": "rillaboom",
   "name": "Rillaboom",
   "types": [
-    "Nature"
+    "Nature",
+    "Earth"
   ],
   "baseStats": {
     "hp": 100,
@@ -21,43 +22,18 @@
     "grassy-surge"
   ],
   "learnset": [
-    "branch-poke",
-    "growl",
     "scratch",
+    "growl",
+    "leafage",
+    "vine-whip",
     "razor-leaf",
-    "knock-off",
-    "drum-beating",
-    "wood-hammer",
-    "grassy-glide",
-    "energy-ball",
-    "giga-drain",
-    "solar-beam",
-    "seed-bomb",
-    "high-horsepower",
-    "earthquake",
-    "bulldoze",
-    "brick-break",
-    "drain-punch",
-    "body-press",
-    "rock-slide",
-    "u-turn",
-    "swords-dance",
-    "bulk-up",
-    "taunt",
-    "protect",
-    "rest",
-    "sleep-talk",
-    "substitute",
-    "facade",
-    "hyper-beam",
-    "giga-impact",
-    "endure",
-    "acrobatics"
+    "quick-attack",
+    "body-press"
   ],
   "moveset": [
-    "branch-poke",
-    "growl",
     "scratch",
-    "razor-leaf"
+    "growl",
+    "leafage",
+    "vine-whip"
   ]
 }

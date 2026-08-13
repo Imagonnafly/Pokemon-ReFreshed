@@ -2,7 +2,8 @@
   "id": "samurott",
   "name": "Samurott",
   "types": [
-    "Water"
+    "Water",
+    "Metal"
   ],
   "baseStats": {
     "hp": 95,
@@ -22,44 +23,16 @@
   ],
   "learnset": [
     "tackle",
-    "tail-whip",
+    "growl",
     "water-gun",
-    "razor-shell",
+    "water-pulse",
     "aqua-jet",
-    "slash",
-    "fury-cutter",
-    "waterfall",
-    "liquidation",
-    "hydro-pump",
-    "surf",
-    "ice-beam",
-    "ice-spinner",
-    "megahorn",
-    "sacred-sword",
-    "aerial-ace",
-    "x-scissor",
-    "night-slash",
-    "smart-strike",
-    "iron-head",
-    "reversal",
-    "revenge",
-    "swords-dance",
-    "rain-dance",
-    "protect",
-    "rest",
-    "sleep-talk",
-    "roar",
-    "substitute",
-    "facade",
-    "scary-face",
-    "hyper-beam",
-    "giga-impact",
-    "endure"
+    "quick-attack"
   ],
   "moveset": [
     "tackle",
-    "tail-whip",
+    "growl",
     "water-gun",
-    "razor-shell"
+    "water-pulse"
   ]
 }

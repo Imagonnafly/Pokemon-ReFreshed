@@ -22,40 +22,17 @@
   ],
   "learnset": [
     "tackle",
-    "leer",
+    "growl",
+    "leafage",
     "vine-whip",
-    "growth",
-    "leaf-tornado",
-    "leaf-blade",
-    "leaf-storm",
-    "energy-ball",
-    "giga-drain",
-    "solar-beam",
-    "seed-bomb",
-    "aqua-tail",
-    "dragon-tail",
-    "dragon-pulse",
-    "iron-tail",
-    "aerial-ace",
-    "facade",
-    "coil",
-    "swords-dance",
-    "glare",
-    "substitute",
-    "protect",
-    "rest",
-    "sleep-talk",
-    "roar",
-    "taunt",
-    "u-turn",
-    "giga-impact",
-    "hyper-beam",
-    "endure"
+    "razor-leaf",
+    "quick-attack",
+    "swords-dance"
   ],
   "moveset": [
     "tackle",
-    "leer",
-    "vine-whip",
-    "growth"
+    "growl",
+    "leafage",
+    "vine-whip"
   ]
 }

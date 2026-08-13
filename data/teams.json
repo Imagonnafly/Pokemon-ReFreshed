@@ -64,272 +64,167 @@
   ],
   "starterShowcase": [
     {
-      "species": "bulbasaur",
-      "level": 5,
+      "species": "blastoise",
+      "level": 50,
       "moves": [
         "tackle",
         "growl",
+        "water-gun",
+        "water-pulse"
+      ],
+      "ability": "torrent"
+    },
+    {
+      "species": "blaziken",
+      "level": 50,
+      "moves": [
+        "scratch",
+        "growl",
+        "ember",
+        "flame-charge"
+      ],
+      "ability": "blaze"
+    },
+    {
+      "species": "charizard",
+      "level": 50,
+      "moves": [
+        "scratch",
+        "growl",
+        "ember",
+        "flame-charge"
+      ],
+      "ability": "blaze"
+    },
+    {
+      "species": "chesnaught",
+      "level": 50,
+      "moves": [
+        "tackle",
+        "growl",
+        "vine-whip",
+        "leafage"
+      ],
+      "ability": "overgrow"
+    },
+    {
+      "species": "cinderace",
+      "level": 50,
+      "moves": [
+        "tackle",
+        "growl",
+        "scratch",
+        "ember"
+      ],
+      "ability": "blaze"
+    },
+    {
+      "species": "decidueye",
+      "level": 50,
+      "moves": [
+        "tackle",
+        "growl",
+        "leafage",
         "vine-whip"
       ],
       "ability": "overgrow"
     },
     {
-      "species": "charmander",
-      "level": 5,
+      "species": "delphox",
+      "level": 50,
       "moves": [
         "scratch",
         "growl",
-        "ember"
+        "ember",
+        "flame-charge"
       ],
       "ability": "blaze"
     },
     {
-      "species": "squirtle",
-      "level": 5,
+      "species": "dragonite",
+      "level": 50,
       "moves": [
-        "tackle",
-        "growl",
-        "water-gun"
+        "gust",
+        "wing-attack",
+        "fly",
+        "roost"
       ],
-      "ability": "torrent"
+      "ability": "multiscale"
     },
     {
-      "species": "chikorita",
-      "level": 5,
+      "species": "emboar",
+      "level": 50,
       "moves": [
         "tackle",
         "growl",
-        "leafage"
-      ],
-      "ability": "overgrow"
-    },
-    {
-      "species": "cyndaquil",
-      "level": 5,
-      "moves": [
-        "tackle",
-        "growl",
-        "ember"
+        "ember",
+        "flame-charge"
       ],
       "ability": "blaze"
     },
     {
-      "species": "totodile",
-      "level": 5,
-      "moves": [
-        "scratch",
-        "growl",
-        "water-gun"
-      ],
-      "ability": "torrent"
-    },
-    {
-      "species": "treecko",
-      "level": 5,
+      "species": "empoleon",
+      "level": 50,
       "moves": [
         "pound",
         "growl",
-        "leafage"
-      ],
-      "ability": "overgrow"
-    },
-    {
-      "species": "torchic",
-      "level": 5,
-      "moves": [
-        "scratch",
-        "growl",
-        "ember"
-      ],
-      "ability": "blaze"
-    },
-    {
-      "species": "mudkip",
-      "level": 5,
-      "moves": [
-        "tackle",
-        "growl",
-        "water-gun"
+        "water-gun",
+        "water-pulse"
       ],
       "ability": "torrent"
     },
     {
-      "species": "turtwig",
-      "level": 5,
-      "moves": [
-        "tackle",
-        "growl",
-        "leafage"
-      ],
-      "ability": "overgrow"
-    },
-    {
-      "species": "chimchar",
-      "level": 5,
+      "species": "feraligatr",
+      "level": 50,
       "moves": [
         "scratch",
         "growl",
-        "ember"
+        "water-gun",
+        "water-pulse"
       ],
-      "ability": "blaze"
+      "ability": "torrent"
     },
     {
-      "species": "piplup",
-      "level": 5,
+      "species": "greninja",
+      "level": 50,
       "moves": [
         "pound",
         "growl",
-        "water-gun"
+        "water-gun",
+        "water-pulse"
       ],
       "ability": "torrent"
     },
     {
-      "species": "snivy",
-      "level": 5,
-      "moves": [
-        "tackle",
-        "growl",
-        "leafage"
-      ],
-      "ability": "overgrow"
-    },
-    {
-      "species": "tepig",
-      "level": 5,
-      "moves": [
-        "tackle",
-        "growl",
-        "ember"
-      ],
-      "ability": "blaze"
-    },
-    {
-      "species": "oshawott",
-      "level": 5,
-      "moves": [
-        "tackle",
-        "growl",
-        "water-gun"
-      ],
-      "ability": "torrent"
-    },
-    {
-      "species": "chespin",
-      "level": 5,
-      "moves": [
-        "tackle",
-        "growl",
-        "vine-whip"
-      ],
-      "ability": "overgrow"
-    },
-    {
-      "species": "fennekin",
-      "level": 5,
+      "species": "incineroar",
+      "level": 50,
       "moves": [
         "scratch",
         "growl",
-        "ember"
+        "ember",
+        "flame-charge"
       ],
       "ability": "blaze"
     },
     {
-      "species": "froakie",
-      "level": 5,
-      "moves": [
-        "pound",
-        "growl",
-        "water-gun"
-      ],
-      "ability": "torrent"
-    },
-    {
-      "species": "rowlet",
-      "level": 5,
-      "moves": [
-        "tackle",
-        "growl",
-        "peck"
-      ],
-      "ability": "overgrow"
-    },
-    {
-      "species": "litten",
-      "level": 5,
+      "species": "infernape",
+      "level": 50,
       "moves": [
         "scratch",
         "growl",
-        "ember"
+        "ember",
+        "flame-charge"
       ],
       "ability": "blaze"
     },
     {
-      "species": "popplio",
-      "level": 5,
+      "species": "inteleon",
+      "level": 50,
       "moves": [
         "pound",
         "growl",
-        "water-gun"
-      ],
-      "ability": "torrent"
-    },
-    {
-      "species": "grookey",
-      "level": 5,
-      "moves": [
-        "scratch",
-        "growl",
-        "leafage"
-      ],
-      "ability": "overgrow"
-    },
-    {
-      "species": "scorbunny",
-      "level": 5,
-      "moves": [
-        "tackle",
-        "growl",
-        "ember"
-      ],
-      "ability": "blaze"
-    },
-    {
-      "species": "sobble",
-      "level": 5,
-      "moves": [
-        "pound",
-        "growl",
-        "water-gun"
-      ],
-      "ability": "torrent"
-    },
-    {
-      "species": "sprigatito",
-      "level": 5,
-      "moves": [
-        "scratch",
-        "growl",
-        "leafage"
-      ],
-      "ability": "overgrow"
-    },
-    {
-      "species": "fuecoco",
-      "level": 5,
-      "moves": [
-        "tackle",
-        "growl",
-        "ember"
-      ],
-      "ability": "blaze"
-    },
-    {
-      "species": "quaxly",
-      "level": 5,
-      "moves": [
-        "pound",
-        "growl",
-        "water-gun"
+        "water-gun",
+        "water-pulse"
       ],
       "ability": "torrent"
     },
@@ -338,11 +233,33 @@
       "level": 50,
       "moves": [
         "collision-course",
-        "flare-blitz",
         "close-combat",
-        "dragon-claw"
+        "dragon-claw",
+        "flare-blitz"
       ],
       "ability": "orichalcum-pulse"
+    },
+    {
+      "species": "meganium",
+      "level": 50,
+      "moves": [
+        "tackle",
+        "growl",
+        "leafage",
+        "vine-whip"
+      ],
+      "ability": "overgrow"
+    },
+    {
+      "species": "meowscarada",
+      "level": 50,
+      "moves": [
+        "scratch",
+        "growl",
+        "leafage",
+        "vine-whip"
+      ],
+      "ability": "overgrow"
     },
     {
       "species": "miraidon",
@@ -354,6 +271,127 @@
         "parabolic-charge"
       ],
       "ability": "hadron-engine"
+    },
+    {
+      "species": "primarina",
+      "level": 50,
+      "moves": [
+        "pound",
+        "growl",
+        "water-gun",
+        "water-pulse"
+      ],
+      "ability": "torrent"
+    },
+    {
+      "species": "quaquaval",
+      "level": 50,
+      "moves": [
+        "pound",
+        "growl",
+        "water-gun",
+        "water-pulse"
+      ],
+      "ability": "torrent"
+    },
+    {
+      "species": "rillaboom",
+      "level": 50,
+      "moves": [
+        "scratch",
+        "growl",
+        "leafage",
+        "vine-whip"
+      ],
+      "ability": "overgrow"
+    },
+    {
+      "species": "samurott",
+      "level": 50,
+      "moves": [
+        "tackle",
+        "growl",
+        "water-gun",
+        "water-pulse"
+      ],
+      "ability": "torrent"
+    },
+    {
+      "species": "sceptile",
+      "level": 50,
+      "moves": [
+        "pound",
+        "growl",
+        "leafage",
+        "vine-whip"
+      ],
+      "ability": "overgrow"
+    },
+    {
+      "species": "serperior",
+      "level": 50,
+      "moves": [
+        "tackle",
+        "growl",
+        "leafage",
+        "vine-whip"
+      ],
+      "ability": "overgrow"
+    },
+    {
+      "species": "skeledirge",
+      "level": 50,
+      "moves": [
+        "tackle",
+        "growl",
+        "ember",
+        "flame-charge"
+      ],
+      "ability": "blaze"
+    },
+    {
+      "species": "swampert",
+      "level": 50,
+      "moves": [
+        "tackle",
+        "growl",
+        "water-gun",
+        "water-pulse"
+      ],
+      "ability": "torrent"
+    },
+    {
+      "species": "torterra",
+      "level": 50,
+      "moves": [
+        "tackle",
+        "growl",
+        "leafage",
+        "vine-whip"
+      ],
+      "ability": "overgrow"
+    },
+    {
+      "species": "typhlosion",
+      "level": 50,
+      "moves": [
+        "tackle",
+        "growl",
+        "ember",
+        "flame-charge"
+      ],
+      "ability": "blaze"
+    },
+    {
+      "species": "venusaur",
+      "level": 50,
+      "moves": [
+        "tackle",
+        "growl",
+        "vine-whip",
+        "leafage"
+      ],
+      "ability": "overgrow"
     }
   ]
 }
