@@ -1,0 +1,61 @@
+{
+  "id": "serperior",
+  "name": "Serperior",
+  "types": [
+    "Nature"
+  ],
+  "baseStats": {
+    "hp": 75,
+    "attack": 75,
+    "defense": 95,
+    "specialAttack": 75,
+    "specialDefense": 95,
+    "speed": 113
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/serperior.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/serperior.gif"
+  },
+  "abilities": [
+    "overgrow",
+    "contrary"
+  ],
+  "learnset": [
+    "tackle",
+    "leer",
+    "vine-whip",
+    "growth",
+    "leaf-tornado",
+    "leaf-blade",
+    "leaf-storm",
+    "energy-ball",
+    "giga-drain",
+    "solar-beam",
+    "seed-bomb",
+    "aqua-tail",
+    "dragon-tail",
+    "dragon-pulse",
+    "iron-tail",
+    "aerial-ace",
+    "facade",
+    "coil",
+    "swords-dance",
+    "glare",
+    "substitute",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "roar",
+    "taunt",
+    "u-turn",
+    "giga-impact",
+    "hyper-beam",
+    "endure"
+  ],
+  "moveset": [
+    "tackle",
+    "leer",
+    "vine-whip",
+    "growth"
+  ]
+}

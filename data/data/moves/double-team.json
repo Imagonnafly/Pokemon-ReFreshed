@@ -1,0 +1,10 @@
+{
+  "id": "double-team",
+  "name": "Double Team",
+  "type": "Time",
+  "category": "Status",
+  "power": 0,
+  "accuracy": true,
+  "pp": 15,
+  "priority": 0
+}

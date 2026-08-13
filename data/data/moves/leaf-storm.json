@@ -1,0 +1,10 @@
+{
+  "id": "leaf-storm",
+  "name": "Leaf Storm",
+  "type": "Nature",
+  "category": "Special",
+  "power": 130,
+  "accuracy": 90,
+  "pp": 5,
+  "priority": 0
+}

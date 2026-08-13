@@ -1,0 +1,65 @@
+{
+  "id": "primarina",
+  "name": "Primarina",
+  "types": [
+    "Water",
+    "Light"
+  ],
+  "baseStats": {
+    "hp": 80,
+    "attack": 74,
+    "defense": 74,
+    "specialAttack": 126,
+    "specialDefense": 116,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/primarina.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/primarina.gif"
+  },
+  "abilities": [
+    "torrent",
+    "liquid-voice"
+  ],
+  "learnset": [
+    "pound",
+    "water-gun",
+    "disarming-voice",
+    "sing",
+    "aqua-jet",
+    "bubble-beam",
+    "sparkling-aria",
+    "moonblast",
+    "hydro-pump",
+    "surf",
+    "waterfall",
+    "liquidation",
+    "ice-beam",
+    "ice-spinner",
+    "psychic",
+    "psyshock",
+    "shadow-ball",
+    "energy-ball",
+    "hyper-voice",
+    "calm-mind",
+    "light-screen",
+    "reflect",
+    "helping-hand",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "misty-terrain",
+    "roar",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "pound",
+    "water-gun",
+    "disarming-voice",
+    "sing"
+  ]
+}

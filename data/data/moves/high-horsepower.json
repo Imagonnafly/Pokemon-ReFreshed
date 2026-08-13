@@ -1,0 +1,10 @@
+{
+  "id": "high-horsepower",
+  "name": "High Horsepower",
+  "type": "Earth",
+  "category": "Physical",
+  "power": 95,
+  "accuracy": 95,
+  "pp": 10,
+  "priority": 0
+}

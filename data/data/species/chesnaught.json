@@ -1,0 +1,72 @@
+{
+  "id": "chesnaught",
+  "name": "Chesnaught",
+  "types": [
+    "Nature",
+    "Earth"
+  ],
+  "baseStats": {
+    "hp": 88,
+    "attack": 107,
+    "defense": 122,
+    "specialAttack": 74,
+    "specialDefense": 75,
+    "speed": 64
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/chesnaught.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/chesnaught.gif"
+  },
+  "abilities": [
+    "overgrow",
+    "bulletproof"
+  ],
+  "learnset": [
+    "tackle",
+    "growl",
+    "vine-whip",
+    "rollout",
+    "bite",
+    "needle-arm",
+    "pin-missile",
+    "leech-seed",
+    "wood-hammer",
+    "seed-bomb",
+    "giga-drain",
+    "solar-beam",
+    "brick-break",
+    "drain-punch",
+    "hammer-arm",
+    "close-combat",
+    "low-kick",
+    "low-sweep",
+    "spiky-shield",
+    "bulk-up",
+    "swords-dance",
+    "earthquake",
+    "bulldoze",
+    "rock-slide",
+    "rock-smash",
+    "body-press",
+    "iron-defense",
+    "iron-head",
+    "shadow-claw",
+    "payback",
+    "roar",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "superpower",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "tackle",
+    "growl",
+    "vine-whip",
+    "rollout"
+  ]
+}

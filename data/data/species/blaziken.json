@@ -1,0 +1,71 @@
+{
+  "id": "blaziken",
+  "name": "Blaziken",
+  "types": [
+    "Fire",
+    "Earth"
+  ],
+  "baseStats": {
+    "hp": 80,
+    "attack": 120,
+    "defense": 70,
+    "specialAttack": 110,
+    "specialDefense": 70,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/blaziken.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/blaziken.gif"
+  },
+  "abilities": [
+    "blaze",
+    "speed-boost"
+  ],
+  "learnset": [
+    "scratch",
+    "growl",
+    "ember",
+    "double-kick",
+    "flame-charge",
+    "bulk-up",
+    "blaze-kick",
+    "brick-break",
+    "low-kick",
+    "low-sweep",
+    "drain-punch",
+    "close-combat",
+    "flare-blitz",
+    "fire-blast",
+    "flamethrower",
+    "fire-spin",
+    "heat-wave",
+    "overheat",
+    "fire-fang",
+    "focus-blast",
+    "focus-punch",
+    "rock-slide",
+    "earthquake",
+    "bulldoze",
+    "shadow-claw",
+    "thunder-punch",
+    "swords-dance",
+    "roar",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "acrobatics",
+    "brave-bird",
+    "u-turn",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "scratch",
+    "growl",
+    "ember",
+    "double-kick"
+  ]
+}

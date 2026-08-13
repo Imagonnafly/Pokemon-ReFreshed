@@ -1,0 +1,118 @@
+{
+  "typeSystem": "custom-14-type",
+  "legacyConversion": {
+    "Normal": "Time",
+    "Fighting": "Earth",
+    "Poison": "Dark",
+    "Ground": "Earth",
+    "Flying": "Air",
+    "Psychic": "Mind",
+    "Bug": "Nature",
+    "Rock": "Earth",
+    "Ghost": "Spirit",
+    "Dragon": "Cosmos",
+    "Steel": "Metal",
+    "Fairy": "Light",
+    "Grass": "Nature"
+  },
+  "starterTypes": {
+    "venusaur": [
+      "Nature",
+      "Dark"
+    ],
+    "charizard": [
+      "Fire",
+      "Air"
+    ],
+    "blastoise": [
+      "Water"
+    ],
+    "meganium": [
+      "Nature"
+    ],
+    "typhlosion": [
+      "Fire"
+    ],
+    "feraligatr": [
+      "Water"
+    ],
+    "sceptile": [
+      "Nature"
+    ],
+    "blaziken": [
+      "Fire",
+      "Earth"
+    ],
+    "swampert": [
+      "Water",
+      "Earth"
+    ],
+    "torterra": [
+      "Nature",
+      "Earth"
+    ],
+    "infernape": [
+      "Fire",
+      "Earth"
+    ],
+    "empoleon": [
+      "Water",
+      "Metal"
+    ],
+    "serperior": [
+      "Nature"
+    ],
+    "emboar": [
+      "Fire",
+      "Earth"
+    ],
+    "samurott": [
+      "Water"
+    ],
+    "chesnaught": [
+      "Nature",
+      "Earth"
+    ],
+    "delphox": [
+      "Fire",
+      "Mind"
+    ],
+    "greninja": [
+      "Water",
+      "Dark"
+    ],
+    "decidueye": [
+      "Nature",
+      "Spirit"
+    ],
+    "incineroar": [
+      "Fire",
+      "Dark"
+    ],
+    "primarina": [
+      "Water",
+      "Light"
+    ],
+    "rillaboom": [
+      "Nature"
+    ],
+    "cinderace": [
+      "Fire"
+    ],
+    "inteleon": [
+      "Water"
+    ],
+    "meowscarada": [
+      "Nature",
+      "Dark"
+    ],
+    "skeledirge": [
+      "Fire",
+      "Spirit"
+    ],
+    "quaquaval": [
+      "Water",
+      "Earth"
+    ]
+  }
+}

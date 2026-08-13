@@ -1,0 +1,10 @@
+{
+  "id": "flower-trick",
+  "name": "Flower Trick",
+  "type": "Nature",
+  "category": "Physical",
+  "power": 70,
+  "accuracy": true,
+  "pp": 10,
+  "priority": 0
+}

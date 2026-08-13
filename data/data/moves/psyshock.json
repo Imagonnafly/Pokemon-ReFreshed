@@ -1,0 +1,10 @@
+{
+  "id": "psyshock",
+  "name": "Psyshock",
+  "type": "Mind",
+  "category": "Special",
+  "power": 80,
+  "accuracy": 100,
+  "pp": 10,
+  "priority": 0
+}

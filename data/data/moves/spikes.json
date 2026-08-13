@@ -1,0 +1,10 @@
+{
+  "id": "spikes",
+  "name": "Spikes",
+  "type": "Earth",
+  "category": "Status",
+  "power": 0,
+  "accuracy": true,
+  "pp": 20,
+  "priority": 0
+}
