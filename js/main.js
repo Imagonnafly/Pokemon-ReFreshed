@@ -155,10 +155,31 @@ let renderer = null;
 function mountBattleUI(battle, role = "local") {
   if (battle.isMulti && battle.battleSize > 1) {
     app.innerHTML = `<div class="battle-page multi-battle-page">
-      <header class="topbar"><div class="topbar-brand"><div class="brand-mark">◉</div><div><h1>Pokémon Battle</h1><span class="topbar-sub">${role === "local" ? "N-vs-N Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div>
-      <div class="battle-header-actions"><span id="turnLabel" class="turn-pill">Turn 1</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="backToBuilder" class="header-button" type="button">← Team Builder</button></div></header>
-      <main><section class="multi-field"><span class="arena-label">Battle Arena · ${battle.battleSize}v${battle.battleSize}</span><div id="multiOppGrid" class="multi-side-grid"></div><div id="multiPlayerGrid" class="multi-side-grid player-side"></div></section>
-      <section class="battle-log" id="battleLog" aria-live="polite"></section><section class="multi-controls"><div id="multiActionPanel"></div><button id="restartButton" class="secondary control-button" type="button">Team Builder</button></section></main></div>`;
+      <header class="topbar battle-topbar"><div class="topbar-brand"><div class="brand-mark battle-brand-mark">◉</div><div><h1>Pokémon Battle</h1><span class="topbar-sub">${role === "local" ? "N-vs-N Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div>
+      <div class="battle-header-actions"><span id="turnLabel" class="turn-pill turn-pill-live">Turn 1</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="backToBuilder" class="header-button" type="button">← Team Builder</button></div></header>
+      <main class="multi-battle-main">
+        <section class="multi-arena-shell">
+          <div class="arena-header"><div><span class="arena-kicker">LIVE BATTLE</span><h2>${battle.battleSize}v${battle.battleSize} FIELD</h2></div><div class="arena-help"><span class="live-dot"></span> Click a move, then click its target</div></div>
+          <div class="multi-field">
+            <div class="field-depth field-depth-top"></div><div class="field-depth field-depth-bottom"></div>
+            <div class="side-label opponent-label"><span>OPPONENT</span><em>${role === "local" ? "CPU Trainer" : "Player 2"}</em></div>
+            <div id="multiOppGrid" class="multi-side-grid multi-opponent-grid"></div>
+            <div class="center-battle-lane"><span class="versus-core">VS</span><span class="field-energy"></span></div>
+            <div id="multiPlayerGrid" class="multi-side-grid player-side multi-player-grid"></div>
+            <div class="side-label player-label"><span>YOU</span><em>${role === "local" ? "Trainer" : role === "host" ? "Player 1" : "Player 2"}</em></div>
+          </div>
+        </section>
+
+        <section class="multi-command-shell">
+          <div class="multi-target-hint" id="multiTargetHint"><span class="hint-dot"></span><span>Select a move, then click the Pokémon you want to target.</span></div>
+          <div class="multi-active-tabs" id="multiActiveTabs" aria-label="Active Pokémon"></div>
+          <div class="multi-action-panel" id="multiActionPanel"></div>
+        </section>
+
+        <section class="multi-log-shell"><div class="log-header"><span>BATTLE FEED</span><span>Live</span></div><div class="battle-log multi-battle-log" id="battleLog" aria-live="polite"></div></section>
+        <div class="multi-footer-actions"><button id="restartButton" class="secondary control-button" type="button">Team Builder</button></div>
+      </main>
+    </div>`;
   } else {
     app.innerHTML = `<div class="battle-page"><header class="topbar"><div class="topbar-brand"><div class="brand-mark">◉</div><div><h1>Pokémon Battle</h1><span class="topbar-sub">${role === "local" ? "Trainer Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div><div class="battle-header-actions"><span id="turnLabel" class="turn-pill">Turn 1</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="backToBuilder" class="header-button" type="button">← Team Builder</button></div></header><main><section class="battlefield"><span class="arena-label">Battle Arena · ${role === "local" ? "Practice Match" : "Live Multiplayer"}</span><div class="side opponent"><div class="pokemon-info"><div class="sprite-box"><img id="oppSprite" alt=""></div><div class="pokemon-card"><h2 id="oppName">---</h2><div id="oppTypes" class="types"></div><div class="pokemon-meta">The opposing Pokémon</div><div class="hp-row"><div class="hpbar"><div id="oppHPFill"></div></div><span id="oppHPText" class="hp-text">0 / 0</span></div></div></div></div><div class="side player"><div class="pokemon-info"><div class="pokemon-card"><h2 id="playerName">---</h2><div id="playerTypes" class="types"></div><div class="pokemon-meta">Your Pokémon</div><div class="hp-row"><div class="hpbar"><div id="playerHPFill"></div></div><span id="playerHPText" class="hp-text">0 / 0</span></div></div><div class="sprite-box"><img id="playerSprite" alt=""></div></div></div></section><section class="battle-log" id="battleLog" aria-live="polite"></section><section class="controls"><div id="moveButtons" class="moves"></div><button id="switchButton" class="secondary control-button" type="button">Switch Pokémon</button><button id="restartButton" class="secondary control-button" type="button">Team Builder</button></section><section id="partyPanel" class="party hidden"></section></main></div>`;
   }

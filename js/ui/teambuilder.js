@@ -270,7 +270,7 @@ export class TeamBuilder {
     if (!species) return;
 
     if (teamIndex === null && this.team.length >= 10) {
-      alert("Your team already has 6 Pokémon.");
+      alert("Your team already has 10 Pokémon.");
       return;
     }
 
