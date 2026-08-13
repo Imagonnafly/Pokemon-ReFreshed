@@ -1,0 +1,2 @@
+Project root contains index.html and data/manifest.json.
+data.js resolves data with new URL('../../data/', import.meta.url).

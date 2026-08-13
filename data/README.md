@@ -1,37 +1,51 @@
-# Pokémon Battle Engine
+# Data Architecture
 
-A browser-based Pokémon-style battle engine with a modern game UI and optional real-time multiplayer.
+All game content is data-driven.
 
-## Run locally
+## Collections
 
-Multiplayer requires the included Node server.
+- `species/` — one JSON file per Pokémon species
+- `moves/` — one JSON file per move
+- `abilities/` — one JSON file per ability
+- `types.json` — shared type definitions and type chart
+- `teams.json` — team compositions/reference IDs
 
-```bash
-npm install
-npm start
-```
+Each collection has an `index.json`. The browser loads the index and then loads every referenced file.
 
-Then open `http://localhost:3000` in two browser tabs/windows.
+## Adding a species
 
-> Do not open `index.html` directly with `file://` if you want multiplayer.
+Create:
 
-## Multiplayer
+`data/species/examplemon.json`
 
-1. Build a team.
-2. Click **Create Multiplayer Room**.
-3. Send the 5-character room code to another player.
-4. The other player builds a team and clicks **Join Room**.
-5. Both players then battle in real time.
+Then add:
 
-The host currently acts as the lightweight authoritative battle simulator and broadcasts battle snapshots to the guest. The server relays moves/switches and does not need to know Pokémon rules.
+`examplemon`
 
-## Battle readability QOL
+to `data/species/index.json`.
 
-Battle messages now distinguish sides, for example:
+## Adding a move
 
-- `Your Pokémon Charizard used Flamethrower!`
-- `The opposing Pokémon Charizard used Flamethrower!`
-- `The opposing side sent out Blastoise!`
+Create:
 
-This makes mirror matches much easier to follow.
-"# Pokemon-ReFreshed" 
+`data/moves/example-move.json`
+
+Then add:
+
+`example-move`
+
+to `data/moves/index.json`.
+
+## Adding an ability
+
+Create:
+
+`data/abilities/example-ability.json`
+
+Then add:
+
+`example-ability`
+
+to `data/abilities/index.json`.
+
+The battle engine should not need to be modified just because a new species, move, or ability is added.
