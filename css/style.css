@@ -414,3 +414,228 @@ button:disabled{opacity:.45;cursor:not-allowed!important;transform:none!importan
 @media (max-width:430px){
   .multi-side-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.multi-active-card{min-height:108px}.multi-active-card img{height:42px}.multi-active-tabs{grid-template-columns:1fr 1fr}.polished-moves{gap:7px}.multi-move-button{padding:10px;min-height:68px}.move-name{font-size:10px}.move-meta{display:none}.move-pp{font-size:7px}
 }
+
+/* =====================================================================
+   MODERN POKEMON-INSPIRED VISUAL OVERHAUL
+   Scarlet/Violet + Sword/Shield inspired: crisp, energetic, layered,
+   game-like UI without copying any proprietary game assets.
+   ===================================================================== */
+:root{
+  --bg:#e9eef5;
+  --ink:#172033;
+  --muted:#6d7890;
+  --panel:#ffffff;
+  --panel-soft:#f3f6fa;
+  --line:#d6deea;
+  --shadow:0 14px 32px rgba(20,32,54,.12);
+  --shadow-lg:0 26px 70px rgba(20,32,54,.18);
+  --blue:#315be8;
+  --blue-dark:#173baf;
+  --cyan:#29c7d9;
+  --pink:#ed4d75;
+  --yellow:#f6bd38;
+  --green:#2eb875;
+  --red:#e8445e;
+  --navy:#111a2e;
+  --radius:16px;
+  --game-gradient:linear-gradient(135deg,#173a9f 0%,#315be8 52%,#6b7dff 100%);
+  --game-dark:linear-gradient(135deg,#10182b,#1b2742);
+}
+html{background:#e9eef5}
+body{
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 8% 4%,rgba(49,91,232,.10),transparent 25%),
+    radial-gradient(circle at 94% 8%,rgba(237,77,117,.08),transparent 23%),
+    linear-gradient(180deg,#f8fafc 0%,#e7edf5 100%);
+}
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.24;
+  background-image:linear-gradient(rgba(35,54,86,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(35,54,86,.035) 1px,transparent 1px);
+  background-size:32px 32px;
+}
+button,input,select{font-family:inherit}
+button:not(:disabled):hover{transform:translateY(-2px)}
+button:active:not(:disabled){transform:translateY(0) scale(.985)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid rgba(49,91,232,.20);outline-offset:3px}
+
+/* --- top navigation --- */
+.topbar{
+  height:76px;padding:0 32px;color:#fff;
+  background:linear-gradient(180deg,#121b31 0%,#18233d 100%);
+  border-bottom:0;box-shadow:0 7px 24px rgba(11,19,36,.22);backdrop-filter:blur(16px)
+}
+.topbar:after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
+  background:linear-gradient(90deg,#29c7d9,#315be8,#ed4d75)
+}
+.topbar-brand{gap:13px}
+.brand-mark{
+  width:44px;height:44px;border-radius:50%;position:relative;overflow:hidden;
+  background:radial-gradient(circle at 35% 28%,#fff 0 8%,#eef3ff 9% 17%,transparent 18%),linear-gradient(145deg,#e94c72 0 47%,#fff 48% 52%,#315be8 53%);
+  border:3px solid #fff;box-shadow:0 5px 18px rgba(0,0,0,.25);font-size:0
+}
+.brand-mark:after{content:"";position:absolute;inset:17px 0 auto;height:3px;background:#18233d}
+.topbar h1{color:#fff;font-size:18px;font-weight:950;letter-spacing:-.025em}
+.topbar-sub{color:#aab6cc;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.turn-pill{background:#222f4c;color:#dce6fa;border-color:#34415e;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.header-button,.secondary{
+  color:#24314a;background:#fff;border:1px solid #cfd8e6;border-radius:11px;
+  box-shadow:0 5px 14px rgba(16,29,51,.10);font-weight:900
+}
+.header-button:hover,.secondary:hover{background:#f4f7fb;border-color:#9eacc3}
+
+/* --- battle shell --- */
+.battle-page{padding-bottom:34px}
+.battlefield{
+  min-height:570px;margin:24px auto 0;padding:48px 58px 38px;border:1px solid rgba(128,148,181,.45);border-radius:24px;
+  background:
+    radial-gradient(ellipse at 50% 56%,rgba(255,255,255,.90),transparent 39%),
+    linear-gradient(180deg,#eaf3ff 0%,#e6f2f2 52%,#dfeee7 100%);
+  box-shadow:0 20px 60px rgba(25,42,69,.16),inset 0 1px 0 rgba(255,255,255,.8)
+}
+.battlefield:before{background:linear-gradient(180deg,rgba(52,141,108,.16),rgba(38,102,133,.05));bottom:-28%;height:58%}
+.battlefield:after{
+  background:linear-gradient(transparent 68%,rgba(255,255,255,.5) 69%,transparent 70%),linear-gradient(90deg,transparent 49.8%,rgba(83,111,145,.13) 50%,transparent 50.2%);
+  opacity:.85
+}
+.arena-label{top:20px;left:26px;color:#75859d;font-size:9px;letter-spacing:.18em}
+.side{min-height:205px}
+.side.opponent{justify-content:flex-end}.side.player{margin-top:22px}
+.pokemon-info{min-width:min(570px,100%);gap:24px}
+.pokemon-card{
+  min-width:335px;padding:17px 19px;border-radius:14px;background:rgba(255,255,255,.94);
+  border:1px solid #cbd6e5;box-shadow:0 12px 24px rgba(28,47,74,.12);position:relative;overflow:hidden
+}
+.pokemon-card:before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--blue)
+}
+.opponent .pokemon-card:before{background:var(--red)}
+.pokemon-card h2{font-size:19px;font-weight:950;margin-bottom:7px}
+.pokemon-meta{color:#738198;font-size:10px}
+.type,.builder-type{
+  border:0;border-radius:6px;padding:5px 9px;background:#e9eef6;color:#53627a;font-size:8px;letter-spacing:.08em;
+  box-shadow:inset 0 0 0 1px rgba(90,109,140,.10)
+}
+.hpbar{height:10px;background:#dce3ec;border:0;box-shadow:inset 0 1px 2px rgba(23,38,61,.12)}
+.hpbar div{background:linear-gradient(90deg,#25b96e,#77d65b);box-shadow:0 0 9px rgba(50,195,112,.22)}
+.sprite-box{width:245px;height:205px}
+.sprite-box img{filter:drop-shadow(0 18px 10px rgba(28,45,68,.18))}
+
+.battle-log,.party,.controls{
+  border:1px solid #cbd6e4;background:rgba(255,255,255,.96);box-shadow:0 12px 30px rgba(22,38,61,.10)
+}
+.battle-log{border-radius:14px;padding:13px 17px;height:116px}
+.log-line{font-size:11px;color:#64728a;border-bottom-color:#e8edf3}
+.log-line:last-child{color:#1f2d45}
+.controls{border-radius:16px;padding:14px;gap:10px}
+.moves{gap:8px}
+.moves button{
+  min-height:68px;border-radius:11px;border:1px solid #cbd6e4;background:linear-gradient(135deg,#fff 0%,#f0f4f9 100%);
+  box-shadow:0 5px 13px rgba(24,41,65,.07);font-size:12px
+}
+.moves button:before{width:5px}
+.moves button:hover{border-color:#7f96bc;box-shadow:0 9px 18px rgba(30,50,78,.12)}
+.party{border-radius:15px;padding:13px}
+.party-card{border-radius:11px;background:#f1f5f9;border-color:#cfd8e5;min-height:72px}
+.party-card:hover{border-color:#8ea1c0;background:#fff;box-shadow:0 8px 16px rgba(27,44,70,.10)}
+
+/* --- team builder --- */
+.builder-page{background:transparent}
+.builder-header{
+  padding:18px 34px;background:rgba(255,255,255,.88);border-bottom:1px solid #d6deea;box-shadow:0 5px 18px rgba(20,34,56,.06)
+}
+.builder-header h1{font-size:27px;font-weight:950;color:#16223a}
+.builder-header p{font-size:11px;color:#758198}
+.builder-count{background:#edf2ff;color:#2d52c5;border-color:#c9d5ff;border-radius:8px}
+.builder-toolbar{padding:18px 34px}
+.search-wrap input,.editor-grid input,.editor-grid select,.move-row select{
+  border:1px solid #cbd6e4;border-radius:10px;background:#fff;padding:12px 13px;color:#1f2d45;
+  box-shadow:0 4px 12px rgba(25,42,68,.05)
+}
+.search-wrap input:focus,.editor-grid input:focus,.editor-grid select:focus,.move-row select:focus{border-color:#5272db;box-shadow:0 0 0 4px rgba(49,91,232,.10)}
+.builder-primary,.builder-secondary,.danger-button,.icon-button{border-radius:10px;padding:11px 16px}
+.builder-primary{background:var(--game-gradient);box-shadow:0 8px 18px rgba(49,91,232,.24)}
+.builder-secondary{background:#fff;border:1px solid #cbd6e4}
+.danger-button{background:#fff1f3;color:#c63b58;border-color:#f1c4cc}
+.builder-layout{gap:20px}
+.species-grid{gap:10px}
+.species-card{
+  min-height:112px;border:1px solid #d1dbe7;border-radius:14px;background:rgba(255,255,255,.95);
+  box-shadow:0 6px 15px rgba(25,42,66,.06);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease
+}
+.species-card:hover{border-color:#94a7c5;box-shadow:0 12px 24px rgba(25,42,66,.11);transform:translateY(-3px)}
+.species-card.selected{border-color:#4e6fe0;background:linear-gradient(145deg,#fff,#edf2ff);box-shadow:0 0 0 2px rgba(49,91,232,.10),0 12px 24px rgba(49,91,232,.12)}
+.species-sprite{border-radius:12px;background:linear-gradient(145deg,#eef3f8,#e5ebf3)}
+.team-panel{background:rgba(255,255,255,.94);border-color:#ccd7e5;border-radius:16px;box-shadow:0 15px 34px rgba(24,41,66,.11)}
+.team-card{border-color:#d1dbe7;border-radius:11px;background:#f4f7fa}
+.team-card>img{border-radius:9px;background:#e7edf4}
+.empty-team-slot{border-color:#bdcadd;border-radius:11px;background:#f6f8fb}
+.edit-team-button{border-color:#cbd6e4;border-radius:8px}
+
+/* --- editor modal --- */
+.builder-modal{background:rgba(10,18,33,.60);backdrop-filter:blur(10px)}
+.builder-modal-card{border:1px solid #cbd6e4;border-radius:18px;box-shadow:0 35px 90px rgba(7,15,29,.35)}
+.builder-modal-header{padding:19px 22px;background:#f8fafc;border-bottom-color:#dce4ee}
+.builder-modal-header h2{font-size:20px}
+.icon-button{background:#e9eef5;color:#52617a}
+#editorBody{padding:20px}
+.editor-pokemon-preview{border-radius:13px;background:linear-gradient(135deg,#eef3f8,#f8fafc);border-color:#d5dee9}
+
+/* --- polished multi battle --- */
+.multi-battle-main{background:linear-gradient(180deg,#eef3f9,#e5ebf2)}
+.arena-header{background:linear-gradient(180deg,#111a2e,#1a2742)!important;border-bottom:3px solid #315be8!important;box-shadow:0 8px 24px rgba(10,18,34,.20)!important}
+.multi-field{
+  background:
+    radial-gradient(circle at 50% 42%,rgba(255,255,255,.98),transparent 38%),
+    linear-gradient(180deg,#e8f2ff 0%,#e8f4f1 50%,#dfeee7 100%);
+  border-radius:0 0 22px 22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.75)
+}
+.multi-field:before{border-color:rgba(71,102,149,.16);box-shadow:0 0 0 22px rgba(255,255,255,.10),0 0 0 52px rgba(255,255,255,.07)}
+.versus-core{background:linear-gradient(145deg,#e94c72,#315be8);box-shadow:0 12px 28px rgba(48,73,157,.28),0 0 0 9px rgba(49,91,232,.08)}
+.multi-active-card{border:1px solid #ccd7e5!important;border-radius:13px!important;background:rgba(255,255,255,.95)!important;box-shadow:0 8px 20px rgba(27,44,68,.09)!important}
+.multi-active-card:hover{transform:translateY(-3px)}
+.multi-active-card.targetable{border-color:#4e6fe0!important;box-shadow:0 0 0 3px rgba(49,91,232,.12),0 16px 30px rgba(42,68,135,.15)!important}
+.multi-active-card.target-hover{background:linear-gradient(180deg,#fff,#edf2ff)!important}
+.multi-active-card.action-ready{border-color:#54b985!important;background:linear-gradient(180deg,#fff,#edf9f3)!important}
+.multi-command-shell{border-color:#cbd6e4;border-radius:17px;background:rgba(255,255,255,.94);box-shadow:0 18px 45px rgba(22,38,61,.12);backdrop-filter:blur(16px)}
+.multi-target-hint{background:#f4f7fb;color:#66758c;border-bottom-color:#dce4ee}
+.multi-target-hint.active{background:#edf2ff;color:#31519b}
+.multi-active-tabs{background:#f7f9fc;border-bottom-color:#dce4ee}
+.multi-active-tab{border-color:#cfd9e6;border-radius:10px;box-shadow:0 4px 12px rgba(26,42,65,.06)}
+.multi-active-tab.selected{border-color:#5874dc;background:linear-gradient(135deg,#f4f7ff,#e8eeff);box-shadow:0 0 0 2px rgba(49,91,232,.10)}
+.multi-active-tab.locked{border-color:#9ed2b4;background:linear-gradient(135deg,#f4fff9,#e8f8ef)}
+.tab-number{border-radius:6px;background:#e8edf4}
+.multi-move-button{border-color:#ccd7e4;border-radius:11px;background:linear-gradient(145deg,#fff,#f0f4f8);box-shadow:0 7px 15px rgba(27,43,67,.06)}
+.multi-move-button:hover:not(:disabled){border-color:#91a3c0;box-shadow:0 12px 22px rgba(27,43,67,.11)}
+.multi-move-button.move-selected{border-color:#5271dc;background:linear-gradient(145deg,#f7f9ff,#e9efff);box-shadow:0 0 0 3px rgba(49,91,232,.11),0 12px 24px rgba(49,91,232,.12)}
+.multi-log-shell{border-color:#cbd6e4;border-radius:14px;background:rgba(255,255,255,.90)}
+.log-header{background:#f2f5f9;border-bottom-color:#dce4ee}
+
+/* --- responsive game-like layout --- */
+@media(max-width:1100px){
+  .battlefield{margin-left:14px;margin-right:14px;padding-left:32px;padding-right:32px}
+  .battle-log,.controls,.party{margin-left:14px;margin-right:14px}
+  .builder-layout{padding-left:20px;padding-right:20px;grid-template-columns:minmax(0,1fr) 340px}
+}
+@media(max-width:760px){
+  .topbar{height:66px;padding:0 14px}.topbar-sub{display:none}.battle-header-actions{gap:6px}.turn-pill{display:none}
+  .battle-page{min-height:calc(100vh - 66px)}
+  .battlefield{min-height:540px;margin:10px 8px 0;padding:34px 12px 18px;border-radius:18px}
+  .arena-label{left:15px;top:12px}
+  .pokemon-info{min-width:0;width:100%;gap:8px}.pokemon-card{min-width:0;width:58%;padding:12px}.pokemon-card h2{font-size:14px}.pokemon-meta{font-size:9px}.hpbar{width:100%}.sprite-box{width:42%;height:155px}.sprite-box img{max-width:150px;max-height:145px}
+  .controls{grid-template-columns:1fr;margin-top:9px;padding:10px;border-radius:13px}.moves{grid-template-columns:1fr 1fr}.moves button{min-height:58px;padding:9px 11px}
+  .party-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.party-card{min-height:64px;padding:5px}.party-card img{width:42px;height:42px}.party-card span{font-size:10px}
+  .builder-header{padding:14px 16px}.builder-header h1{font-size:21px}.builder-toolbar{padding:14px 16px;flex-wrap:wrap}.builder-layout{padding:0 16px 22px;grid-template-columns:1fr}.team-panel{position:relative;top:auto;order:-1}.species-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .multi-command-shell{margin-top:9px;border-radius:14px}.multi-action-panel{padding:12px}
+}
+@media(max-width:430px){
+  .topbar h1{font-size:15px}.brand-mark{width:38px;height:38px}
+  .pokemon-card{width:64%}.sprite-box{width:36%;height:135px}.sprite-box img{max-width:125px;max-height:125px}
+  .moves button{min-height:54px}.party-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .species-grid{grid-template-columns:1fr}.builder-toolbar{align-items:stretch}.builder-toolbar>*{width:100%;max-width:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
