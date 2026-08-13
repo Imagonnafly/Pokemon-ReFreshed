@@ -739,6 +739,34 @@ export class RemotePartyBattle {
     if (!p?.canBattle()) return [];
     return (p.moves || []).filter(m => (m.pp ?? 1) > 0 && !(p.volatile?.tauntTurns > 0 && m.category === 'status'));
   }
+  getBenchOptions(id, sourceSlot = 0) {
+    const member = this.getMember(id);
+    if (!member) return [];
+    const current = Number(member.active?.[Number(sourceSlot)] ?? -1);
+    const activeSet = new Set((member.active || []).map(i => Number(i)).filter(i => i >= 0));
+    return (member.team || []).map((pokemon, teamIndex) => ({ pokemon, teamIndex }))
+      .filter(({ pokemon, teamIndex }) => teamIndex !== current && !activeSet.has(teamIndex) && pokemon?.canBattle?.())
+      .map(({ pokemon, teamIndex }) => ({ pokemon, teamIndex }));
+  }
+
+  submitPartySwitch(memberId, sourceSlot, targetTeamIndex) {
+    const slot = Number(sourceSlot);
+    const targetIndex = Number(targetTeamIndex);
+    const member = this.getMember(memberId);
+    if (this.over || this.busy || member?.id !== this.localMemberId || !member || slot < 0 || slot >= this.battleSize) return false;
+    if (this.pendingIds.has(`${memberId}:${slot}`)) return false;
+    const current = this.activeMember(memberId, slot);
+    const target = member.team[targetIndex];
+    if (!current?.canBattle?.() || !target?.canBattle?.()) return false;
+    if (member.active.some((idx, i) => i !== slot && Number(idx) === targetIndex)) return false;
+    const action = { kind: 'switch', memberId, slot, switchTo: targetIndex };
+    this.localActions.set(`${memberId}:${slot}`, action);
+    this.pendingIds.add(`${memberId}:${slot}`);
+    this.sendPartyAction?.(action);
+    this.onUpdate?.();
+    return true;
+  }
+
   getTargetsFor(id, move = null, sourceSlot = 0) {
     const me = this.getMember(id);
     if (!me) return [];
@@ -759,7 +787,7 @@ export class RemotePartyBattle {
     const target = this.activeMember(targetMemberId, Number(targetSlot));
     const targetMember = this.getMember(targetMemberId);
     if (!p || !move || !targetMember || !target?.canBattle()) return false;
-    const action = { memberId: this.localMemberId, slot, moveId, targetMemberId, targetSlot: Number(targetSlot) };
+    const action = { kind: 'move', memberId: this.localMemberId, slot, moveId, targetMemberId, targetSlot: Number(targetSlot) };
     this.localActions.set(`${this.localMemberId}:${slot}`, action);
     this.pendingIds.add(`${this.localMemberId}:${slot}`);
     this.sendPartyAction?.(action);

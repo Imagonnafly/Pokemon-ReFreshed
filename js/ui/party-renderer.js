@@ -39,6 +39,11 @@ export class PartyRenderer {
     if (this.els.field) this.els.field.textContent = this.battle.field ? `${this.battle.field}${this.battle.fieldTurns ? ` · ${this.battle.fieldTurns}T` : ''}` : 'No Field';
   }
 
+  isPending(memberId, slot) {
+    const key = `${memberId}:${slot}`;
+    return this.battle.pendingPartyActions?.has(key) || this.battle.pendingIds?.has(key);
+  }
+
   renderSide(side, container) {
     if (!container) return;
     container.innerHTML = '';
@@ -46,17 +51,36 @@ export class PartyRenderer {
     for (const member of members) {
       for (let slot = 0; slot < this.battle.battleSize; slot += 1) {
         const p = this.battle.activeMember(member.id, slot);
-        const isLocal = member.id === this.battle.localMemberId;
-        const pending = this.battle.pendingPartyActions?.has(`${member.id}:${slot}`) ||
-          this.battle.pendingIds?.has(`${member.id}:${slot}`);
+        const isLocalMember = member.id === this.battle.localMemberId;
+        const pending = this.isPending(member.id, slot);
+        const selectedSource = isLocalMember && slot === this.selectedSlot && p?.canBattle();
         const card = document.createElement('article');
         card.dataset.memberId = member.id;
         card.dataset.slot = String(slot);
-        card.className = `party-pokemon-card ${isLocal ? 'party-local' : ''} ${pending ? 'party-locked' : ''} ${p?.canBattle() ? '' : 'fainted'}`;
-        if (this.selectedTarget && this.selectedTarget.memberId === member.id && this.selectedTarget.slot === slot) card.classList.add('party-target-selected');
+        card.className = [
+          'party-pokemon-card',
+          isLocalMember ? 'party-local' : '',
+          pending ? 'party-locked' : '',
+          selectedSource ? 'party-source-selected' : '',
+          p?.canBattle() ? '' : 'fainted',
+          this.selectedTarget?.memberId === member.id && this.selectedTarget?.slot === slot ? 'party-target-selected' : ''
+        ].filter(Boolean).join(' ');
+
         if (p) {
           const sideSprite = side === 'alpha' ? p.sprites?.back : p.sprites?.front;
-          card.innerHTML = `<div class="party-trainer-badge"><span>${this.escape(member.name)} · Slot ${slot + 1}</span><em>${isLocal ? 'YOU' : (member.side === side ? 'ALLY' : 'OPPONENT')}</em></div><img src="${this.escape(sideSprite || '')}" alt="${this.escape(p.name)}"><div class="party-pokemon-info"><strong>${this.escape(p.name)}</strong><div class="party-types">${(p.types || []).map(t => `<span>${this.escape(t)}</span>`).join('')}</div><div class="hp-row"><div class="hpbar"><div style="width:${Math.max(0, Math.min(100, (p.hp / p.maxHP) * 100))}%"></div></div><span class="hp-text">${Math.max(0,p.hp)}/${p.maxHP}</span></div></div>${pending ? '<div class="party-ready-mark">✓ READY</div>' : ''}`;
+          const ownerLabel = isLocalMember ? 'YOU' : (member.side === side ? 'ALLY' : 'OPPONENT');
+          const interactiveHint = isLocalMember && p?.canBattle() ? 'Select' : (this.selectedMove ? 'Target' : '');
+          card.setAttribute('aria-label', `${interactiveHint} ${p.name}, ${member.name}, slot ${slot + 1}`.trim());
+          card.innerHTML = `
+            <div class="party-trainer-badge"><span>${this.escape(member.name)} · Slot ${slot + 1}</span><em>${ownerLabel}</em></div>
+            <img src="${this.escape(sideSprite || '')}" alt="${this.escape(p.name)}">
+            <div class="party-pokemon-info">
+              <strong>${this.escape(p.name)}</strong>
+              <div class="party-types">${(p.types || []).map(t => `<span>${this.escape(t)}</span>`).join('')}</div>
+              <div class="hp-row"><div class="hpbar"><div style="width:${Math.max(0, Math.min(100, (p.hp / p.maxHP) * 100))}%"></div></div><span class="hp-text">${Math.max(0, p.hp)}/${p.maxHP}</span></div>
+            </div>
+            ${pending ? '<div class="party-ready-mark">✓ READY</div>' : ''}
+            ${selectedSource ? '<div class="party-source-mark">ACTIVE</div>' : ''}`;
         } else {
           card.innerHTML = `<div class="party-empty">Empty Slot ${slot + 1}</div>`;
         }
@@ -65,12 +89,31 @@ export class PartyRenderer {
     }
 
     container.querySelectorAll('.party-pokemon-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const memberId = card.dataset.memberId;
-        const slot = Number(card.dataset.slot);
-        this.targetMember(memberId, slot);
-      });
+      card.addEventListener('click', () => this.handleFieldCardClick(card));
     });
+  }
+
+  handleFieldCardClick(card) {
+    const memberId = card.dataset.memberId;
+    const slot = Number(card.dataset.slot);
+    const local = this.battle.getLocalMember?.();
+    if (!local) return;
+
+    // Selecting one of your own active Pokémon changes which command dock is shown.
+    if (memberId === local.id && this.battle.activeMember(memberId, slot)?.canBattle()) {
+      const allowedTarget = this.selectedMove && this.battle.getTargetsFor(local.id, this.selectedMove, this.selectedSlot)
+        .some(t => t.memberId === memberId && t.slot === slot);
+      if (!this.selectedMove || !allowedTarget) {
+        this.selectedSlot = slot;
+        this.selectedMove = null;
+        this.selectedTarget = null;
+        this.render();
+        return;
+      }
+    }
+
+    // If a move is selected, clicking a highlighted Pokémon confirms the target.
+    if (this.selectedMove) this.targetMember(memberId, slot);
   }
 
   getLocalActiveSlots() {
@@ -87,10 +130,16 @@ export class PartyRenderer {
     if (!local) return 0;
     for (let slot = 0; slot < this.battle.battleSize; slot += 1) {
       const p = this.battle.activeMember(local.id, slot);
-      const pending = this.battle.pendingPartyActions?.has(`${local.id}:${slot}`) || this.battle.pendingIds?.has(`${local.id}:${slot}`);
-      if (p?.canBattle() && !pending) return slot;
+      if (p?.canBattle() && !this.isPending(local.id, slot)) return slot;
     }
     return 0;
+  }
+
+  canSwitchFromCurrent(current) {
+    if (!current?.canBattle()) return false;
+    if (current.volatile?.trapTurns > 0) return false;
+    if (this.battle.getStatusDef?.(current)?.statusEffect?.switchBlock) return false;
+    return true;
   }
 
   renderPanel() {
@@ -110,15 +159,16 @@ export class PartyRenderer {
       return;
     }
 
-    const localPendingCount = localSlots.filter(s => this.battle.pendingPartyActions.has(`${local.id}:${s.slot}`) || this.battle.pendingIds?.has(`${local.id}:${s.slot}`)).length;
-    if (localPendingCount === localSlots.filter(s => s.pokemon?.canBattle()).length) {
-      this.els.panel.innerHTML = `<div class="party-waiting-panel"><div class="party-spinner"></div><strong>All your actions are locked in.</strong><span>Waiting for the rest of your team and the opposing trainers.</span></div>`;
+    const aliveCount = localSlots.filter(s => s.pokemon?.canBattle()).length;
+    const localPendingCount = localSlots.filter(s => this.isPending(local.id, s.slot)).length;
+    if (localPendingCount >= aliveCount) {
+      this.els.panel.innerHTML = `<div class="party-waiting-panel compact"><strong>All your actions are locked in.</strong><span>Waiting for the rest of the team and the opposing trainers.</span></div>`;
       this.els.hint.classList.remove('active');
       this.els.hint.innerHTML = '<span class="hint-dot"></span><span>All of your active Pokémon have chosen.</span>';
       return;
     }
 
-    if (!localSlots[this.selectedSlot]?.pokemon?.canBattle() || this.battle.pendingPartyActions.has(`${local.id}:${this.selectedSlot}`)) {
+    if (!localSlots[this.selectedSlot]?.pokemon?.canBattle() || this.isPending(local.id, this.selectedSlot)) {
       this.selectedSlot = this.firstUnsubmittedSlot();
       this.selectedMove = null;
       this.selectedTarget = null;
@@ -126,26 +176,40 @@ export class PartyRenderer {
 
     const current = localSlots[this.selectedSlot]?.pokemon;
     const moves = this.battle.getAvailableMovesForMember(local.id, this.selectedSlot) || [];
-    const tabs = localSlots.map(({ slot, pokemon }) => {
-      const pending = this.battle.pendingPartyActions.has(`${local.id}:${slot}`) || this.battle.pendingIds?.has(`${local.id}:${slot}`);
-      return `<button type="button" class="party-active-tab ${slot === this.selectedSlot ? 'active' : ''} ${pending ? 'ready' : ''} ${pokemon?.canBattle() ? '' : 'fainted'}" data-slot="${slot}"><span class="slot-index">${slot + 1}</span><span class="slot-name">${this.escape(pokemon?.name || 'Empty')}</span><span class="slot-state">${pending ? '✓' : pokemon?.canBattle() ? 'CHOOSING' : 'FAINTED'}</span></button>`;
-    }).join('');
+    const bench = this.battle.getBenchOptions?.(local.id, this.selectedSlot) || [];
+    const switchAllowed = this.canSwitchFromCurrent(current) && bench.length > 0 && !this.isPending(local.id, this.selectedSlot);
 
-    this.els.panel.innerHTML = `<div class="party-command-top"><div><span class="eyebrow">YOUR ACTIVE FIELD</span><h2>${this.escape(current?.name || 'Select a Pokémon')}</h2></div><span class="command-progress">${localPendingCount}/${localSlots.filter(s => s.pokemon?.canBattle()).length} actions</span></div><div class="party-active-tabs-inline">${tabs}</div><div class="polished-moves">${moves.map(m => `<button class="multi-move-button ${this.selectedMove?.id === m.id ? 'move-selected' : ''}" data-move="${this.escape(m.id)}" type="button"><strong class="move-name">${this.escape(m.name)}</strong><span class="move-meta">${this.escape((m.types || []).join('/'))} · ${this.escape(m.category || 'Move')}</span><span class="move-pp">PP ${m.pp ?? '—'}</span></button>`).join('')}</div>`;
+    const switchButtons = switchAllowed
+      ? bench.map(({ pokemon, teamIndex }) => `<button type="button" class="party-switch-button" data-switch-index="${teamIndex}"><img src="${this.escape(pokemon.sprites?.front || '')}" alt=""><span><strong>${this.escape(pokemon.name)}</strong><small>Switch in</small></span></button>`).join('')
+      : '';
 
-    this.els.panel.querySelectorAll('[data-slot]').forEach(btn => btn.addEventListener('click', () => {
-      this.selectedSlot = Number(btn.dataset.slot);
-      this.selectedMove = null;
-      this.selectedTarget = null;
-      this.render();
-    }));
+    this.els.panel.innerHTML = `
+      <div class="party-command-top">
+        <div>
+          <span class="eyebrow">SELECTED ON FIELD · SLOT ${this.selectedSlot + 1}</span>
+          <h2>${this.escape(current?.name || 'Select a Pokémon')}</h2>
+        </div>
+        <span class="command-progress">${localPendingCount}/${aliveCount} actions</span>
+      </div>
+      <div class="party-action-grid">
+        <section class="party-move-section">
+          <div class="party-section-title"><span>MOVES</span><small>${this.selectedMove ? 'Choose a highlighted target' : 'Choose a move'}</small></div>
+          <div class="polished-moves compact-moves">${moves.map(m => `<button class="multi-move-button ${this.selectedMove?.id === m.id ? 'move-selected' : ''}" data-move="${this.escape(m.id)}" type="button"><strong class="move-name">${this.escape(m.name)}</strong><span class="move-meta">${this.escape((m.types || []).join('/'))} · ${this.escape(m.category || 'Move')}</span><span class="move-pp">PP ${m.pp ?? '—'}</span></button>`).join('')}</div>
+        </section>
+        <section class="party-switch-section">
+          <div class="party-section-title"><span>SWITCH</span><small>${switchAllowed ? 'Select a Pokémon from your bench' : 'No legal switch available'}</small></div>
+          <div class="party-switch-grid">${switchButtons || '<div class="party-no-switch">No healthy bench Pokémon available.</div>'}</div>
+        </section>
+      </div>`;
+
     this.els.panel.querySelectorAll('[data-move]').forEach(btn => btn.addEventListener('click', () => this.selectMove(btn.dataset.move)));
+    this.els.panel.querySelectorAll('[data-switch-index]').forEach(btn => btn.addEventListener('click', () => this.selectSwitch(Number(btn.dataset.switchIndex))));
 
     this.els.hint.classList.add('active');
     if (this.selectedMove) {
-      this.els.hint.innerHTML = `<span class="hint-dot"></span><span><strong>${this.escape(this.selectedMove.name)}</strong> selected for <strong>${this.escape(current?.name || '')}</strong> — click a highlighted target.</span>`;
+      this.els.hint.innerHTML = `<span class="hint-dot"></span><span><strong>${this.escape(this.selectedMove.name)}</strong> selected for <strong>${this.escape(current?.name || '')}</strong> — click a highlighted Pokémon on the field.</span>`;
     } else {
-      this.els.hint.innerHTML = `<span class="hint-dot"></span><span>Choose a move for <strong>${this.escape(current?.name || '')}</strong>, then click the target.</span>`;
+      this.els.hint.innerHTML = `<span class="hint-dot"></span><span>Click one of your active Pokémon to command it. Then choose a move or switch from the command dock.</span>`;
     }
     this.refreshTargetHighlights();
   }
@@ -157,8 +221,23 @@ export class PartyRenderer {
     if (!move) return;
     this.selectedMove = move;
     this.selectedTarget = null;
-    this.els.hint.innerHTML = `<span class="hint-dot"></span><span><strong>${this.escape(move.name)}</strong> selected — click a highlighted target.</span>`;
+    this.els.hint.innerHTML = `<span class="hint-dot"></span><span><strong>${this.escape(move.name)}</strong> selected — click a highlighted Pokémon on the field.</span>`;
     this.refreshTargetHighlights();
+    this.renderPanel();
+  }
+
+  selectSwitch(teamIndex) {
+    const local = this.battle.getLocalMember?.();
+    if (!local || !this.battle.submitPartySwitch) return;
+    const current = this.battle.activeMember(local.id, this.selectedSlot);
+    if (!this.canSwitchFromCurrent(current)) return;
+    const ok = this.battle.submitPartySwitch(local.id, this.selectedSlot, Number(teamIndex));
+    if (ok) {
+      this.selectedMove = null;
+      this.selectedTarget = null;
+      this.selectedSlot = this.firstUnsubmittedSlot();
+      this.render();
+    }
   }
 
   refreshTargetHighlights() {
@@ -178,7 +257,7 @@ export class PartyRenderer {
     if (!allowed) return;
     const ok = this.battle.submitPartyAction
       ? this.battle.submitPartyAction(local.id, this.selectedSlot, this.selectedMove.id, memberId, Number(slot))
-      : this.battle.submitAction?.(this.selectedMove.id, memberId, Number(slot));
+      : false;
     if (ok) {
       this.selectedMove = null;
       this.selectedTarget = null;
@@ -190,7 +269,7 @@ export class PartyRenderer {
   renderLog() {
     if (!this.els.log) return;
     const lines = Array.isArray(this.battle.log) ? this.battle.log : [];
-    this.els.log.innerHTML = lines.slice(-100).map(x => `<div class="log-line">${this.escape(x)}</div>`).join('');
+    this.els.log.innerHTML = lines.slice(-20).map(x => `<div class="log-line">${this.escape(x)}</div>`).join('');
     this.els.log.scrollTop = this.els.log.scrollHeight;
   }
 

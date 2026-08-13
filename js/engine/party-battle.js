@@ -160,6 +160,57 @@ export class PartyBattle extends Battle {
     return moves;
   }
 
+  getBenchOptions(memberId, sourceSlot = 0) {
+    const member = this.getMember(memberId);
+    if (!member) return [];
+    const activeSet = new Set((member.active || []).map(i => Number(i)).filter(i => i >= 0));
+    const current = Number(member.active?.[Number(sourceSlot)] ?? -1);
+    const trapped = this.activeMember(member.id, Number(sourceSlot))?.volatile?.trapTurns > 0 ||
+      this.getStatusDef(this.activeMember(member.id, Number(sourceSlot)))?.statusEffect?.switchBlock;
+    if (trapped) return [];
+    return member.team.map((pokemon, teamIndex) => ({ pokemon, teamIndex }))
+      .filter(({ pokemon, teamIndex }) => teamIndex !== current && !activeSet.has(teamIndex) && pokemon?.canBattle())
+      .map(({ pokemon, teamIndex }) => ({ teamIndex, pokemon }));
+  }
+
+  submitPartySwitch(memberId, sourceSlot, targetTeamIndex) {
+    if (this.over || this.busy) return false;
+    const member = this.getMember(memberId);
+    const slot = Number(sourceSlot);
+    const targetIndex = Number(targetTeamIndex);
+    if (!member || slot < 0 || slot >= this.battleSize) return false;
+    const current = this.activeMember(member.id, slot);
+    const target = member.team[targetIndex];
+    if (!current?.canBattle() || !target?.canBattle()) return false;
+    if (member.active.some((idx, i) => i !== slot && Number(idx) === targetIndex)) return false;
+    if (current.volatile?.trapTurns > 0 || this.getStatusDef(current)?.statusEffect?.switchBlock) return false;
+    const key = actionKey(member.id, slot);
+    if (this.pendingPartyActions.has(key)) return false;
+    const action = { kind: 'switch', memberId: member.id, slot, switchTo: targetIndex, pokemonIndex: member.active[slot] };
+    this.pendingPartyActions.set(key, action);
+    if (member.id === this.localMemberId && this.networkRole !== 'coordinator') this.sendPartyAction?.(action);
+    this.write(`${member.id === this.localMemberId ? 'You' : member.name} selected a switch for ${current.name}.`);
+    this.update();
+    if (this.allActiveMembersSubmitted()) this.tryResolvePartyActions();
+    return true;
+  }
+
+  executePartySwitch(action) {
+    const member = this.getMember(action.memberId);
+    const slot = Number(action.slot);
+    const targetIndex = Number(action.switchTo);
+    if (!member || slot < 0 || slot >= this.battleSize) return false;
+    const current = this.activeMember(member.id, slot);
+    const target = member.team[targetIndex];
+    if (!current?.canBattle() || !target?.canBattle()) return false;
+    if (member.active.some((idx, i) => i !== slot && Number(idx) === targetIndex)) return false;
+    this.resetOnSwitch(current);
+    member.active[slot] = targetIndex;
+    this.triggerAbility(target, 'onBattleStart');
+    this.write(`${member.id === this.localMemberId ? 'Your' : `${member.name}'s`} ${current.name} switched out — go, ${target.name}!`);
+    return true;
+  }
+
   getTargetsFor(memberId, move = null, slot = 0) {
     const member = this.getMember(memberId);
     if (!member) return [];
@@ -228,14 +279,30 @@ export class PartyBattle extends Battle {
     const member = this.getMember(action.memberId);
     const slot = Number(action.slot ?? 0);
     if (!member || slot < 0 || slot >= this.battleSize) return;
+    const key = actionKey(member.id, slot);
+    if (this.pendingPartyActions.has(key)) return;
+
+    if (action.kind === 'switch') {
+      const current = this.activeMember(member.id, slot);
+      const targetIndex = Number(action.switchTo);
+      const target = member.team[targetIndex];
+      if (!current?.canBattle() || !target?.canBattle() || member.active.some((idx, i) => i !== slot && Number(idx) === targetIndex)) return;
+      if (current.volatile?.trapTurns > 0 || this.getStatusDef(current)?.statusEffect?.switchBlock) return;
+      this.pendingPartyActions.set(key, { kind: 'switch', memberId: member.id, slot, pokemonIndex: member.active[slot], switchTo: targetIndex });
+      this.write(`${member.name} locked in a switch (${slot + 1}/${this.battleSize}).`);
+      this.updateNetworkState?.();
+      if (this.allActiveMembersSubmitted()) this.tryResolvePartyActions();
+      return;
+    }
+
     const pokemon = this.activeMember(member.id, slot);
     const move = pokemon?.moves?.find(m => m.id === action.moveId);
     const targetMember = this.getMember(action.targetMemberId);
     const target = this.activeMember(action.targetMemberId, Number(action.targetSlot ?? 0));
     if (!pokemon?.canBattle() || !move || !target?.canBattle() || !targetMember || !this.isTargetAllowed(member, move, targetMember, Number(action.targetSlot ?? 0), slot)) return;
     if (!this.canSelectMove(pokemon, move)) return;
-    const key = actionKey(member.id, slot);
     this.pendingPartyActions.set(key, {
+      kind: 'move',
       memberId: member.id,
       slot,
       pokemonIndex: member.active[slot],
@@ -273,12 +340,16 @@ export class PartyBattle extends Battle {
     this.updateNetworkState?.();
 
     actions.sort((a, b) => {
+      // Switching resolves before normal moves.
+      const aSwitch = a.kind === 'switch' ? 6 : 0;
+      const bSwitch = b.kind === 'switch' ? 6 : 0;
+      if (aSwitch !== bSwitch) return bSwitch - aSwitch;
       const am = this.activeMember(a.memberId, a.slot);
       const bm = this.activeMember(b.memberId, b.slot);
       const aMove = am?.moves.find(m => m.id === a.moveId);
       const bMove = bm?.moves.find(m => m.id === b.moveId);
-      const pa = this.getMovePriority(aMove, am);
-      const pb = this.getMovePriority(bMove, bm);
+      const pa = a.kind === 'switch' ? 6 : this.getMovePriority(aMove, am);
+      const pb = b.kind === 'switch' ? 6 : this.getMovePriority(bMove, bm);
       if (pa !== pb) return pb - pa;
       const sa = this.getStat(am, 'speed');
       const sb = this.getStat(bm, 'speed');
@@ -288,6 +359,10 @@ export class PartyBattle extends Battle {
 
     this.write('All trainers have chosen — resolving the turn...');
     for (const action of actions) {
+      if (action.kind === 'switch') {
+        this.executePartySwitch(action);
+        continue;
+      }
       const attacker = this.activeMember(action.memberId, action.slot);
       const target = this.activeMember(action.targetMemberId, action.targetSlot);
       const move = attacker?.moves?.find(m => m.id === action.moveId);
