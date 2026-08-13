@@ -11,8 +11,8 @@ let data = null;
 let app = null;
 let multiplayer = null;
 let partyClient = null;
-let multiplayerState = { role: null, team: null, opponentTeam: null, battleStarted: false, battleSize: 1 };
-let partyState = { mode: null, team: null, party: null, match: null, battleStarted: false };
+let multiplayerState = { role: null, team: null, opponentTeam: null, battleStarted: false, battleSize: 1, teamSize: 1 };
+let partyState = { mode: null, team: null, party: null, match: null, battleStarted: false, battleSize: 1, teamSize: 1 };
 
 function setStartupMessage(title, detail = "", isError = false) {
   if (!app) app = document.querySelector("#app");
@@ -48,7 +48,7 @@ function mountBuilder() {
 }
 
 async function startMultiplayer(mode, payload) {
-  if (["quickMatch", "quickMatch2v2", "createParty", "joinParty"].includes(mode)) {
+  if (["quickMatch", "createParty", "joinParty"].includes(mode)) {
     return startPartySocial(mode, payload);
   }
   if (!isRealtimeConfigured()) {
@@ -65,7 +65,7 @@ async function startMultiplayer(mode, payload) {
     },
     onMessage: handleMultiplayerMessage
   });
-  multiplayerState = { role: mode === "create" ? "host" : "guest", team: mode === "create" ? payload.team : payload.team, opponentTeam: null, battleStarted: false, battleSize: Number(payload.battleSize) || 1 };
+  multiplayerState = { role: mode === "create" ? "host" : "guest", team: payload.team, opponentTeam: null, battleStarted: false, battleSize: Number(payload.battleSize) || 1, teamSize: Number(payload.teamSize) || 1 };
   showMultiplayerLobby(mode, payload);
   try {
     await multiplayer.connect();
@@ -98,18 +98,16 @@ async function startPartySocial(mode, payload) {
     },
     onPartySnapshot: snapshot => window.__networkBattle?.applySnapshot?.(snapshot) || window.__partyBattle?.applySnapshot?.(snapshot)
   });
-  partyState = { mode, team: payload.team, party: null, match: null, battleStarted: false };
-  showSocialLobby(mode, Number(payload.battleSize) || 1);
+  partyState = { mode, team: payload.team, party: null, match: null, battleStarted: false, battleSize: Number(payload.battleSize) || 1, teamSize: Number(payload.teamSize) || 1 };
+  showSocialLobby(mode, Number(payload.battleSize) || 1, Number(payload.teamSize) || 1);
   try {
     await partyClient.connect();
     if (mode === "quickMatch") {
       const battleSize = Math.max(1, Math.min(10, Number(payload.battleSize) || 1));
+      const teamSize = Math.max(1, Math.min(10, Number(payload.teamSize) || 1));
       if ((payload.team || []).length < battleSize) throw new Error(`You need at least ${battleSize} Pokémon for a ${battleSize}v${battleSize} match.`);
-      await partyClient.queueSolo(`normal-${battleSize}`, battleSize);
-      setSocialTitle(`Finding a ${battleSize}v${battleSize} Match…`);
-    } else if (mode === "quickMatch2v2") {
-      await partyClient.queueSolo("team-2v2", 2);
-      setSocialTitle("Finding a 2v2 Team Battle…");
+      await partyClient.queueSolo("match", battleSize, teamSize);
+      setSocialTitle(`Finding a ${battleSize}v${battleSize} · ${teamSize} trainers per team…`);
     } else if (mode === "createParty") {
       const code = await partyClient.createParty();
       partyState.party = partyClient.party;
@@ -126,20 +124,20 @@ async function startPartySocial(mode, payload) {
   }
 }
 
-function showSocialLobby(mode, battleSize = 1) {
+function showSocialLobby(mode, battleSize = 1, teamSize = 1) {
   const join = mode === "joinParty";
-  const quick = mode === "quickMatch" || mode === "quickMatch2v2";
+  const quick = mode === "quickMatch";
   const normal = mode === "quickMatch";
   app.innerHTML = `<div class="startup-screen multiplayer-screen"><div class="startup-card multiplayer-card social-card">
     <div class="startup-badge">${quick ? "MATCHMAKING" : "TRAINER PARTY"}</div>
-    <h1 id="socialTitle">${normal ? `Finding a ${battleSize}v${battleSize} Match…` : quick ? "Finding a 2v2 Team Battle…" : mode === "createParty" ? "Create a Party" : "Join a Party"}</h1>
+    <h1 id="socialTitle">${normal ? `Finding ${battleSize}v${battleSize} · ${teamSize} trainers/team…` : mode === "createParty" ? "Create a Party" : "Join a Party"}</h1>
     <p id="socialStatus">Connecting to the online service…</p>
     ${join ? `<div class="social-code-entry"><label for="partyCodeInput">Party Code</label><input id="partyCodeInput" maxlength="5" autocomplete="off" placeholder="ABCDE"><button id="confirmPartyJoin" class="builder-primary" type="button">Join Party</button></div>` : ""}
     <div id="socialPartyPanel" class="social-party-panel hidden"></div>
     <div id="socialMatchPanel" class="social-match-panel hidden"></div>
     <button id="cancelSocial" class="builder-secondary" type="button">← Back to Team Builder</button>
   </div></div>`;
-  app.querySelector("#cancelSocial").onclick = () => { partyClient?.leave(); partyClient = null; partyState = { mode:null,team:null,party:null,match:null,battleStarted:false }; mountBuilder(); };
+  app.querySelector("#cancelSocial").onclick = () => { partyClient?.leave(); partyClient = null; partyState = { mode:null,team:null,party:null,match:null,battleStarted:false,battleSize:1,teamSize:1 }; mountBuilder(); };
   app.querySelector("#confirmPartyJoin")?.addEventListener("click", async () => {
     const code = app.querySelector("#partyCodeInput")?.value.trim().toUpperCase();
     if (!code) return;
@@ -159,11 +157,11 @@ function updatePartyLobby(party) {
   panel.classList.remove("hidden");
   const members = (party?.members || []).map(m => `<div class="party-member"><span class="party-avatar">${escapeHTML((m.name || "T").slice(0,1))}</span><div><strong>${escapeHTML(m.name)}</strong><small>${m.host ? "Party Leader" : "Teammate"}</small></div></div>`).join("");
   const isHost = party?.hostId === partyClient?.identity?.id;
-  panel.innerHTML = `<div class="party-lobby-card">${party.code ? `<div class="party-code-display"><span>PARTY CODE</span><strong>${escapeHTML(party.code)}</strong><small>Share this with one friend.</small></div>` : ''}<div class="party-lobby-head"><div><span class="eyebrow">PARTY</span><h3>${party.members?.length || 0}/2 trainers</h3></div><span class="party-online-dot">LIVE</span></div><div class="party-members">${members}</div>${isHost ? `<button id="queuePartyButton" class="builder-primary" type="button" ${party.members?.length === 2 ? "" : "disabled"}>Find 2v2 Match</button>` : `<p class="social-subtle">Waiting for your party leader to start matchmaking…</p>`}</div>`;
+  panel.innerHTML = `<div class="party-lobby-card">${party.code ? `<div class="party-code-display"><span>PARTY CODE</span><strong>${escapeHTML(party.code)}</strong><small>Share this with one friend.</small></div>` : ''}<div class="party-lobby-head"><div><span class="eyebrow">PARTY</span><h3>${party.members?.length || 0} trainers</h3></div><span class="party-online-dot">LIVE</span></div><div class="party-members">${members}</div>${isHost ? `<button id="queuePartyButton" class="builder-primary" type="button" ${party.members?.length >= 2 ? "" : "disabled"}>Find Match for Party</button>` : `<p class="social-subtle">Waiting for your party leader to start matchmaking…</p>`}</div>`;
   panel.querySelector("#queuePartyButton")?.addEventListener("click", async () => {
-    try { await partyClient.queueParty("team-2v2"); setSocialTitle("Finding opponents for your party…"); } catch (e) { setSocialTitle(e.message); }
+    try { const battleSize = Number(partyState.battleSize) || 1; const teamSize = Math.max(2, Number(partyState.teamSize) || 2); await partyClient.queueParty("match", battleSize, teamSize); setSocialTitle(`Finding ${battleSize}v${battleSize} · ${teamSize} trainers/team…`); } catch (e) { setSocialTitle(e.message); }
   });
-  if (party.members?.length === 2) setSocialTitle("Party ready");
+  if (party.members?.length >= 2 && partyState.teamSize > 1) setSocialTitle(`Party ready · ${partyState.battleSize}v${partyState.battleSize} · ${partyState.teamSize} trainers/team`);
 }
 
 function handlePartyMatch(match) {
@@ -173,7 +171,9 @@ function handlePartyMatch(match) {
   const panel = document.querySelector("#socialMatchPanel");
   if (panel) {
     panel.classList.remove("hidden");
-    panel.innerHTML = `<div class="match-found-card"><div class="match-pulse"></div><span class="eyebrow">MATCH FOUND</span><h3>2v2 Team Battle</h3><p>Four trainers are getting ready…</p></div>`;
+    const teamSize = Math.max(1, Math.min(10, Number(match.teamSize) || 2));
+    const battleSize = Math.max(1, Math.min(10, Number(match.battleSize) || 1));
+    panel.innerHTML = `<div class="match-found-card"><div class="match-pulse"></div><span class="eyebrow">MATCH FOUND</span><h3>${teamSize} trainers/team · ${battleSize}v${battleSize}</h3><p>${teamSize * 2} trainers are getting ready…</p></div>`;
   }
   if (!match.ready || partyState.battleStarted) return;
   startPartyBattle(match);
@@ -246,7 +246,7 @@ function startPartyBattle(match) {
   const me = match.members.find(m => m.id === partyClient.identity.id);
   if (!me) return;
   if (partyClient.identity.id === match.coordinatorId) {
-    const battle = new PartyBattle({ data, members: match.members, networkRole: "coordinator", localMemberId: partyClient.identity.id, coordinatorId: match.coordinatorId });
+    const battle = new PartyBattle({ data, members: match.members, networkRole: "coordinator", localMemberId: partyClient.identity.id, coordinatorId: match.coordinatorId, battleSize: match.battleSize, teamSize: match.teamSize });
     window.__partyBattle = battle;
     battle.updateNetworkState = () => partyClient?.sendPartySnapshot(serializePartyBattle(battle));
     battle.sendPartyAction = action => partyClient?.sendPartyAction(action);
@@ -258,7 +258,7 @@ function startPartyBattle(match) {
     partyRenderer.render();
     battle.updateNetworkState();
   } else {
-    const battle = new RemotePartyBattle({ data, match, localMemberId: partyClient.identity.id });
+    const battle = new RemotePartyBattle({ data, match: { ...match, battleSize: match.battleSize, teamSize: match.teamSize }, localMemberId: partyClient.identity.id });
     battle.sendPartyAction = action => partyClient?.sendPartyAction(action);
     window.__partyBattle = battle;
     mountPartyBattleUI(battle, "member");
@@ -271,7 +271,9 @@ function startPartyBattle(match) {
 }
 
 function mountPartyBattleUI(battle, role) {
-  app.innerHTML = `<div class="battle-page party-battle-page"><header class="topbar battle-topbar"><div class="topbar-brand"><div class="brand-mark battle-brand-mark">◉</div><div><h1>Pokémon Team Battle</h1><span class="topbar-sub">2v2 Cooperative Arena · ${role === "coordinator" ? "Coordinator" : "Trainer"}</span></div></div><div class="battle-header-actions"><span id="turnLabel" class="turn-pill">Turn 1</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="partyLeaveButton" class="header-button" type="button">Leave Battle</button></div></header><main class="party-battle-main"><section class="party-arena-shell"><div class="arena-header"><div><span class="arena-kicker">TEAM BATTLE</span><h2>2 TRAINERS VS 2 TRAINERS</h2></div><div class="arena-help"><span class="live-dot"></span> Each trainer controls one Pokémon</div></div><div class="party-field"><div id="partyEnemyRow" class="party-side-row party-enemy-row"></div><div class="party-versus-core">VS</div><div id="partyAllyRow" class="party-side-row party-ally-row"></div></div></section><section class="party-command-shell"><div id="partyCommandHint" class="multi-target-hint"><span class="hint-dot"></span><span>Choose a move, then click an opposing Pokémon.</span></div><div id="partyMovePanel" class="multi-action-panel"></div></section><section class="multi-log-shell"><div class="log-header"><span>TEAM BATTLE FEED</span><span>Live</span></div><div class="battle-log multi-battle-log" id="battleLog" aria-live="polite"></div></section></main></div>`;
+  const teamSize = Math.max(1, Math.min(10, Number(battle.teamSize) || Number(battle.members?.length / 2) || 2));
+  const battleSize = Math.max(1, Math.min(10, Number(battle.battleSize) || 1));
+  app.innerHTML = `<div class="battle-page party-battle-page"><header class="topbar battle-topbar"><div class="topbar-brand"><div class="brand-mark battle-brand-mark">◉</div><div><h1>Pokémon Team Battle</h1><span class="topbar-sub">${teamSize} trainers/team · ${battleSize} active/trainer · ${role === "coordinator" ? "Coordinator" : "Trainer"}</span></div></div><div class="battle-header-actions"><span id="turnLabel" class="turn-pill">Turn 1</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="partyLeaveButton" class="header-button" type="button">Leave Battle</button></div></header><main class="party-battle-main"><section class="party-arena-shell"><div class="arena-header"><div><span class="arena-kicker">TEAM BATTLE</span><h2>${teamSize} TRAINERS VS ${teamSize} TRAINERS</h2></div><div class="arena-help"><span class="live-dot"></span> Each trainer controls their active Pokémon</div></div><div class="party-field"><div id="partyEnemyRow" class="party-side-row party-enemy-row"></div><div class="party-versus-core">VS</div><div id="partyAllyRow" class="party-side-row party-ally-row"></div></div></section><section class="party-command-shell"><div id="partyCommandHint" class="multi-target-hint"><span class="hint-dot"></span><span>Choose a move, then click an opposing Pokémon.</span></div><div id="partyMovePanel" class="multi-action-panel"></div></section><section class="multi-log-shell"><div class="log-header"><span>TEAM BATTLE FEED</span><span>Live</span></div><div class="battle-log multi-battle-log" id="battleLog" aria-live="polite"></div></section></main></div>`;
   document.querySelector("#partyLeaveButton").onclick = () => { partyClient?.leave(); partyClient = null; window.__partyBattle = null; mountBuilder(); };
 }
 
@@ -279,7 +281,26 @@ function serializePartyPokemon(p) {
   return { speciesId:p.speciesId,name:p.name,level:p.level,types:p.types,hp:p.hp,maxHP:p.maxHP,moveset:p.moves.map(m=>({...m})),ability:p.ability,item:p.item,status:p.status,statusData:p.statusData,volatile:p.volatile,originalTypes:p.originalTypes,fainted:p.fainted,sprites:p.sprites };
 }
 function serializePartyBattle(battle) {
-  return { turn:battle.turn,over:battle.over,busy:battle.busy,locked:battle.locked,field:battle.field||null,fieldTurns:battle.fieldTurns||0,result:battle.result||null,pendingIds:[...battle.pendingPartyActions.keys()],log:battle.log.slice(-100),members:battle.members.map(m=>({id:m.id,name:m.name,side:m.side,active:m.active,team:m.team.map(serializePartyPokemon)})) };
+  return {
+    turn: battle.turn,
+    over: battle.over,
+    busy: battle.busy,
+    locked: battle.locked,
+    battleSize: battle.battleSize || 1,
+    teamSize: battle.teamSize || 2,
+    field: battle.field || null,
+    fieldTurns: battle.fieldTurns || 0,
+    result: battle.result || null,
+    pendingIds: [...(battle.pendingPartyActions || new Map()).keys()],
+    log: battle.log.slice(-120),
+    members: battle.members.map(m => ({
+      id: m.id,
+      name: m.name,
+      side: m.side,
+      active: Array.isArray(m.active) ? [...m.active] : [Number(m.active) || 0],
+      team: m.team.map(serializePartyPokemon)
+    }))
+  };
 }
 
 function showMultiplayerLobby(mode, payload) {
@@ -406,7 +427,7 @@ function returnToBuilder() {
   window.__partyBattle = null;
   window.__partyRenderer = null;
   window.__networkBattle = null;
-  multiplayerState = { role: null, team: null, opponentTeam: null, battleStarted: false, battleSize: 1 };
+  multiplayerState = { role: null, team: null, opponentTeam: null, battleStarted: false, battleSize: 1, teamSize: 1 };
   mountBuilder();
 }
 

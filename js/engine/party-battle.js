@@ -1,23 +1,37 @@
 import { Battle } from './battle.js';
 
-function makeMember(member) {
+function makeMember(member, battleSize = 1) {
   return {
     id: String(member.id),
     name: member.name || `Trainer ${String(member.id).slice(0, 4)}`,
     team: Array.isArray(member.team) ? member.team : [],
-    active: 0,
+    // One trainer can control N active Pokémon. `active` stores the team index
+    // occupying each field slot; -1 means the slot is empty and will be filled
+    // automatically at the start/end of a turn.
+    active: Array.isArray(member.active)
+      ? member.active.slice(0, battleSize).map(v => Number.isInteger(Number(v)) ? Number(v) : -1)
+      : [],
     side: member.side === 'beta' ? 'beta' : 'alpha'
   };
 }
 
+function actionKey(memberId, slot) {
+  return `${String(memberId)}:${Number(slot)}`;
+}
+
 /**
- * Cooperative 2v2 party battle.
- * Four human players are split into two sides. Each human controls one active
- * Pokémon at a time and can use a personal team of up to 10 Pokémon.
+ * Cooperative team battle.
+ *
+ * battleSize = active Pokémon per trainer (1..10)
+ * teamSize   = human trainers on each side (1..10)
+ *
+ * Therefore a 3v3 with 2 trainers/team has 6 active Pokémon per side, while
+ * a 10v10 with 10 trainers/team can have 100 active Pokémon per side.
  */
 export class PartyBattle extends Battle {
-  constructor({ data, members, networkRole = null, localMemberId = null, coordinatorId = null }) {
-    const normalized = members.map(makeMember);
+  constructor({ data, members, networkRole = null, localMemberId = null, coordinatorId = null, battleSize = 1, teamSize = null }) {
+    const normalizedBattleSize = Math.max(1, Math.min(10, Number(battleSize) || 1));
+    const normalized = members.map(m => makeMember(m, normalizedBattleSize));
     const firstAlpha = normalized.find(m => m.side === 'alpha') || normalized[0];
     const firstBeta = normalized.find(m => m.side === 'beta') || normalized[1] || normalized[0];
     super({
@@ -26,8 +40,11 @@ export class PartyBattle extends Battle {
       opponentTeam: firstBeta?.team || [],
       networkRole
     });
+
     this.isParty = true;
-    this.partyMode = '2v2';
+    this.teamSize = Math.max(1, Math.min(10, Number(teamSize) || Math.ceil(normalized.length / 2) || 1));
+    this.partyMode = `${this.teamSize} trainers/team`;
+    this.battleSize = normalizedBattleSize;
     this.members = normalized;
     this.memberMap = new Map(normalized.map(m => [m.id, m]));
     this.localMemberId = localMemberId || normalized[0]?.id || null;
@@ -41,38 +58,81 @@ export class PartyBattle extends Battle {
     this.turn = 1;
     this.turnContext = { damageTaken: new Map(), physicalDamageTaken: new Map(), moveFailed: new Map() };
 
-    // Replace the two superclass sides with per-trainer teams while keeping
-    // the Battle engine's move/effect implementation available.
     for (const member of this.members) {
       member.team = this.createTeam(member.team);
-      member.active = 0;
+      member.active = this.initialActiveIndices(member);
+      this.fillEmptyActiveSlots(member, false);
     }
-    this.write('Team battle ready — 2 trainers vs 2 trainers!');
+
+    this.write(`Team battle ready — ${this.teamSize} trainers/team · ${this.battleSize} active Pokémon/trainer.`);
     for (const member of this.members) {
-      const p = this.activeMember(member.id);
-      if (p) {
-        this.triggerAbility(p, 'onBattleStart');
-        this.write(`${member.name} sent out ${p.name}!`);
+      for (let slot = 0; slot < this.battleSize; slot += 1) {
+        const p = this.activeMember(member.id, slot);
+        if (p) {
+          this.triggerAbility(p, 'onBattleStart');
+          this.write(`${member.name} sent out ${p.name}!`);
+        }
       }
     }
   }
 
-  active(side) {
-    if (!this.memberMap) {
-      const legacySide = side === 'player' ? this.player : this.opponent;
-      return legacySide?.team?.[legacySide?.active] || null;
+  initialActiveIndices(member) {
+    const supplied = Array.isArray(member.active) ? member.active : [];
+    const used = new Set();
+    const result = [];
+    for (let slot = 0; slot < this.battleSize; slot += 1) {
+      const candidate = Number(supplied[slot]);
+      if (Number.isInteger(candidate) && candidate >= 0 && candidate < member.team.length && !used.has(candidate) && member.team[candidate]?.canBattle()) {
+        result.push(candidate);
+        used.add(candidate);
+      } else {
+        result.push(-1);
+      }
     }
-    if (side === 'player') return this.activeMember(this.members.find(m => m.side === 'alpha')?.id);
-    return this.activeMember(this.members.find(m => m.side === 'beta')?.id);
+    return result;
   }
 
-  activeMember(memberId) {
+  active(side) {
+    const legacySide = side === 'player' ? this.player : this.opponent;
+    if (!this.memberMap) return legacySide?.team?.[legacySide?.active] || null;
+    const member = this.getMembersBySide(side === 'player' ? 'alpha' : 'beta')[0];
+    return member ? this.activeMember(member.id, 0) : null;
+  }
+
+  activeMember(memberId, slot = 0) {
     const member = this.memberMap.get(String(memberId));
-    return member?.team?.[member.active] || null;
+    if (!member) return null;
+    const index = Number(member.active?.[Number(slot)]);
+    return Number.isInteger(index) && index >= 0 ? member.team[index] || null : null;
+  }
+
+  getActiveSlots(memberId) {
+    const member = this.getMember(memberId);
+    if (!member) return [];
+    return Array.from({ length: this.battleSize }, (_, slot) => ({
+      slot,
+      teamIndex: Number(member.active?.[slot] ?? -1),
+      pokemon: this.activeMember(member.id, slot)
+    }));
+  }
+
+  getActiveEntries(side) {
+    const entries = [];
+    for (const member of this.getMembersBySide(side)) {
+      for (let slot = 0; slot < this.battleSize; slot += 1) {
+        const pokemon = this.activeMember(member.id, slot);
+        if (pokemon?.canBattle()) entries.push({ member, memberId: member.id, slot, pokemon });
+      }
+    }
+    return entries;
   }
 
   getMember(memberId) {
     return this.memberMap.get(String(memberId));
+  }
+
+  getLocalMember() {
+    return this.getMember(this.localMemberId);
   }
 
   getMembersBySide(side) {
@@ -80,11 +140,11 @@ export class PartyBattle extends Battle {
   }
 
   getActiveMembers(side) {
-    return this.getMembersBySide(side).filter(m => this.activeMember(m.id)?.canBattle());
+    return this.getActiveEntries(side).map(entry => entry.pokemon);
   }
 
-  getAvailableMovesForMember(memberId) {
-    const pokemon = this.activeMember(memberId);
+  getAvailableMovesForMember(memberId, slot = 0) {
+    const pokemon = this.activeMember(memberId, slot);
     if (!pokemon?.canBattle()) return [];
     let moves = pokemon.moves.filter(m => {
       const forced = pokemon.volatile?.charging === m.id ||
@@ -100,36 +160,52 @@ export class PartyBattle extends Battle {
     return moves;
   }
 
-  getTargetsFor(memberId, move = null) {
+  getTargetsFor(memberId, move = null, slot = 0) {
     const member = this.getMember(memberId);
     if (!member) return [];
     const selfMoves = new Set(['agility','bulk-up','dragon-cheer','endure','protect','rest','roost','substitute','swords-dance','sleep-talk','sunny-day','taunt','uproar']);
     if (selfMoves.has(move?.id)) {
-      return [{ memberId: member.id, pokemon: this.activeMember(member.id), label: `${member.name} · self` }].filter(x => x.pokemon?.canBattle());
+      const self = this.activeMember(member.id, slot);
+      return self?.canBattle() ? [{ memberId: member.id, slot, pokemon: self, label: `${member.name} · ${self.name} · Slot ${slot + 1}` }] : [];
     }
     if (move?.id === 'helping-hand') {
-      return this.getMembersBySide(member.side).filter(m => m.id !== member.id).map(targetMember => ({ memberId: targetMember.id, pokemon: this.activeMember(targetMember.id), label: `${targetMember.name} · ${this.activeMember(targetMember.id)?.name || '---'}` })).filter(x => x.pokemon?.canBattle());
+      return this.getActiveEntries(member.side)
+        .filter(entry => entry.memberId !== member.id)
+        .map(entry => ({ memberId: entry.memberId, slot: entry.slot, pokemon: entry.pokemon, label: `${entry.member.name} · ${entry.pokemon.name}` }));
     }
     const enemySide = member.side === 'alpha' ? 'beta' : 'alpha';
-    return this.getActiveMembers(enemySide).map(targetMember => ({
-      memberId: targetMember.id,
-      pokemon: this.activeMember(targetMember.id),
-      label: `${targetMember.name} · ${this.activeMember(targetMember.id)?.name || '---'}`
+    return this.getActiveEntries(enemySide).map(entry => ({
+      memberId: entry.memberId,
+      slot: entry.slot,
+      pokemon: entry.pokemon,
+      label: `${entry.member.name} · ${entry.pokemon.name}`
     }));
   }
 
-  setLocalAction(moveId, targetMemberId) {
-    return this.submitPartyAction(this.localMemberId, moveId, targetMemberId);
+  setLocalAction(moveId, targetMemberId, targetSlot = 0, sourceSlot = null) {
+    const slot = sourceSlot == null ? this.nextLocalUnsubmittedSlot() : Number(sourceSlot);
+    return this.submitPartyAction(this.localMemberId, slot, moveId, targetMemberId, targetSlot);
   }
 
-  submitPartyAction(memberId, moveId, targetMemberId) {
+  nextLocalUnsubmittedSlot() {
+    const member = this.getLocalMember();
+    if (!member) return 0;
+    for (let slot = 0; slot < this.battleSize; slot += 1) {
+      const p = this.activeMember(member.id, slot);
+      if (p?.canBattle() && !this.pendingPartyActions.has(actionKey(member.id, slot))) return slot;
+    }
+    return 0;
+  }
+
+  submitPartyAction(memberId, sourceSlot, moveId, targetMemberId, targetSlot = 0) {
     if (this.over || this.busy) return false;
     const member = this.getMember(memberId);
-    if (!member) return false;
-    const pokemon = this.activeMember(member.id);
+    const slot = Number(sourceSlot);
+    if (!member || slot < 0 || slot >= this.battleSize) return false;
+    const pokemon = this.activeMember(member.id, slot);
     const move = pokemon?.moves?.find(m => m.id === moveId);
     const targetMember = this.getMember(targetMemberId);
-    const target = this.activeMember(targetMemberId);
+    const target = this.activeMember(targetMemberId, targetSlot);
     const selfMoves = new Set(['agility','bulk-up','dragon-cheer','endure','protect','rest','roost','substitute','swords-dance','sleep-talk','sunny-day','taunt','uproar']);
     const allyTarget = move?.id === 'helping-hand';
     const validSameSide = targetMember?.side === member.side && (selfMoves.has(move?.id) || allyTarget);
@@ -137,43 +213,55 @@ export class PartyBattle extends Battle {
     if (!pokemon?.canBattle() || !move || !targetMember || !target?.canBattle() || (!validSameSide && !validEnemy)) return false;
     if (!this.canSelectMove(pokemon, move)) return false;
 
-    const action = { memberId: member.id, pokemonIndex: member.active, moveId, targetMemberId };
-    this.pendingPartyActions.set(member.id, action);
-    if (member.id === this.localMemberId && this.networkRole !== 'coordinator') {
-      this.sendPartyAction?.(action);
-    }
+    const key = actionKey(member.id, slot);
+    if (this.pendingPartyActions.has(key)) return false;
+    const action = { memberId: member.id, slot, pokemonIndex: member.active[slot], moveId, targetMemberId: targetMember.id, targetSlot: Number(targetSlot) };
+    this.pendingPartyActions.set(key, action);
+    if (member.id === this.localMemberId && this.networkRole !== 'coordinator') this.sendPartyAction?.(action);
     this.update();
     if (this.allActiveMembersSubmitted()) this.tryResolvePartyActions();
     return true;
   }
 
   receiveRemotePartyAction(action) {
-    if (this.networkRole !== 'coordinator' || this.over) return;
-    if (!action?.memberId) return;
+    if (this.networkRole !== 'coordinator' || this.over || !action?.memberId) return;
     const member = this.getMember(action.memberId);
-    if (!member) return;
-    const pokemon = this.activeMember(member.id);
+    const slot = Number(action.slot ?? 0);
+    if (!member || slot < 0 || slot >= this.battleSize) return;
+    const pokemon = this.activeMember(member.id, slot);
     const move = pokemon?.moves?.find(m => m.id === action.moveId);
-    const target = this.activeMember(action.targetMemberId);
     const targetMember = this.getMember(action.targetMemberId);
-    if (!pokemon?.canBattle() || !move || !target?.canBattle() || !targetMember || targetMember.side === member.side) return;
+    const target = this.activeMember(action.targetMemberId, Number(action.targetSlot ?? 0));
+    if (!pokemon?.canBattle() || !move || !target?.canBattle() || !targetMember || !this.isTargetAllowed(member, move, targetMember, Number(action.targetSlot ?? 0), slot)) return;
     if (!this.canSelectMove(pokemon, move)) return;
-    this.pendingPartyActions.set(member.id, {
+    const key = actionKey(member.id, slot);
+    this.pendingPartyActions.set(key, {
       memberId: member.id,
-      pokemonIndex: member.active,
+      slot,
+      pokemonIndex: member.active[slot],
       moveId: action.moveId,
-      targetMemberId: targetMember.id
+      targetMemberId: targetMember.id,
+      targetSlot: Number(action.targetSlot ?? 0)
     });
-    this.write(`${member.name} locked in their move.`);
+    this.write(`${member.name} locked in ${pokemon.name}'s action (${slot + 1}/${this.battleSize}).`);
     this.updateNetworkState?.();
     if (this.allActiveMembersSubmitted()) this.tryResolvePartyActions();
   }
 
+  isTargetAllowed(member, move, targetMember, targetSlot, sourceSlot = 0) {
+    const selfMoves = new Set(['agility','bulk-up','dragon-cheer','endure','protect','rest','roost','substitute','swords-dance','sleep-talk','sunny-day','taunt','uproar']);
+    if (targetMember?.side === member.side && !selfMoves.has(move?.id) && move?.id !== 'helping-hand') return false;
+    return this.getTargetsFor(member.id, move, sourceSlot).some(t => t.memberId === targetMember?.id && t.slot === Number(targetSlot));
+  }
+
   allActiveMembersSubmitted() {
-    return this.members.every(member => {
-      const active = this.activeMember(member.id);
-      return !active?.canBattle() || this.pendingPartyActions.has(member.id);
-    });
+    for (const member of this.members) {
+      for (let slot = 0; slot < this.battleSize; slot += 1) {
+        const active = this.activeMember(member.id, slot);
+        if (active?.canBattle() && !this.pendingPartyActions.has(actionKey(member.id, slot))) return false;
+      }
+    }
+    return true;
   }
 
   async tryResolvePartyActions() {
@@ -183,9 +271,10 @@ export class PartyBattle extends Battle {
     this.busy = true;
     this.locked = true;
     this.updateNetworkState?.();
+
     actions.sort((a, b) => {
-      const am = this.activeMember(a.memberId);
-      const bm = this.activeMember(b.memberId);
+      const am = this.activeMember(a.memberId, a.slot);
+      const bm = this.activeMember(b.memberId, b.slot);
       const aMove = am?.moves.find(m => m.id === a.moveId);
       const bMove = bm?.moves.find(m => m.id === b.moveId);
       const pa = this.getMovePriority(aMove, am);
@@ -199,12 +288,11 @@ export class PartyBattle extends Battle {
 
     this.write('All trainers have chosen — resolving the turn...');
     for (const action of actions) {
-      const attacker = this.activeMember(action.memberId);
-      const targetMember = this.getMember(action.targetMemberId);
-      const defender = this.activeMember(targetMember?.id);
+      const attacker = this.activeMember(action.memberId, action.slot);
+      const target = this.activeMember(action.targetMemberId, action.targetSlot);
       const move = attacker?.moves?.find(m => m.id === action.moveId);
-      if (!attacker?.canBattle() || !defender?.canBattle() || !move) continue;
-      await this.performMove(attacker, defender, move);
+      if (!attacker?.canBattle() || !target?.canBattle() || !move) continue;
+      await this.performMove(attacker, target, move);
     }
 
     this.autoReplaceFainted();
@@ -230,41 +318,52 @@ export class PartyBattle extends Battle {
     return this.getMembersBySide(side).some(member => member.team.some(p => p.canBattle()));
   }
 
-  autoReplaceFainted() {
-    for (const member of this.members) {
-      const current = this.activeMember(member.id);
+  fillEmptyActiveSlots(member, announce = true) {
+    const used = new Set(member.active.filter(i => Number.isInteger(i) && i >= 0));
+    for (let slot = 0; slot < this.battleSize; slot += 1) {
+      const current = this.activeMember(member.id, slot);
       if (current?.canBattle()) continue;
       if (current) this.resetOnSwitch(current);
-      const next = member.team.findIndex(p => p.canBattle());
-      if (next < 0) continue;
-      member.active = next;
-      const replacement = this.activeMember(member.id);
+      let next = member.team.findIndex((p, index) => p.canBattle() && !used.has(index));
+      if (next < 0) {
+        member.active[slot] = -1;
+        continue;
+      }
+      used.add(next);
+      member.active[slot] = next;
+      const replacement = this.activeMember(member.id, slot);
       this.triggerAbility(replacement, 'onBattleStart');
-      this.write(`${member.name} sent out ${replacement.name}!`);
+      if (announce) this.write(`${member.name} sent out ${replacement.name}!`);
     }
+  }
+
+  autoReplaceFainted() {
+    for (const member of this.members) this.fillEmptyActiveSlots(member, true);
   }
 
   applyPartyEndTurn() {
     for (const member of this.members) {
-      const p = this.activeMember(member.id);
-      if (!p?.canBattle()) continue;
-      if (p.status) {
-        const def = this.getStatusDef(p);
-        const amount = Number(def?.statusEffect?.endTurnDamage ?? 0);
-        if (amount > 0) {
-          p.receiveDamage(Math.max(1, Math.floor(p.maxHP * amount)));
-          this.write(`${p.name} was hurt by ${p.status}!`);
+      for (let slot = 0; slot < this.battleSize; slot += 1) {
+        const p = this.activeMember(member.id, slot);
+        if (!p?.canBattle()) continue;
+        if (p.status) {
+          const def = this.getStatusDef(p);
+          const amount = Number(def?.statusEffect?.endTurnDamage ?? 0);
+          if (amount > 0) {
+            p.receiveDamage(Math.max(1, Math.floor(p.maxHP * amount)));
+            this.write(`${p.name} was hurt by ${p.status}!`);
+          }
         }
-      }
-      if (p.volatile?.tauntTurns > 0) p.volatile.tauntTurns -= 1;
-      if (p.volatile?.trapTurns > 0) p.volatile.trapTurns -= 1;
-      p.volatile.protected = false;
-      p.volatile.endure = false;
-      p.volatile.flinched = false;
-      p.volatile.lastDamageTaken = 0;
-      if (p.volatile.roosted) {
-        p.types = [...(p.originalTypes || p.types)];
-        p.volatile.roosted = false;
+        if (p.volatile?.tauntTurns > 0) p.volatile.tauntTurns -= 1;
+        if (p.volatile?.trapTurns > 0) p.volatile.trapTurns -= 1;
+        p.volatile.protected = false;
+        p.volatile.endure = false;
+        p.volatile.flinched = false;
+        p.volatile.lastDamageTaken = 0;
+        if (p.volatile.roosted) {
+          p.types = [...(p.originalTypes || p.types)];
+          p.volatile.roosted = false;
+        }
       }
     }
 
@@ -278,7 +377,7 @@ export class PartyBattle extends Battle {
   }
 
   getBattleMessagePrefix(pokemon) {
-    const owner = this.members.find(m => this.activeMember(m.id) === pokemon);
+    const owner = this.members.find(m => this.getActiveSlots(m.id).some(s => s.pokemon === pokemon));
     if (!owner) return 'Pokémon';
     return owner.id === this.localMemberId ? 'Your Pokémon' : `${owner.name}'s Pokémon`;
   }
@@ -291,9 +390,7 @@ export class PartyBattle extends Battle {
       winnerIds,
       localWon: winnerIds.includes(this.localMemberId)
     };
-    this.write(winnerIds.includes(this.localMemberId)
-      ? 'Your team won the battle!'
-      : 'Your team lost the battle!');
+    this.write(winnerIds.includes(this.localMemberId) ? 'Your team won the battle!' : 'Your team lost the battle!');
     this.busy = false;
     this.locked = false;
     this.updateNetworkState?.();

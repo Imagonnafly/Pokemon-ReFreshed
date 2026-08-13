@@ -452,25 +452,26 @@ export class PartyMatchClient {
     if (message?.type === "party_queue") {
       const group = message.group;
       if (Array.isArray(group?.members) && group.members.some(m => m.id === this.identity.id)) {
-        this.queueMode = message.mode || "team-2v2";
+        this.queueMode = message.mode || "match";
         this.queueGroup = group;
-        this.joinQueue(this.queueMode, group);
+        this.joinQueue(this.queueMode, group, message.battleSize || 1, message.teamSize || 2);
       }
     }
   }
 
-  async queueSolo(mode = "team-2v2", battleSize = 1) {
+  async queueSolo(mode = "match", battleSize = 1, teamSize = 1) {
     const group = {
       groupId: this.identity.id,
       members: [{ id: this.identity.id, name: this.identity.name, team: this.team }]
     };
     this.queueMode = mode;
     this.queueGroup = group;
-    await this.joinQueue(mode, group, battleSize);
+    await this.joinQueue(mode, group, battleSize, teamSize);
   }
 
-  async queueParty(mode = "team-2v2", battleSize = 2) {
-    if (!this.party || this.party.members.length < 2) throw new Error("Your party needs two trainers before entering matchmaking.");
+  async queueParty(mode = "match", battleSize = 1, teamSize = 2) {
+    if (!this.party || this.party.members.length < 2) throw new Error("Your party needs at least two trainers before entering matchmaking.");
+    if (this.party.members.length > teamSize) throw new Error(`Your party has ${this.party.members.length} trainers, but the selected battle type allows ${teamSize} trainers per team.`);
     if (this.party.hostId !== this.identity.id) {
       this.onStatus("Only the party leader can start matchmaking.");
       return;
@@ -481,17 +482,18 @@ export class PartyMatchClient {
     };
     this.queueMode = mode;
     this.queueGroup = group;
-    await this.joinQueue(mode, group, battleSize);
-    await this.partyChannel?.send({ type: "broadcast", event: "party", payload: { type: "party_queue", mode, group } });
+    await this.joinQueue(mode, group, battleSize, teamSize);
+    await this.partyChannel?.send({ type: "broadcast", event: "party", payload: { type: "party_queue", mode, group, battleSize, teamSize } });
   }
 
-  async joinQueue(mode, group, battleSize = 1) {
+  async joinQueue(mode, group, battleSize = 1, teamSize = 1) {
     await this.ensureQueueChannel();
     const ticket = {
       ticketId: `${group.groupId}:${Date.now()}`,
       groupId: group.groupId,
       mode,
       battleSize: Math.max(1, Math.min(10, Number(battleSize) || 1)),
+      teamSize: Math.max(1, Math.min(10, Number(teamSize) || 1)),
       createdAt: Date.now(),
       leaderId: group.members.map(m => m.id).sort()[0],
       members: group.members
@@ -528,7 +530,7 @@ export class PartyMatchClient {
   handleQueueMessage(message) {
     if (!message) return;
     if (message.type === "queue_ticket" && message.ticket) {
-      const validMode = message.ticket.mode === "team-2v2" || /^normal-\d+$/.test(message.ticket.mode);
+      const validMode = message.ticket.mode === "match" || message.ticket.mode === "team-2v2" || /^normal-\d+$/.test(message.ticket.mode);
       if (!validMode) return;
       this.queueTickets.set(message.ticket.groupId, message.ticket);
       this.attemptMatch();
@@ -546,7 +548,7 @@ export class PartyMatchClient {
 
   attemptMatch() {
     const allTickets = [...this.queueTickets.values()]
-      .filter(t => Array.isArray(t.members) && t.members.length >= 1 && t.members.length <= 2)
+      .filter(t => Array.isArray(t.members) && t.members.length >= 1 && t.members.length <= 10)
       .sort((a, b) => a.createdAt - b.createdAt || a.groupId.localeCompare(b.groupId));
     if (!allTickets.length || !this.queueGroup || !this.matchmakingActive) return;
 
@@ -554,92 +556,60 @@ export class PartyMatchClient {
     const myTicket = allTickets.find(t => t.groupId === myGroupId);
     if (!myTicket) return;
 
-    // Normal matchmaking: exactly two solo trainers, same N-vs-N size.
-    if (/^normal-\d+$/.test(myTicket.mode)) {
-      const mode = myTicket.mode;
-      const battleSize = Math.max(1, Math.min(10, Number(myTicket.battleSize) || Number(mode.split('-')[1]) || 1));
-      const tickets = allTickets.filter(t => t.mode === mode && t.members.length === 1);
-      if (tickets.length < 2) {
-        this.onStatus(`Searching for ${battleSize}v${battleSize} trainers… ${tickets.length}/2 found`);
-        return;
-      }
-      const coordinatorTicket = tickets[0];
-      if (coordinatorTicket.leaderId !== this.identity.id) return;
-      const picked = tickets.slice(0, 2);
-      const first = picked[0].members[0];
-      const second = picked[1].members[0];
-      const members = [
-        { ...first, side: "alpha" },
-        { ...second, side: "beta" }
-      ];
-      const match = {
-        id: crypto.randomUUID(),
-        kind: "normal",
-        mode: "normal",
-        battleSize,
-        coordinatorId: this.identity.id,
-        members
-      };
-      this.queueChannel.send({ type: "broadcast", event: "queue", payload: { type: "match_found", match } }).catch(() => {});
-      this.handleQueueMessage({ type: "match_found", match });
-      return;
-    }
+    // One matchmaking queue, partitioned by the two selected dimensions:
+    // battleSize = active Pokémon per trainer; teamSize = trainers per team.
+    const battleSize = Math.max(1, Math.min(10, Number(myTicket.battleSize) || 1));
+    const teamSize = Math.max(1, Math.min(10, Number(myTicket.teamSize) || 1));
+    const candidates = allTickets.filter(t => {
+      const sameMode = t.mode === myTicket.mode || (t.mode === 'team-2v2' && myTicket.mode === 'match' && Number(t.teamSize) === 2);
+      return sameMode && Number(t.battleSize) === battleSize && Number(t.teamSize || 1) === teamSize;
+    });
+    const coordinatorTicket = candidates[0];
+    if (!coordinatorTicket || coordinatorTicket.leaderId !== this.identity.id) return;
 
-    // Party/team matchmaking: preserve the existing 4-trainer 2v2 flow.
-    const tickets = allTickets.filter(t => t.mode === "team-2v2");
-    if (!tickets.length) return;
-    const coordinatorTicket = tickets[0];
-    if (coordinatorTicket.leaderId !== this.identity.id) return;
-
+    const needed = teamSize * 2;
     const picked = [];
-    let count = 0;
-    for (const ticket of tickets) {
-      const size = ticket.members.length;
-      if (size > 2 || picked.some(p => p.groupId === ticket.groupId)) continue;
-      if (count + size > 4) continue;
+    let total = 0;
+    for (const ticket of candidates) {
+      if (total + ticket.members.length > needed) continue;
       picked.push(ticket);
-      count += size;
-      if (count === 4) break;
+      total += ticket.members.length;
+      if (total === needed) break;
     }
-    if (count !== 4) {
-      this.onStatus(`Searching for trainers… ${count}/4 found`);
+    if (total !== needed) {
+      this.onStatus(`Searching for ${battleSize}v${battleSize} · ${teamSize} trainers/team… ${total}/${needed} trainers found`);
       return;
     }
 
+    // Split complete groups across the two teams without breaking a party.
     const alpha = [];
     const beta = [];
-    const parties = [...picked].sort((a, b) => b.members.length - a.members.length || a.createdAt - b.createdAt);
-    for (const ticket of parties) {
-      const members = ticket.members.map(m => ({ ...m }));
-      if (members.length === 2) {
-        if (alpha.length === 0) alpha.push(...members.map(m => ({ ...m, side: "alpha" })));
-        else if (beta.length === 0) beta.push(...members.map(m => ({ ...m, side: "beta" })));
-        else return;
-      } else if (members.length === 1) {
-        const m = members[0];
-        if (alpha.length < 2) alpha.push({ ...m, side: "alpha" });
-        else if (beta.length < 2) beta.push({ ...m, side: "beta" });
+    for (const ticket of picked) {
+      const groupMembers = ticket.members.map(m => ({ ...m }));
+      if (alpha.length + groupMembers.length <= teamSize) alpha.push(...groupMembers.map(m => ({ ...m, side: 'alpha' })));
+      else if (beta.length + groupMembers.length <= teamSize) beta.push(...groupMembers.map(m => ({ ...m, side: 'beta' })));
+      else {
+        this.onStatus('Finding a compatible team arrangement…');
+        return;
       }
     }
-    if (alpha.length !== 2 || beta.length !== 2) {
-      const flat = picked.flatMap(t => t.members.map(m => ({ ...m })));
-      alpha.length = 0; beta.length = 0;
-      flat.forEach((m, i) => (i < 2 ? alpha : beta).push({ ...m, side: i < 2 ? "alpha" : "beta" }));
-    }
-    if (alpha.length !== 2 || beta.length !== 2) return;
-    const allIds = [...alpha, ...beta].map(m => m.id);
-    if (new Set(allIds).size !== 4) return;
+    if (alpha.length !== teamSize || beta.length !== teamSize) return;
 
+    const allIds = [...alpha, ...beta].map(m => m.id);
+    if (new Set(allIds).size !== needed) return;
+
+    const kind = teamSize > 1 ? 'party' : 'normal';
     const match = {
       id: crypto.randomUUID(),
-      kind: "party",
-      mode: "team-2v2",
-      battleSize: 1,
+      kind,
+      mode: 'match',
+      battleSize,
+      teamSize,
       coordinatorId: this.identity.id,
       members: [...alpha, ...beta]
     };
-    this.queueChannel.send({ type: "broadcast", event: "queue", payload: { type: "match_found", match } }).catch(() => {});
-    this.handleQueueMessage({ type: "match_found", match });
+    this.queueChannel.send({ type: 'broadcast', event: 'queue', payload: { type: 'match_found', match } }).catch(() => {});
+    this.handleQueueMessage({ type: 'match_found', match });
   }
 
   async openMatchChannel(match) {
@@ -715,8 +685,9 @@ export class RemotePartyBattle {
   constructor({ data, match, localMemberId }) {
     this.data = data;
     this.isParty = true;
-    this.partyMode = "2v2";
-    this.battleSize = 2;
+    this.partyMode = `${Math.max(1, Number(match.teamSize) || 2)} trainers/team`;
+    this.battleSize = Math.max(1, Math.min(10, Number(match.battleSize) || 1));
+    this.teamSize = Math.max(1, Math.min(10, Number(match.teamSize) || 2));
     this.networkRole = "member";
     this.localMemberId = localMemberId;
     this.turn = 1;
@@ -732,7 +703,7 @@ export class RemotePartyBattle {
       name: m.name,
       side: m.side,
       team: [],
-      active: 0
+      active: Array.from({ length: this.battleSize }, () => -1)
     }));
     this.memberMap = new Map(this.members.map(m => [m.id, m]));
     this.localActions = new Map();
@@ -742,34 +713,56 @@ export class RemotePartyBattle {
   }
 
   getMember(id) { return this.memberMap.get(String(id)); }
-  activeMember(id) { const m = this.getMember(id); return m?.team?.[m.active] || null; }
+  activeMember(id, slot = 0) {
+    const m = this.getMember(id);
+    if (!m) return null;
+    const index = Number(Array.isArray(m.active) ? m.active[Number(slot)] : m.active);
+    return Number.isInteger(index) && index >= 0 ? m.team[index] || null : null;
+  }
   getLocalMember() { return this.getMember(this.localMemberId); }
   getMembersBySide(side) { return this.members.filter(m => m.side === side); }
-  getActiveMembers(side) { return this.getMembersBySide(side).filter(m => this.activeMember(m.id)?.canBattle()); }
-  activeIndices(side) { return this.getActiveMembers(side).map(m => this.members.indexOf(m)); }
-  active(side) { return this.activeMember(this.getMembersBySide(side)[0]?.id); }
-  getAvailableMovesForMember(id) {
-    const p = this.activeMember(id);
-    if (!p?.canBattle()) return [];
-    return (p.moves || []).filter(m => (m.pp ?? 1) > 0 && !(p.volatile?.tauntTurns > 0 && m.category === "status"));
+  getActiveEntries(side) {
+    const out = [];
+    for (const member of this.getMembersBySide(side)) {
+      for (let slot = 0; slot < this.battleSize; slot += 1) {
+        const pokemon = this.activeMember(member.id, slot);
+        if (pokemon?.canBattle()) out.push({ member, memberId: member.id, slot, pokemon });
+      }
+    }
+    return out;
   }
-  getTargetsFor(id, move = null) {
+  getActiveMembers(side) { return this.getActiveEntries(side).map(x => x.pokemon); }
+  activeIndices(side) { return this.getActiveEntries(side).map(entry => `${entry.memberId}:${entry.slot}`); }
+  active(side) { return this.activeMember(this.getMembersBySide(side)[0]?.id, 0); }
+  getAvailableMovesForMember(id, slot = 0) {
+    const p = this.activeMember(id, slot);
+    if (!p?.canBattle()) return [];
+    return (p.moves || []).filter(m => (m.pp ?? 1) > 0 && !(p.volatile?.tauntTurns > 0 && m.category === 'status'));
+  }
+  getTargetsFor(id, move = null, sourceSlot = 0) {
     const me = this.getMember(id);
     if (!me) return [];
-    const sameSide = move?.id === "helping-hand" || move?.id === "dragon-cheer";
-    const pool = this.getMembersBySide(sameSide ? me.side : (me.side === "alpha" ? "beta" : "alpha"));
-    return pool.map(target => ({ memberId: target.id, pokemon: this.activeMember(target.id), label: `${target.name} · ${this.activeMember(target.id)?.name || "---"}` })).filter(x => x.pokemon?.canBattle());
+    const selfMoves = new Set(['agility','bulk-up','dragon-cheer','endure','protect','rest','roost','substitute','swords-dance','sleep-talk','sunny-day','taunt','uproar']);
+    if (selfMoves.has(move?.id)) {
+      const p = this.activeMember(me.id, sourceSlot);
+      return p?.canBattle() ? [{ memberId: me.id, slot: sourceSlot, pokemon: p, label: `${me.name} · ${p.name}` }] : [];
+    }
+    const ally = move?.id === 'helping-hand';
+    const side = ally ? me.side : (me.side === 'alpha' ? 'beta' : 'alpha');
+    return this.getActiveEntries(side).map(entry => ({ memberId: entry.memberId, slot: entry.slot, pokemon: entry.pokemon, label: `${entry.member.name} · ${entry.pokemon.name}` }));
   }
-  submitAction(moveId, targetMemberId) {
-    if (this.over || this.busy || this.pendingIds.has(this.localMemberId)) return false;
+  submitAction(moveId, targetMemberId, targetSlot = 0, sourceSlot = null) {
+    const slot = sourceSlot == null ? 0 : Number(sourceSlot);
+    if (this.over || this.busy || this.pendingIds.has(`${this.localMemberId}:${slot}`)) return false;
     const p = this.getLocalMember();
-    const move = p?.team ? p.team[p.active]?.moves?.find(m => m.id === moveId) : null;
-    const target = this.activeMember(targetMemberId);
+    const move = p ? this.activeMember(p.id, slot)?.moves?.find(m => m.id === moveId) : null;
+    const target = this.activeMember(targetMemberId, Number(targetSlot));
     const targetMember = this.getMember(targetMemberId);
     if (!p || !move || !targetMember || !target?.canBattle()) return false;
-    this.localActions.set(this.localMemberId, { memberId: this.localMemberId, moveId, targetMemberId });
-    this.pendingIds.add(this.localMemberId);
-    this.sendPartyAction?.(this.localActions.get(this.localMemberId));
+    const action = { memberId: this.localMemberId, slot, moveId, targetMemberId, targetSlot: Number(targetSlot) };
+    this.localActions.set(`${this.localMemberId}:${slot}`, action);
+    this.pendingIds.add(`${this.localMemberId}:${slot}`);
+    this.sendPartyAction?.(action);
     this.onUpdate?.();
     return true;
   }
@@ -784,6 +777,8 @@ export class RemotePartyBattle {
   applySnapshot(snapshot) {
     if (!snapshot?.members) return;
     this.turn = Number(snapshot.turn) || 1;
+    this.battleSize = Math.max(1, Math.min(10, Number(snapshot.battleSize) || this.battleSize || 1));
+    this.teamSize = Math.max(1, Math.min(10, Number(snapshot.teamSize) || this.teamSize || 2));
     this.over = !!snapshot.over;
     this.busy = !!snapshot.busy;
     this.locked = !!snapshot.locked;
@@ -792,10 +787,16 @@ export class RemotePartyBattle {
     this.result = snapshot.result || null;
     this.log = Array.isArray(snapshot.log) ? snapshot.log : [];
     this.pendingIds = new Set(snapshot.pendingIds || []);
-    this.members = snapshot.members.map(m => ({ ...m, team: (m.team || []).map(p => this.hydratePokemon(p)).filter(Boolean), active: Number(m.active) || 0 }));
+    this.members = snapshot.members.map(m => ({
+      ...m,
+      team: (m.team || []).map(p => this.hydratePokemon(p)).filter(Boolean),
+      active: Array.isArray(m.active) ? [...m.active].slice(0, this.battleSize) : [Number(m.active) || 0]
+    }));
+    for (const member of this.members) while (member.active.length < this.battleSize) member.active.push(-1);
     this.memberMap = new Map(this.members.map(m => [m.id, m]));
-    if (this.pendingIds.has(this.localMemberId)) this.localActions.set(this.localMemberId, this.localActions.get(this.localMemberId) || null);
-    else this.localActions.delete(this.localMemberId);
+    for (const key of [...this.localActions.keys()]) {
+      if (!this.pendingIds.has(key)) this.localActions.delete(key);
+    }
     this.onUpdate?.();
   }
 }

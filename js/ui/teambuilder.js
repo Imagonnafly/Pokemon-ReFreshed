@@ -6,6 +6,7 @@ export class TeamBuilder {
     this.onMultiplayer = onMultiplayer || (() => {});
     this.team = [];
     this.battleSize = 1;
+    this.teamSize = 1;
     this.editingIndex = null;
 
     this.speciesById = new Map(data.species.map(p => [p.id, p]));
@@ -35,11 +36,15 @@ export class TeamBuilder {
             <span>Battle size</span>
             <select id="battleSize" aria-label="Battle size"></select>
           </label>
+          <label class="battle-size-wrap">
+            <span>Battle type</span>
+            <select id="teamSize" aria-label="Trainers per team"></select>
+          </label>
           <button id="clearTeam" class="builder-secondary" type="button">Clear Team</button>
           <button id="startBattle" class="builder-primary" type="button">Enter Battle →</button>
           <button id="createRoom" class="builder-secondary" type="button">Create Multiplayer Room</button>
           <button id="joinRoom" class="builder-secondary" type="button">Join Room</button>
-          <button id="quickMatch" class="builder-secondary social-action" type="button">🎯 Quick Match ${this.battleSize}v${this.battleSize}</button><button id="quickMatch2v2" class="builder-secondary social-action" type="button">⚡ Team Match 2v2</button>
+          <button id="quickMatch" class="builder-primary social-action matchmaking-button" type="button">🎯 Find Match</button>
           <button id="createParty" class="builder-secondary social-action" type="button">👥 Create Party</button>
           <button id="joinParty" class="builder-secondary social-action" type="button">🔗 Join Party</button>
         </section>
@@ -88,14 +93,26 @@ export class TeamBuilder {
 
     this.bind();
     const sizeSelect = this.root.querySelector("#battleSize");
-    sizeSelect.innerHTML = Array.from({length: 10}, (_, i) => `<option value="${i + 1}">${i + 1}v${i + 1}</option>`).join("");
+    sizeSelect.innerHTML = Array.from({length: 10}, (_, i) => `<option value="${i + 1}">${i + 1}v${i + 1} · ${i + 1} active / trainer</option>`).join("");
     sizeSelect.value = String(this.battleSize);
+    const teamSizeSelect = this.root.querySelector("#teamSize");
+    teamSizeSelect.innerHTML = Array.from({length: 10}, (_, i) => `<option value="${i + 1}">${i + 1} trainer${i === 0 ? '' : 's'} / team</option>`).join("");
+    teamSizeSelect.value = String(this.teamSize);
+    const updateMatchLabel = () => {
+      const btn = this.root.querySelector("#quickMatch");
+      if (btn) btn.textContent = `🎯 Find Match · ${this.battleSize}v${this.battleSize} · ${this.teamSize}v${this.teamSize} Trainers`;
+    };
     sizeSelect.addEventListener("change", () => {
       this.battleSize = Math.max(1, Math.min(10, Number(sizeSelect.value) || 1));
-      const quickButton = this.root.querySelector("#quickMatch");
-      if (quickButton) quickButton.textContent = `🎯 Quick Match ${this.battleSize}v${this.battleSize}`;
+      updateMatchLabel();
       this.renderTeam();
     });
+    teamSizeSelect.addEventListener("change", () => {
+      this.teamSize = Math.max(1, Math.min(10, Number(teamSizeSelect.value) || 1));
+      updateMatchLabel();
+      this.renderTeam();
+    });
+    updateMatchLabel();
     this.renderSpecies();
     this.renderTeam();
   }
@@ -119,6 +136,7 @@ export class TeamBuilder {
       }
       this.onMultiplayer("create", {
         battleSize: this.battleSize,
+        teamSize: this.teamSize,
         team: this.team.map(p => ({ species: p.species, level: p.level, moveset: [...(p.moveset ?? p.moves ?? [])], ability: p.ability, item: p.item ?? null }))
       });
     });
@@ -132,6 +150,7 @@ export class TeamBuilder {
       if (code?.trim()) this.onMultiplayer("join", {
         code: code.trim().toUpperCase(),
         battleSize: this.battleSize,
+        teamSize: this.teamSize,
         team: this.team.map(p => ({ species: p.species, level: p.level, moveset: [...(p.moveset ?? p.moves ?? [])], ability: p.ability, item: p.item ?? null }))
       });
     });
@@ -139,22 +158,18 @@ export class TeamBuilder {
     this.root.querySelector("#quickMatch").addEventListener("click", () => {
       if (!this.team.length) return alert("Add at least one Pokémon to your team first.");
       if (this.team.length < this.battleSize) return alert(`Add at least ${this.battleSize} Pokémon for a ${this.battleSize}v${this.battleSize} battle.`);
-      this.onMultiplayer("quickMatch", { team: this.serializeTeam(), battleSize: this.battleSize });
-    });
-
-    this.root.querySelector("#quickMatch2v2").addEventListener("click", () => {
-      if (!this.team.length) return alert("Add at least one Pokémon to your team first.");
-      this.onMultiplayer("quickMatch2v2", { team: this.serializeTeam() });
+      if (this.teamSize > 1 && this.battleSize > this.team.length) return alert(`Each trainer needs at least ${this.battleSize} Pokémon for the selected battle size.`);
+      this.onMultiplayer("quickMatch", { team: this.serializeTeam(), battleSize: this.battleSize, teamSize: this.teamSize });
     });
 
     this.root.querySelector("#createParty").addEventListener("click", () => {
       if (!this.team.length) return alert("Add at least one Pokémon to your team first.");
-      this.onMultiplayer("createParty", { team: this.serializeTeam() });
+      this.onMultiplayer("createParty", { team: this.serializeTeam(), battleSize: this.battleSize, teamSize: this.teamSize });
     });
 
     this.root.querySelector("#joinParty").addEventListener("click", () => {
       if (!this.team.length) return alert("Add at least one Pokémon to your team first.");
-      this.onMultiplayer("joinParty", { team: this.serializeTeam() });
+      this.onMultiplayer("joinParty", { team: this.serializeTeam(), battleSize: this.battleSize, teamSize: this.teamSize });
     });
 
     this.root.querySelector("#startBattle").addEventListener("click", () => {
@@ -169,6 +184,7 @@ export class TeamBuilder {
       }
       this.onStart({
         battleSize: this.battleSize,
+        teamSize: this.teamSize,
         team: this.team.map(p => ({
           species: p.species,
           level: p.level,
