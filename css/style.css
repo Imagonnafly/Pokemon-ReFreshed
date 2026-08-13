@@ -1007,3 +1007,336 @@ body:has(.multi-battle-page){
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}
 }
+
+
+/* ============================================================
+   NVSN v36 — FINAL RESPONSIVE FIELD-FIRST BATTLE LAYOUT
+   Fixes compressed/clipped 10v10 cards and keeps the battle
+   battlefield + command dock visible at the same time.
+   ============================================================ */
+
+html:has(.multi-battle-page),
+body:has(.multi-battle-page){
+  width:100%;
+  min-height:100%;
+  margin:0;
+  overflow:hidden !important;
+}
+
+.multi-battle-page{
+  width:100%;
+  height:100dvh;
+  min-height:100dvh;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.multi-battle-page .multi-battle-main{
+  flex:1 1 auto;
+  min-height:0;
+  height:auto;
+  width:100%;
+  max-width:none;
+  padding:10px 14px 10px;
+  display:grid;
+  grid-template-rows:minmax(430px, 1fr) minmax(150px, 22vh) 34px;
+  gap:10px;
+  overflow:hidden;
+}
+
+.multi-battle-page .multi-arena-shell{
+  min-height:0;
+  height:100%;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.multi-battle-page .multi-arena-shell .arena-header{
+  flex:0 0 auto;
+  min-height:58px;
+  height:58px;
+}
+
+.multi-battle-page .multi-field{
+  flex:1 1 auto;
+  min-height:0 !important;
+  height:auto !important;
+  overflow:hidden !important;
+  display:grid !important;
+  grid-template-rows:22px minmax(0,1fr) 42px minmax(0,1fr) 22px !important;
+  gap:7px !important;
+  padding:9px 12px 12px !important;
+}
+
+.multi-battle-page .multi-side-grid{
+  min-height:0;
+  height:100%;
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(var(--multi-cols,5), minmax(0,1fr));
+  grid-template-rows:repeat(var(--multi-rows,1), minmax(0,1fr));
+  gap:8px !important;
+  align-content:stretch;
+  overflow:hidden;
+}
+
+.multi-battle-page .multi-active-card{
+  min-width:0;
+  min-height:72px !important;
+  height:100% !important;
+  padding:7px 8px !important;
+  display:grid !important;
+  grid-template-columns:clamp(46px,4.2vw,76px) minmax(0,1fr);
+  grid-template-rows:auto auto 1fr;
+  gap:2px 8px;
+  overflow:hidden;
+}
+
+.multi-battle-page .multi-active-card img{
+  width:100%;
+  height:min(9.5vh,90px);
+  min-height:42px;
+  max-height:90px;
+  object-fit:contain;
+}
+
+.multi-battle-page .multi-slot-number{
+  left:6px;
+  top:5px;
+}
+
+.multi-battle-page .multi-card-title strong{
+  font-size:clamp(9px,.82vw,13px);
+}
+
+.multi-battle-page .multi-level{
+  font-size:8px;
+}
+
+.multi-battle-page .multi-card-info .types{
+  margin:3px 0 4px;
+}
+
+.multi-battle-page .multi-card-info .type{
+  font-size:6px;
+  padding:3px 5px;
+}
+
+.multi-battle-page .multi-active-card .hpbar{
+  height:6px;
+}
+
+.multi-battle-page .multi-active-card .hp-text{
+  font-size:7px;
+}
+
+.multi-battle-page .multi-command-shell{
+  min-height:0;
+  height:100%;
+  max-height:none !important;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.multi-battle-page .multi-target-hint{
+  flex:0 0 auto;
+  min-height:32px;
+}
+
+.multi-battle-page .multi-action-panel{
+  flex:1 1 auto;
+  min-height:0;
+  max-height:none !important;
+  overflow:auto !important;
+  padding:8px 12px !important;
+  scrollbar-width:thin;
+}
+
+.multi-battle-page .multi-command-header{
+  margin-bottom:6px;
+}
+
+.multi-battle-page .polished-moves{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+}
+
+.multi-battle-page .multi-move-button{
+  min-height:52px;
+}
+
+.multi-battle-page .multi-command-queue{
+  max-height:34px;
+  overflow:auto;
+}
+
+.multi-battle-page .multi-switch-row{
+  max-height:42px;
+  overflow:auto;
+}
+
+.multi-battle-page .multi-log-shell{
+  min-height:0;
+  height:34px;
+  max-height:34px;
+}
+
+/* Tall desktop: give the field more room and cards more presence. */
+@media (min-width:1101px) and (min-height:901px){
+  .multi-battle-page .multi-battle-main{
+    grid-template-rows:minmax(560px,1fr) minmax(158px,20vh) 34px;
+  }
+  .multi-battle-page .multi-active-card{
+    min-height:86px !important;
+  }
+  .multi-battle-page .multi-active-card img{
+    height:min(10vh,104px);
+    min-height:50px;
+    max-height:104px;
+  }
+}
+
+/* Desktop portrait */
+@media (min-width:901px) and (orientation:portrait){
+  .multi-battle-page .multi-battle-main{
+    grid-template-rows:minmax(560px,1fr) minmax(180px,23vh) 34px;
+  }
+  .multi-battle-page .multi-side-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  .multi-battle-page .multi-active-card{
+    min-height:86px !important;
+    grid-template-columns:54px minmax(0,1fr);
+  }
+}
+
+/* Tablet / mobile landscape */
+@media (max-width:900px){
+  .multi-battle-page .multi-battle-main{
+    height:calc(100dvh - 60px);
+    grid-template-rows:minmax(300px,1fr) minmax(145px,25dvh) 30px;
+    gap:6px;
+    padding:6px;
+  }
+  .multi-battle-page .multi-arena-shell .arena-header{
+    min-height:46px;
+    height:46px;
+  }
+  .multi-battle-page .multi-field{
+    grid-template-rows:18px minmax(0,1fr) 28px minmax(0,1fr) 18px !important;
+    gap:5px !important;
+    padding:6px !important;
+  }
+  .multi-battle-page .multi-side-grid{
+    gap:5px !important;
+  }
+  .multi-battle-page .multi-active-card{
+    min-height:56px !important;
+    grid-template-columns:34px minmax(0,1fr);
+    column-gap:5px;
+    padding:5px !important;
+    border-radius:11px;
+  }
+  .multi-battle-page .multi-active-card img{
+    height:min(7vh,56px);
+    min-height:30px;
+    max-height:56px;
+  }
+  .multi-battle-page .multi-card-title strong{font-size:8px}
+  .multi-battle-page .multi-card-info .type{font-size:5px;padding:2px 3px}
+  .multi-battle-page .multi-active-card .hpbar{height:4px}
+  .multi-battle-page .multi-active-card .hp-text{font-size:5px}
+  .multi-battle-page .multi-command-shell{
+    border-radius:15px;
+  }
+  .multi-battle-page .multi-action-panel{
+    padding:6px 8px !important;
+  }
+  .multi-battle-page .multi-move-button{
+    min-height:42px;
+  }
+}
+
+/* Mobile portrait */
+@media (max-width:600px) and (orientation:portrait){
+  .multi-battle-page .multi-battle-main{
+    height:calc(100dvh - 60px);
+    grid-template-rows:minmax(350px,1fr) minmax(160px,27dvh) 28px;
+    padding:5px;
+  }
+  .multi-battle-page .multi-arena-shell .arena-header{
+    min-height:42px;
+    height:42px;
+    padding:6px 8px;
+  }
+  .multi-battle-page .multi-arena-shell .arena-header h2{
+    font-size:12px;
+  }
+  .multi-battle-page .multi-field{
+    grid-template-rows:16px minmax(0,1fr) 22px minmax(0,1fr) 16px !important;
+    padding:5px !important;
+  }
+  .multi-battle-page .multi-side-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:4px !important;
+  }
+  .multi-battle-page .multi-active-card{
+    min-height:58px !important;
+    grid-template-columns:26px minmax(0,1fr);
+    border-radius:10px;
+  }
+  .multi-battle-page .multi-active-card img{
+    height:42px;
+    min-height:28px;
+  }
+  .multi-battle-page .multi-card-title strong{font-size:7px}
+  .multi-battle-page .multi-level{display:none}
+  .multi-battle-page .multi-card-info .types{display:none}
+  .multi-battle-page .multi-active-card .hp-text{font-size:5px}
+  .multi-battle-page .polished-moves{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:5px;
+  }
+  .multi-battle-page .multi-move-button{
+    min-height:40px;
+  }
+}
+
+/* Mobile landscape: 5 columns for 10-slot sides. */
+@media (max-width:900px) and (orientation:landscape){
+  .multi-battle-page .multi-battle-main{
+    grid-template-rows:minmax(250px,1fr) minmax(118px,24dvh) 24px;
+  }
+  .multi-battle-page .multi-side-grid{
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:4px !important;
+  }
+  .multi-battle-page .multi-active-card{
+    min-height:48px !important;
+    grid-template-columns:27px minmax(0,1fr);
+    padding:4px !important;
+  }
+  .multi-battle-page .multi-active-card img{
+    height:32px;
+    min-height:24px;
+  }
+  .multi-battle-page .multi-card-title strong{font-size:6px}
+  .multi-battle-page .multi-card-info .types{display:none}
+  .multi-battle-page .multi-active-card .hpbar{height:3px}
+  .multi-battle-page .multi-action-panel{padding:5px 7px !important}
+  .multi-battle-page .multi-move-button{min-height:34px}
+}
+
+/* Prevent cards from being visually pushed behind the central lane. */
+.multi-battle-page .multi-side-grid > .multi-active-card{
+  z-index:2;
+}
+.multi-battle-page .center-battle-lane{
+  z-index:8;
+}
+.multi-battle-page .side-label{
+  z-index:9;
+}
