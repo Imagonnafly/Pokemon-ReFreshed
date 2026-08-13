@@ -88,14 +88,16 @@ export class Renderer {
     const active = this.battle.activeIndices("player") || [];
     const pending = this.getLocalPendingActions();
     const submittedSlots = new Set(pending.map(a => a.slot));
-    if (!active.includes(this.battle.player?.active?.[this.multiSelectedSlot])) {
-      this.multiSelectedSlot = 0;
+    const currentTeamIndex = this.battle.player?.active?.[this.multiSelectedSlot];
+    if (!active.includes(currentTeamIndex)) this.multiSelectedSlot = 0;
+    const selectedTeamIndex = this.battle.player?.active?.[this.multiSelectedSlot];
+    if (submittedSlots.has(this.multiSelectedSlot) || !this.battle.player?.team?.[selectedTeamIndex]?.canBattle()) {
+      const next = active.findIndex((teamIndex, slot) => {
+        const p = this.battle.player.team[teamIndex];
+        return p?.canBattle() && !submittedSlots.has(slot);
+      });
+      if (next >= 0) this.multiSelectedSlot = next;
     }
-    const availableSlot = active.findIndex((teamIndex, slot) => {
-      const p = this.battle.player.team[teamIndex];
-      return p?.canBattle() && !submittedSlots.has(slot);
-    });
-    if (availableSlot >= 0) this.multiSelectedSlot = availableSlot;
     if (this.multiTargeting && submittedSlots.has(this.multiTargeting.slot)) this.multiTargeting = null;
   }
 
@@ -111,9 +113,35 @@ export class Renderer {
     ]);
   }
 
-  getTargetSideForMove(move) {
-    if (move.id === "helping-hand") return "player";
-    return this.getSelfTargetMoves().has(move.id) ? "player" : "opponent";
+  getTargetMode(move) {
+    const explicit = String(move?.target || move?.targeting || "").toLowerCase();
+    if (["self"].includes(explicit) || this.getSelfTargetMoves().has(move.id)) return "self";
+    if (["ally", "ally-one", "teammate", "player"].includes(explicit) || move.id === "helping-hand") return "ally";
+    if (["any", "all"].includes(explicit)) return "any";
+    return "opponent";
+  }
+
+  getValidTargetSides(move) {
+    const mode = this.getTargetMode(move);
+    if (mode === "self") return ["player"];
+    if (mode === "ally") return ["player"];
+    if (mode === "any") return ["player", "opponent"];
+    return ["opponent"];
+  }
+
+  getTargetIndexesForMove(slot, move) {
+    const mode = this.getTargetMode(move);
+    const own = this.battle.player.team[this.battle.player.active[slot]];
+    const ownIndex = this.battle.player.active[slot];
+    if (mode === "self") return { player: own?.canBattle() ? [ownIndex] : [] };
+    if (mode === "ally") return { player: (this.battle.activeIndices("player") || []).filter(i => i !== ownIndex) };
+    if (mode === "any") {
+      return {
+        player: (this.battle.activeIndices("player") || []),
+        opponent: (this.battle.activeIndices("opponent") || [])
+      };
+    }
+    return { opponent: (this.battle.activeIndices("opponent") || []) };
   }
 
   renderTurnAndField() {
@@ -177,6 +205,7 @@ export class Renderer {
     const pending = side === "player" ? this.getLocalPendingActions() : (Array.isArray(this.battle.pendingActions?.opponent) ? this.battle.pendingActions.opponent : []);
     const pendingSlots = new Set(pending.map(a => a.slot));
     const selectedTargetIndex = this.multiTargeting?.targetSide === side ? this.multiTargeting.targetIndex : null;
+    const allowedTargetSides = this.multiTargeting?.targetSides || [];
 
     for (let slot = 0; slot < battleSize; slot++) {
       const teamIndex = slots[slot];
@@ -186,10 +215,13 @@ export class Renderer {
       card.className = `multi-active-card ${p?.canBattle() ? "" : "fainted"}`;
       if (side === "player" && p?.canBattle()) card.classList.add("own-card");
       if (side === "opponent" && p?.canBattle()) card.classList.add("opponent-card");
-      if (side === "player" && pendingSlots.has(slot)) card.classList.add("action-ready");
-      if (this.multiTargeting && this.multiTargeting.targetSide === side && teamIndex === this.multiHoverTarget) card.classList.add("target-hover");
+      const isTargetSide = allowedTargetSides.includes(side);
+      if (this.multiTargeting && isTargetSide && teamIndex === this.multiHoverTarget) card.classList.add("target-hover");
       if (this.multiTargeting && this.multiTargeting.targetSide === side && teamIndex === selectedTargetIndex) card.classList.add("target-selected");
-      if (this.multiTargeting && this.multiTargeting.targetSide === side && p?.canBattle()) card.classList.add("targetable");
+      if (this.multiTargeting && isTargetSide && p?.canBattle()) card.classList.add("targetable");
+      if (!this.multiTargeting && side === "player" && p?.canBattle() && !pendingSlots.has(slot)) card.classList.add("field-selectable");
+      if (side === "player" && slot === this.multiSelectedSlot && p?.canBattle() && !this.multiTargeting) card.classList.add("field-selected");
+      if (!this.multiTargeting && side === "player" && pendingSlots.has(slot)) card.classList.add("action-ready");
       card.disabled = !p?.canBattle() || (!!this.multiTargeting ? !card.classList.contains("targetable") : false);
       card.innerHTML = p ? `
         <div class="multi-card-glow"></div>
@@ -219,15 +251,24 @@ export class Renderer {
   }
 
   handleMultiCardClick(side, slot, teamIndex) {
-    if (!this.multiTargeting) return;
-    if (side !== this.multiTargeting.targetSide || teamIndex !== this.multiTargeting.targetIndex) {
-      if (side === this.multiTargeting.targetSide) {
-        this.multiTargeting.targetIndex = teamIndex;
-        this.multiHoverTarget = teamIndex;
-        this.commitMultiTarget();
-      }
+    if (this.battle.busy || this.battle.over) return;
+    const p = this.battle[side]?.team?.[teamIndex];
+    if (!p?.canBattle()) return;
+
+    if (!this.multiTargeting) {
+      if (side !== "player") return;
+      const pending = this.getLocalPendingActions();
+      if (pending.some(a => a.slot === slot)) return;
+      this.multiSelectedSlot = slot;
+      this.render();
       return;
     }
+
+    const allowed = this.multiTargeting.targetSides || [this.multiTargeting.targetSide];
+    if (!allowed.includes(side)) return;
+    this.multiTargeting.targetSide = side;
+    this.multiTargeting.targetIndex = teamIndex;
+    this.multiHoverTarget = teamIndex;
     this.commitMultiTarget();
   }
 
@@ -261,25 +302,6 @@ export class Renderer {
     const pending = this.getLocalPendingActions();
     const bySlot = new Map(pending.map(a => [a.slot, a]));
 
-    if (this.els.multiActiveTabs) {
-      this.els.multiActiveTabs.innerHTML = "";
-      active.forEach((teamIndex, slot) => {
-        const p = this.battle.player.team[teamIndex];
-        if (!p?.canBattle()) return;
-        const tab = document.createElement("button");
-        tab.type = "button";
-        tab.className = `multi-active-tab ${this.multiSelectedSlot === slot ? "selected" : ""} ${bySlot.has(slot) ? "locked" : ""}`;
-        tab.innerHTML = `<span class="tab-number">${slot + 1}</span><img src="${this.escape(p.sprites?.front || "")}" alt=""><span class="tab-name">${this.escape(p.name)}</span>${bySlot.has(slot) ? `<span class="tab-check">✓</span>` : ""}`;
-        tab.disabled = !!bySlot.has(slot) || this.battle.busy || this.battle.over;
-        tab.addEventListener("click", () => {
-          this.multiTargeting = null;
-          this.multiSelectedSlot = slot;
-          this.render();
-        });
-        this.els.multiActiveTabs.appendChild(tab);
-      });
-    }
-
     if (this.battle.over) {
       panel.innerHTML = `<div class="multi-finish-panel"><strong>Battle complete</strong><span>Return to Team Builder to start another match.</span></div>`;
       this.updateTargetHint();
@@ -287,10 +309,10 @@ export class Renderer {
     }
 
     const slot = this.multiSelectedSlot;
-    const teamIndex = active[slot];
-    const pokemon = this.battle.player.team[teamIndex];
+    const teamIndex = this.battle.player.active?.[slot];
+    const pokemon = this.battle.player.team?.[teamIndex];
     if (!pokemon?.canBattle()) {
-      panel.innerHTML = `<div class="multi-empty-panel">Select an active Pokémon above.</div>`;
+      panel.innerHTML = `<div class="multi-empty-panel">Click one of your active Pokémon to command it.</div>`;
       this.updateTargetHint();
       return;
     }
@@ -301,33 +323,64 @@ export class Renderer {
 
     const header = document.createElement("div");
     header.className = "multi-command-header";
-    header.innerHTML = `<div><span class="eyebrow">COMMAND</span><h2>${this.escape(pokemon.name)}</h2></div><div class="command-progress">${pending.length}/${active.length} actions</div>`;
+    header.innerHTML = `<div><span class="eyebrow">COMMANDING</span><h2>${this.escape(pokemon.name)}</h2></div><div class="command-progress">${pending.length}/${active.length} actions</div>`;
     panel.appendChild(header);
 
-    const moveGrid = document.createElement("div");
-    moveGrid.className = "multi-move-grid polished-moves";
-    moves.forEach(move => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = `multi-move-button ${selectedMoveId === move.id ? "move-selected" : ""}`;
-      btn.dataset.category = move.category || "status";
-      btn.disabled = !!selected || this.battle.busy;
-      btn.innerHTML = `<span class="move-name">${this.escape(move.name)}</span><span class="move-meta"><b>${this.escape((move.types || []).join(" / "))}</b><i>${this.escape(move.category || "status")}</i></span><span class="move-pp">${move.pp ?? "—"} PP</span>`;
-      btn.addEventListener("click", () => this.beginMultiMoveTarget(slot, move));
-      moveGrid.appendChild(btn);
-    });
-    panel.appendChild(moveGrid);
+    if (selected) {
+      const locked = document.createElement("div");
+      locked.className = "multi-locked-banner";
+      locked.innerHTML = `<span>✓</span><div><strong>Action locked in</strong><small>${this.escape(selected.kind === "switch" ? `Switch to ${this.battle.player.team[selected.targetIndex]?.name || "Pokémon"}` : (pokemon.moves.find(m => m.id === selected.moveId)?.name || selected.moveId))}</small></div>`;
+      panel.appendChild(locked);
+    } else {
+      const moveGrid = document.createElement("div");
+      moveGrid.className = "multi-move-grid polished-moves";
+      moves.forEach(move => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `multi-move-button ${selectedMoveId === move.id ? "move-selected" : ""}`;
+        btn.dataset.category = move.category || "status";
+        btn.disabled = this.battle.busy;
+        btn.innerHTML = `<span class="move-name">${this.escape(move.name)}</span><span class="move-meta"><b>${this.escape((move.types || []).join(" / "))}</b><i>${this.escape(move.category || "status")}</i></span><span class="move-pp">${move.pp ?? "—"} PP</span>`;
+        btn.addEventListener("click", () => this.beginMultiMoveTarget(slot, move));
+        moveGrid.appendChild(btn);
+      });
+      panel.appendChild(moveGrid);
+    }
+
+    const bench = Array.from(this.battle.player.team || []).map((p, i) => ({ p, i }))
+      .filter(({p, i}) => p?.canBattle() && !active.includes(i));
+    if (bench.length && !selected && !this.multiTargeting) {
+      const switchSection = document.createElement("div");
+      switchSection.className = "multi-switch-section";
+      switchSection.innerHTML = `<div class="switch-title"><span>SWITCH</span><small>Replace ${this.escape(pokemon.name)}</small></div>`;
+      const switchRow = document.createElement("div");
+      switchRow.className = "multi-switch-row";
+      for (const {p, i} of bench) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "multi-switch-button";
+        btn.innerHTML = `<img src="${this.escape(p.sprites?.front || "")}" alt=""><span>${this.escape(p.name)}</span>`;
+        btn.disabled = this.battle.busy;
+        btn.addEventListener("click", () => {
+          const ok = this.battle.setLocalSwitch?.(slot, i);
+          if (ok) this.render();
+        });
+        switchRow.appendChild(btn);
+      }
+      switchSection.appendChild(switchRow);
+      panel.appendChild(switchSection);
+    }
 
     const queue = document.createElement("div");
     queue.className = "multi-command-queue";
-    active.forEach((_, actionSlot) => {
+    active.forEach((teamIndex2, actionSlot) => {
       const action = bySlot.get(actionSlot);
       if (!action) return;
-      const p = this.battle.player.team[active[actionSlot]];
-      const move = p?.moves?.find(m => m.id === action.moveId);
+      const p = this.battle.player.team[teamIndex2];
+      const label = action.kind === "switch" ? `Switch → ${this.battle.player.team[action.targetIndex]?.name || "Pokémon"}` : (p?.moves?.find(m => m.id === action.moveId)?.name || action.moveId);
       const chip = document.createElement("span");
       chip.className = "action-chip";
-      chip.innerHTML = `<strong>${this.escape(p?.name || "Pokémon")}</strong><span>${this.escape(move?.name || action.moveId)}</span>`;
+      chip.innerHTML = `<strong>${this.escape(p?.name || "Pokémon")}</strong><span>${this.escape(label)}</span>`;
       queue.appendChild(chip);
     });
     if (queue.childElementCount) panel.appendChild(queue);
@@ -337,24 +390,24 @@ export class Renderer {
 
   beginMultiMoveTarget(slot, move) {
     if (this.battle.busy || this.battle.over) return;
-    const targetSide = this.getTargetSideForMove(move);
-    const targets = this.battle.getAvailableTargets("player", targetSide) || [];
-    if (!targets.length) return;
+    const mode = this.getTargetMode(move);
+    const sides = this.getValidTargetSides(move);
+    const targets = this.getTargetIndexesForMove(slot, move);
 
-    if (this.getSelfTargetMoves().has(move.id)) {
-      const targetIndex = targets[0].index;
+    if (mode === "self") {
+      const targetIndex = targets.player?.[0];
+      if (targetIndex === undefined) return;
       const actionOk = this.battle.setLocalAction
-        ? this.battle.setLocalAction(slot, move.id, targetSide, targetIndex)
-        : this.battle.submitAction(slot, move.id, targetSide, targetIndex);
-      if (actionOk) {
-        this.multiTargeting = null;
-        this.multiSelectedSlot = this.findNextUnsubmittedSlot();
-        this.render();
-      }
+        ? this.battle.setLocalAction(slot, move.id, "player", targetIndex)
+        : this.battle.submitAction(slot, move.id, "player", targetIndex);
+      if (actionOk) { this.multiTargeting = null; this.render(); }
       return;
     }
 
-    this.multiTargeting = { slot, move, targetSide, targetIndex: null };
+    const hasTarget = sides.some(side => (targets[side] || []).length);
+    if (!hasTarget) return;
+    this.multiTargeting = { slot, move, targetSides: sides, targetSide: sides.length === 1 ? sides[0] : null, targetIndex: null };
+    this.multiHoverTarget = null;
     this.updateTargetHint();
     this.renderMultiGrid("opponent", this.els.multiOppGrid);
     this.renderMultiGrid("player", this.els.multiPlayerGrid);
@@ -364,11 +417,11 @@ export class Renderer {
   updateTargetHint() {
     if (!this.els.multiTargetHint) return;
     if (!this.multiTargeting) {
-      this.els.multiTargetHint.innerHTML = `<span class="hint-dot"></span><span>Select a move, then click the Pokémon you want to target.</span>`;
+      this.els.multiTargetHint.innerHTML = `<span class="hint-dot"></span><span>Click one of your active Pokémon to command it.</span>`;
       this.els.multiTargetHint.classList.remove("active");
       return;
     }
-    const sideLabel = this.multiTargeting.targetSide === "player" ? "your side" : "the opponent's side";
+    const sideLabel = this.multiTargeting.targetSides?.length === 2 ? "either side" : (this.multiTargeting.targetSides?.[0] === "player" ? "your side" : "the opponent's side");
     this.els.multiTargetHint.innerHTML = `<span class="hint-pulse"></span><span><strong>${this.escape(this.multiTargeting.move.name)}</strong> — choose a target on ${sideLabel}.</span><button type="button" class="cancel-target">Cancel</button>`;
     this.els.multiTargetHint.classList.add("active");
     this.els.multiTargetHint.querySelector(".cancel-target")?.addEventListener("click", () => {

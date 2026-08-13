@@ -531,3 +531,33 @@ body:has(.party-battle-page){overflow:hidden}
   .party-switch-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:none}
   .party-battle-page .multi-log-shell{max-height:none}
 }
+
+
+/* Field-first N-vs-N command UX */
+.multi-active-tabs{display:none !important}
+.multi-battle-page{height:100vh;overflow:hidden}
+.multi-battle-main{height:calc(100vh - 74px);box-sizing:border-box;display:grid;grid-template-rows:minmax(0,1fr) auto auto;gap:10px;overflow:hidden;padding:10px 16px 12px}
+.multi-arena-shell{min-height:0;display:flex;flex-direction:column}
+.multi-field{min-height:0 !important;height:100%;box-sizing:border-box;overflow:hidden;padding:12px 16px 16px !important;gap:10px !important}
+.multi-side-grid{gap:8px !important;align-content:center}
+.multi-active-card{min-height:92px !important;padding:7px !important;cursor:pointer;transition:transform .18s ease,box-shadow .2s ease,border-color .2s ease,filter .2s ease}
+.multi-active-card.own-card.field-selectable:hover{transform:translateY(-4px) scale(1.01);border-color:#7390f6;box-shadow:0 15px 30px rgba(55,84,177,.14),0 0 0 3px rgba(91,125,245,.09)}
+.multi-active-card.field-selectable:after{content:"COMMAND";position:absolute;right:8px;top:8px;padding:3px 5px;border-radius:999px;background:rgba(87,120,241,.1);color:#5776d8;font-size:6px;font-weight:1000;letter-spacing:.08em;opacity:0;transform:translateY(-3px);transition:.18s ease}
+.multi-active-card.field-selectable:hover:after{opacity:1;transform:translateY(0)}
+.multi-active-card.field-selected{border-color:#5d7cf1;box-shadow:0 0 0 3px rgba(93,124,241,.14),0 16px 32px rgba(57,85,181,.12);transform:translateY(-2px)}
+.multi-active-card.action-ready{border-color:#9fdfb6;background:linear-gradient(145deg,#fbfffc,#f0fbf4)}
+.multi-command-shell{position:sticky !important;bottom:0;z-index:20;margin-top:0 !important}
+.multi-command-panel{max-height:230px;overflow:auto}
+.multi-action-panel{padding:12px 14px !important;max-height:260px;overflow:auto}
+.multi-locked-banner{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:10px;border:1px solid #cbe7d4;border-radius:14px;background:linear-gradient(135deg,#f6fff9,#eefaf3);color:#4a725b}
+.multi-locked-banner>span{width:24px;height:24px;display:grid;place-items:center;border-radius:8px;background:#55c778;color:white;font-weight:1000}
+.multi-locked-banner strong,.multi-locked-banner small{display:block}.multi-locked-banner strong{font-size:10px}.multi-locked-banner small{font-size:9px;margin-top:2px;color:#759182}
+.multi-switch-section{margin-top:10px;padding-top:10px;border-top:1px solid #e6ebf3}
+.switch-title{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}.switch-title span{font-size:8px;font-weight:1000;letter-spacing:.13em;color:#7b89a1}.switch-title small{font-size:8px;color:#8b99ac}
+.multi-switch-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px}
+.multi-switch-button{min-width:100px;height:48px;display:flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid #dbe4f0;border-radius:12px;background:#fff;cursor:pointer;color:#394a64;box-shadow:0 4px 12px rgba(31,48,76,.05);transition:.18s ease}
+.multi-switch-button:hover:not(:disabled){transform:translateY(-2px);border-color:#84a0ef;box-shadow:0 9px 18px rgba(51,75,128,.1)}
+.multi-switch-button img{width:34px;height:34px;object-fit:contain}.multi-switch-button span{font-size:8px;font-weight:1000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.multi-battle-main .multi-log-shell{min-height:0}.multi-battle-log{height:72px !important}
+@media (max-height:800px){.multi-battle-main{height:calc(100vh - 68px);grid-template-rows:minmax(0,1fr) auto auto;gap:7px;padding:7px 10px}.multi-field{padding:8px 10px 10px !important}.multi-active-card{min-height:76px !important}.multi-active-card img{height:40px !important}.multi-action-panel{max-height:220px}.polished-moves{gap:7px}.multi-move-button{min-height:62px;padding:9px 10px}}
+@media (max-width:900px){.multi-battle-page{height:auto;min-height:100vh;overflow:visible}.multi-battle-main{height:auto;overflow:visible;display:block;padding:8px}.multi-arena-shell{min-height:0}.multi-field{height:auto;min-height:0 !important;overflow:visible}.multi-command-shell{position:sticky !important;bottom:6px}.multi-action-panel{max-height:46vh}}

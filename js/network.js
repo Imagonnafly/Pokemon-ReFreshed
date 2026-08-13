@@ -296,6 +296,23 @@ export class RemoteMultiBattle {
     return (pokemon.moves || []).filter(m => (m.pp ?? 1) > 0 && !(pokemon.volatile?.tauntTurns > 0 && m.category === "status"));
   }
 
+  setLocalSwitch(slot, targetIndex) {
+    if (this.over || this.busy) return false;
+    const activeIndex = this.player.active[slot];
+    const p = this.player.team[activeIndex];
+    const target = this.player.team[targetIndex];
+    if (!p?.canBattle() || !target?.canBattle() || (this.player.active || []).includes(targetIndex)) return false;
+    this.localActions = this.localActions.filter(a => a.slot !== slot);
+    this.localActions.push({ kind: 'switch', slot, pokemonIndex: activeIndex, targetIndex });
+    if (this.localActions.length >= this.activeIndices('player').length) {
+      this.busy = true;
+      this.locked = true;
+      this.sendActions?.(this.localActions);
+    }
+    this.onUpdate?.();
+    return true;
+  }
+
   submitAction(slot, moveId, targetSide, targetIndex) {
     if (this.over || this.busy) return false;
     const activeIndex = this.player.active[slot];

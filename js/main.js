@@ -404,8 +404,7 @@ function mountBattleUI(battle, role = "local") {
         </section>
 
         <section class="multi-command-shell">
-          <div class="multi-target-hint" id="multiTargetHint"><span class="hint-dot"></span><span>Select a move, then click the Pokémon you want to target.</span></div>
-          <div class="multi-active-tabs" id="multiActiveTabs" aria-label="Active Pokémon"></div>
+          <div class="multi-target-hint" id="multiTargetHint"><span class="hint-dot"></span><span>Click one of your Pokémon to command it.</span></div>
           <div class="multi-action-panel" id="multiActionPanel"></div>
         </section>
 

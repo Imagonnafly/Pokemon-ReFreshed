@@ -98,6 +98,31 @@ export class MultiBattle extends Battle {
     return `${side}:${slotIndex}`;
   }
 
+  setLocalSwitch(slotIndex, targetIndex) {
+    if (this.over || this.busy || !this.isMulti) return false;
+    const active = this.player.active || [];
+    const actualIndex = active[slotIndex];
+    const pokemon = this.player.team[actualIndex];
+    if (!pokemon?.canBattle()) return false;
+    const target = this.player.team[targetIndex];
+    if (!target?.canBattle() || active.includes(targetIndex)) return false;
+    this.pendingActions.player = Array.isArray(this.pendingActions.player) ? this.pendingActions.player : [];
+    this.pendingActions.player = this.pendingActions.player.filter(a => a.slot !== slotIndex);
+    this.pendingActions.player.push({ kind: "switch", slot: slotIndex, pokemonIndex: actualIndex, targetIndex });
+    this.localActionsSubmitted = this.pendingActions.player.length >= this.activeIndices("player").length;
+    this.write(`${pokemon.name} will switch out!`);
+    this.update();
+    if (this.networkRole === "host") {
+      this.pendingNetwork = this.pendingNetwork || {};
+      this.pendingNetwork.playerActions = this.pendingActions.player;
+      this.updateNetworkState?.();
+      if (this.remoteActionsSubmitted) this.tryResolveNetworkActions();
+    } else if (!this.networkRole && this.localActionsSubmitted) {
+      this.resolveActions(this.pendingActions.player, this.buildAIOpponentActions());
+    }
+    return true;
+  }
+
   setLocalAction(slotIndex, moveId, targetSide = "opponent", targetIndex = null) {
     if (this.over || this.busy || !this.isMulti) return false;
     const team = this.player.team;
@@ -180,12 +205,16 @@ export class MultiBattle extends Battle {
     });
 
     actions.sort((a, b) => {
+      if (a.kind === "switch" || b.kind === "switch") {
+        if (a.kind === "switch" && b.kind !== "switch") return -1;
+        if (b.kind === "switch" && a.kind !== "switch") return 1;
+      }
       const ap = this[a.side].team[a.pokemonIndex];
       const bp = this[b.side].team[b.pokemonIndex];
       const am = ap.moves.find(m => m.id === a.moveId) ?? ap.moves[0];
       const bm = bp.moves.find(m => m.id === b.moveId) ?? bp.moves[0];
-      const pa = this.getMovePriority(am, ap);
-      const pb = this.getMovePriority(bm, bp);
+      const pa = a.kind === "switch" ? 100 : this.getMovePriority(am, ap);
+      const pb = b.kind === "switch" ? 100 : this.getMovePriority(bm, bp);
       if (pa !== pb) return pb - pa;
       const sa = this.getStat(ap, "speed");
       const sb = this.getStat(bp, "speed");
@@ -196,16 +225,30 @@ export class MultiBattle extends Battle {
     this.write(`${actions.length} actions queued — resolving the turn...`);
 
     for (const action of actions) {
-      const attacker = this[action.side].team[action.pokemonIndex];
-      if (!attacker?.canBattle()) continue;
-      const defenderTeam = this[action.targetSide === "player" ? "player" : "opponent"]?.team;
-      const defender = defenderTeam?.[action.targetIndex];
-      const move = attacker.moves.find(m => m.id === action.moveId);
-      if (!defender?.canBattle() || !move) {
-        this.write(`${attacker.name}'s target is no longer available.`);
+      const sideState = this[action.side];
+      const actor = sideState?.team?.[action.pokemonIndex];
+      if (!actor?.canBattle()) continue;
+      if (action.kind === "switch") {
+        const currentActive = Array.isArray(sideState.active) ? sideState.active : [];
+        const slot = Number(action.slot);
+        const replacement = sideState.team[action.targetIndex];
+        if (!replacement?.canBattle() || currentActive.includes(action.targetIndex)) continue;
+        if (currentActive[slot] !== action.pokemonIndex) continue;
+        this.resetOnSwitch(actor);
+        currentActive[slot] = action.targetIndex;
+        sideState.active = currentActive;
+        this.triggerAbility(replacement, "onBattleStart");
+        this.write(`${action.side === "player" ? "Your Pokémon" : "The opposing Pokémon"} ${actor.name} was switched out for ${replacement.name}!`);
         continue;
       }
-      await this.performMove(attacker, defender, move);
+      const defenderTeam = this[action.targetSide === "player" ? "player" : "opponent"]?.team;
+      const defender = defenderTeam?.[action.targetIndex];
+      const move = actor.moves.find(m => m.id === action.moveId);
+      if (!defender?.canBattle() || !move) {
+        this.write(`${actor.name}'s target is no longer available.`);
+        continue;
+      }
+      await this.performMove(actor, defender, move);
     }
 
     this.autoFillFaintedSlots();
