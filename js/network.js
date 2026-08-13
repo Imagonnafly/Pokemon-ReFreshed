@@ -342,16 +342,21 @@ export class RemoteMultiBattle {
 }
 
 function getTrainerIdentity() {
-  const key = "pokemon-trainer-id";
-  let id = localStorage.getItem(key);
+  // Use a per-tab/session ID for realtime matchmaking. Using localStorage here
+  // caused multiple browser tabs on the same machine to appear as the same
+  // trainer, which makes a 4-player local matchmaking test impossible and can
+  // also corrupt queue grouping. Trainer display name remains persistent.
+  const idKey = "pokemon-trainer-session-id";
+  let id = sessionStorage.getItem(idKey);
   if (!id) {
     id = crypto.randomUUID();
-    localStorage.setItem(key, id);
+    sessionStorage.setItem(idKey, id);
   }
-  let name = localStorage.getItem("pokemon-trainer-name");
+  const nameKey = "pokemon-trainer-name";
+  let name = localStorage.getItem(nameKey);
   if (!name) {
     name = `Trainer ${id.slice(0, 4).toUpperCase()}`;
-    localStorage.setItem("pokemon-trainer-name", name);
+    localStorage.setItem(nameKey, name);
   }
   return { id, name };
 }
@@ -454,14 +459,17 @@ export class PartyMatchClient {
     }
   }
 
-  async queueSolo(mode = "team-2v2") {
-    const group = { groupId: this.identity.id, members: [{ id: this.identity.id, name: this.identity.name, team: this.team }] };
+  async queueSolo(mode = "team-2v2", battleSize = 1) {
+    const group = {
+      groupId: this.identity.id,
+      members: [{ id: this.identity.id, name: this.identity.name, team: this.team }]
+    };
     this.queueMode = mode;
     this.queueGroup = group;
-    await this.joinQueue(mode, group);
+    await this.joinQueue(mode, group, battleSize);
   }
 
-  async queueParty(mode = "team-2v2") {
+  async queueParty(mode = "team-2v2", battleSize = 2) {
     if (!this.party || this.party.members.length < 2) throw new Error("Your party needs two trainers before entering matchmaking.");
     if (this.party.hostId !== this.identity.id) {
       this.onStatus("Only the party leader can start matchmaking.");
@@ -473,16 +481,17 @@ export class PartyMatchClient {
     };
     this.queueMode = mode;
     this.queueGroup = group;
-    await this.joinQueue(mode, group);
+    await this.joinQueue(mode, group, battleSize);
     await this.partyChannel?.send({ type: "broadcast", event: "party", payload: { type: "party_queue", mode, group } });
   }
 
-  async joinQueue(mode, group) {
+  async joinQueue(mode, group, battleSize = 1) {
     await this.ensureQueueChannel();
     const ticket = {
       ticketId: `${group.groupId}:${Date.now()}`,
       groupId: group.groupId,
       mode,
+      battleSize: Math.max(1, Math.min(10, Number(battleSize) || 1)),
       createdAt: Date.now(),
       leaderId: group.members.map(m => m.id).sort()[0],
       members: group.members
@@ -490,10 +499,24 @@ export class PartyMatchClient {
     this.queueTickets.set(ticket.groupId, ticket);
     await this.queueChannel.send({ type: "broadcast", event: "queue", payload: { type: "queue_ticket", ticket } });
     this.onStatus("Searching for trainers…");
+    this.matchmakingActive = true;
+    this.startQueueHeartbeat(ticket);
     this.attemptMatch();
   }
 
+  startQueueHeartbeat(ticket) {
+    clearInterval(this.queueHeartbeat);
+    this.queueHeartbeat = setInterval(() => {
+      if (!this.matchmakingActive || !this.queueChannel) return;
+      this.queueChannel.send({ type: "broadcast", event: "queue", payload: { type: "queue_ticket", ticket } }).catch(() => {});
+      this.attemptMatch();
+    }, 1500);
+  }
+
   async leaveQueue() {
+    this.matchmakingActive = false;
+    clearInterval(this.queueHeartbeat);
+    this.queueHeartbeat = null;
     if (this.queueChannel && this.queueGroup) {
       this.queueTickets.delete(this.queueGroup.groupId);
       await this.queueChannel.send({ type: "broadcast", event: "queue", payload: { type: "queue_leave", groupId: this.queueGroup.groupId } });
@@ -505,7 +528,8 @@ export class PartyMatchClient {
   handleQueueMessage(message) {
     if (!message) return;
     if (message.type === "queue_ticket" && message.ticket) {
-      if (message.ticket.mode !== "team-2v2") return;
+      const validMode = message.ticket.mode === "team-2v2" || /^normal-\d+$/.test(message.ticket.mode);
+      if (!validMode) return;
       this.queueTickets.set(message.ticket.groupId, message.ticket);
       this.attemptMatch();
     } else if (message.type === "queue_leave") {
@@ -521,52 +545,100 @@ export class PartyMatchClient {
   }
 
   attemptMatch() {
-    const tickets = [...this.queueTickets.values()]
-      .filter(t => t.mode === "team-2v2")
+    const allTickets = [...this.queueTickets.values()]
+      .filter(t => Array.isArray(t.members) && t.members.length >= 1 && t.members.length <= 2)
       .sort((a, b) => a.createdAt - b.createdAt || a.groupId.localeCompare(b.groupId));
-    if (!tickets.length || !this.queueGroup) return;
-    const myLeader = this.queueGroup.members.map(m => m.id).sort()[0];
-    const current = tickets.find(t => t.groupId === this.queueGroup.groupId);
-    if (!current || current.leaderId !== myLeader) return;
+    if (!allTickets.length || !this.queueGroup || !this.matchmakingActive) return;
+
+    const myGroupId = this.queueGroup.groupId;
+    const myTicket = allTickets.find(t => t.groupId === myGroupId);
+    if (!myTicket) return;
+
+    // Normal matchmaking: exactly two solo trainers, same N-vs-N size.
+    if (/^normal-\d+$/.test(myTicket.mode)) {
+      const mode = myTicket.mode;
+      const battleSize = Math.max(1, Math.min(10, Number(myTicket.battleSize) || Number(mode.split('-')[1]) || 1));
+      const tickets = allTickets.filter(t => t.mode === mode && t.members.length === 1);
+      if (tickets.length < 2) {
+        this.onStatus(`Searching for ${battleSize}v${battleSize} trainers… ${tickets.length}/2 found`);
+        return;
+      }
+      const coordinatorTicket = tickets[0];
+      if (coordinatorTicket.leaderId !== this.identity.id) return;
+      const picked = tickets.slice(0, 2);
+      const first = picked[0].members[0];
+      const second = picked[1].members[0];
+      const members = [
+        { ...first, side: "alpha" },
+        { ...second, side: "beta" }
+      ];
+      const match = {
+        id: crypto.randomUUID(),
+        kind: "normal",
+        mode: "normal",
+        battleSize,
+        coordinatorId: this.identity.id,
+        members
+      };
+      this.queueChannel.send({ type: "broadcast", event: "queue", payload: { type: "match_found", match } }).catch(() => {});
+      this.handleQueueMessage({ type: "match_found", match });
+      return;
+    }
+
+    // Party/team matchmaking: preserve the existing 4-trainer 2v2 flow.
+    const tickets = allTickets.filter(t => t.mode === "team-2v2");
+    if (!tickets.length) return;
+    const coordinatorTicket = tickets[0];
+    if (coordinatorTicket.leaderId !== this.identity.id) return;
 
     const picked = [];
     let count = 0;
     for (const ticket of tickets) {
-      if (picked.some(p => p.groupId === ticket.groupId)) continue;
       const size = ticket.members.length;
-      if (size > 2 || count + size > 4) continue;
+      if (size > 2 || picked.some(p => p.groupId === ticket.groupId)) continue;
+      if (count + size > 4) continue;
       picked.push(ticket);
       count += size;
       if (count === 4) break;
     }
-    if (count !== 4) return;
+    if (count !== 4) {
+      this.onStatus(`Searching for trainers… ${count}/4 found`);
+      return;
+    }
 
-    // The earliest waiting group is the coordinator. Everyone else simply
-    // receives the same match descriptor and joins the match channel.
-    if (picked[0].leaderId !== myLeader) return;
     const alpha = [];
     const beta = [];
-    for (const ticket of picked) {
-      const target = alpha.length + ticket.members.length <= 2 && beta.length === 0 ? alpha : (beta.length + ticket.members.length <= 2 ? beta : alpha);
-      target.push(...ticket.members.map(m => ({ ...m, side: target === alpha ? "alpha" : "beta" })));
+    const parties = [...picked].sort((a, b) => b.members.length - a.members.length || a.createdAt - b.createdAt);
+    for (const ticket of parties) {
+      const members = ticket.members.map(m => ({ ...m }));
+      if (members.length === 2) {
+        if (alpha.length === 0) alpha.push(...members.map(m => ({ ...m, side: "alpha" })));
+        else if (beta.length === 0) beta.push(...members.map(m => ({ ...m, side: "beta" })));
+        else return;
+      } else if (members.length === 1) {
+        const m = members[0];
+        if (alpha.length < 2) alpha.push({ ...m, side: "alpha" });
+        else if (beta.length < 2) beta.push({ ...m, side: "beta" });
+      }
     }
-    // If a greedy grouping produced an unbalanced split, fall back to a simple
-    // deterministic first-two/last-two split while preserving party members.
     if (alpha.length !== 2 || beta.length !== 2) {
       const flat = picked.flatMap(t => t.members.map(m => ({ ...m })));
       alpha.length = 0; beta.length = 0;
       flat.forEach((m, i) => (i < 2 ? alpha : beta).push({ ...m, side: i < 2 ? "alpha" : "beta" }));
     }
-    const members = [...alpha, ...beta];
+    if (alpha.length !== 2 || beta.length !== 2) return;
+    const allIds = [...alpha, ...beta].map(m => m.id);
+    if (new Set(allIds).size !== 4) return;
+
     const match = {
       id: crypto.randomUUID(),
+      kind: "party",
       mode: "team-2v2",
-      coordinatorId: members[0]?.id,
-      members
+      battleSize: 1,
+      coordinatorId: this.identity.id,
+      members: [...alpha, ...beta]
     };
-    this.queueChannel.send({ type: "broadcast", event: "queue", payload: { type: "match_found", match } });
-    // Broadcast channels do not echo to the sender, so the coordinator needs
-    // to consume the match descriptor locally as well.
+    this.queueChannel.send({ type: "broadcast", event: "queue", payload: { type: "match_found", match } }).catch(() => {});
     this.handleQueueMessage({ type: "match_found", match });
   }
 
@@ -584,16 +656,16 @@ export class PartyMatchClient {
         this.onStatus(`Trainer ${this.readyIds.size}/${match.members.length} ready…`);
         if (this.identity.id === match.coordinatorId && this.readyIds.size === match.members.length) {
           this.match = { ...match, ready: true };
-          this.matchChannel?.send({ type: "broadcast", event: "match", payload: { type: "party_start", match: this.match } });
+          this.matchChannel?.send({ type: "broadcast", event: "match", payload: { type: match.kind === "normal" ? "match_start" : "party_start", match: this.match } });
           this.onMatch({ ...this.match, ready: true, started: true });
         }
       }
-      if (payload.type === "party_start" && payload.match) {
+      if ((payload.type === "party_start" || payload.type === "match_start") && payload.match) {
         this.match = { ...payload.match, localMemberId: this.identity.id };
         this.onMatch({ ...this.match, ready: true, started: true });
       }
-      if (payload.type === "party_action") this.onPartyAction(payload.action);
-      if (payload.type === "party_snapshot") this.onPartySnapshot(payload.snapshot);
+      if (payload.type === "party_action" || payload.type === "match_action") this.onPartyAction(payload.action);
+      if (payload.type === "party_snapshot" || payload.type === "match_snapshot") this.onPartySnapshot(payload.snapshot);
     });
     await this.subscribe(this.matchChannel);
     this.readyIds.add(this.identity.id);
@@ -602,11 +674,13 @@ export class PartyMatchClient {
   }
 
   async sendPartyAction(action) {
-    await this.matchChannel?.send({ type: "broadcast", event: "match", payload: { type: "party_action", action } });
+    const eventType = this.match?.kind === "normal" ? "match_action" : "party_action";
+    await this.matchChannel?.send({ type: "broadcast", event: "match", payload: { type: eventType, action } });
   }
 
   async sendPartySnapshot(snapshot) {
-    await this.matchChannel?.send({ type: "broadcast", event: "match", payload: { type: "party_snapshot", snapshot } });
+    const eventType = this.match?.kind === "normal" ? "match_snapshot" : "party_snapshot";
+    await this.matchChannel?.send({ type: "broadcast", event: "match", payload: { type: eventType, snapshot } });
   }
 
   subscribe(channel) {

@@ -39,7 +39,7 @@ export class TeamBuilder {
           <button id="startBattle" class="builder-primary" type="button">Enter Battle →</button>
           <button id="createRoom" class="builder-secondary" type="button">Create Multiplayer Room</button>
           <button id="joinRoom" class="builder-secondary" type="button">Join Room</button>
-          <button id="quickMatch2v2" class="builder-secondary social-action" type="button">⚡ Quick Match 2v2</button>
+          <button id="quickMatch" class="builder-secondary social-action" type="button">🎯 Quick Match ${this.battleSize}v${this.battleSize}</button><button id="quickMatch2v2" class="builder-secondary social-action" type="button">⚡ Team Match 2v2</button>
           <button id="createParty" class="builder-secondary social-action" type="button">👥 Create Party</button>
           <button id="joinParty" class="builder-secondary social-action" type="button">🔗 Join Party</button>
         </section>
@@ -92,6 +92,8 @@ export class TeamBuilder {
     sizeSelect.value = String(this.battleSize);
     sizeSelect.addEventListener("change", () => {
       this.battleSize = Math.max(1, Math.min(10, Number(sizeSelect.value) || 1));
+      const quickButton = this.root.querySelector("#quickMatch");
+      if (quickButton) quickButton.textContent = `🎯 Quick Match ${this.battleSize}v${this.battleSize}`;
       this.renderTeam();
     });
     this.renderSpecies();
@@ -132,6 +134,12 @@ export class TeamBuilder {
         battleSize: this.battleSize,
         team: this.team.map(p => ({ species: p.species, level: p.level, moveset: [...(p.moveset ?? p.moves ?? [])], ability: p.ability, item: p.item ?? null }))
       });
+    });
+
+    this.root.querySelector("#quickMatch").addEventListener("click", () => {
+      if (!this.team.length) return alert("Add at least one Pokémon to your team first.");
+      if (this.team.length < this.battleSize) return alert(`Add at least ${this.battleSize} Pokémon for a ${this.battleSize}v${this.battleSize} battle.`);
+      this.onMultiplayer("quickMatch", { team: this.serializeTeam(), battleSize: this.battleSize });
     });
 
     this.root.querySelector("#quickMatch2v2").addEventListener("click", () => {

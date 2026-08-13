@@ -48,7 +48,7 @@ function mountBuilder() {
 }
 
 async function startMultiplayer(mode, payload) {
-  if (["quickMatch2v2", "createParty", "joinParty"].includes(mode)) {
+  if (["quickMatch", "quickMatch2v2", "createParty", "joinParty"].includes(mode)) {
     return startPartySocial(mode, payload);
   }
   if (!isRealtimeConfigured()) {
@@ -90,15 +90,25 @@ async function startPartySocial(mode, payload) {
     onStatus: status => { const el = document.querySelector("#socialStatus"); if (el) el.textContent = status; },
     onParty: party => updatePartyLobby(party),
     onMatch: match => handlePartyMatch(match),
-    onPartyAction: action => window.__partyBattle?.receiveRemotePartyAction?.(action),
-    onPartySnapshot: snapshot => window.__partyBattle?.applySnapshot?.(snapshot)
+    onPartyAction: action => {
+      if (action?.kind === "normal_actions") { window.__networkBattle?.receiveRemoteActions?.(action.actions); return; }
+      if (action?.kind === "normal_move") { window.__networkBattle?.receiveRemoteMove?.(action.moveId); return; }
+      if (action?.kind === "normal_switch") { window.__networkBattle?.receiveRemoteSwitch?.(action.index); return; }
+      window.__partyBattle?.receiveRemotePartyAction?.(action);
+    },
+    onPartySnapshot: snapshot => window.__networkBattle?.applySnapshot?.(snapshot) || window.__partyBattle?.applySnapshot?.(snapshot)
   });
   partyState = { mode, team: payload.team, party: null, match: null, battleStarted: false };
-  showSocialLobby(mode);
+  showSocialLobby(mode, Number(payload.battleSize) || 1);
   try {
     await partyClient.connect();
-    if (mode === "quickMatch2v2") {
-      await partyClient.queueSolo("team-2v2");
+    if (mode === "quickMatch") {
+      const battleSize = Math.max(1, Math.min(10, Number(payload.battleSize) || 1));
+      if ((payload.team || []).length < battleSize) throw new Error(`You need at least ${battleSize} Pokémon for a ${battleSize}v${battleSize} match.`);
+      await partyClient.queueSolo(`normal-${battleSize}`, battleSize);
+      setSocialTitle(`Finding a ${battleSize}v${battleSize} Match…`);
+    } else if (mode === "quickMatch2v2") {
+      await partyClient.queueSolo("team-2v2", 2);
       setSocialTitle("Finding a 2v2 Team Battle…");
     } else if (mode === "createParty") {
       const code = await partyClient.createParty();
@@ -116,12 +126,13 @@ async function startPartySocial(mode, payload) {
   }
 }
 
-function showSocialLobby(mode) {
+function showSocialLobby(mode, battleSize = 1) {
   const join = mode === "joinParty";
-  const quick = mode === "quickMatch2v2";
+  const quick = mode === "quickMatch" || mode === "quickMatch2v2";
+  const normal = mode === "quickMatch";
   app.innerHTML = `<div class="startup-screen multiplayer-screen"><div class="startup-card multiplayer-card social-card">
     <div class="startup-badge">${quick ? "MATCHMAKING" : "TRAINER PARTY"}</div>
-    <h1 id="socialTitle">${quick ? "Finding a 2v2 Team Battle…" : mode === "createParty" ? "Create a Party" : "Join a Party"}</h1>
+    <h1 id="socialTitle">${normal ? `Finding a ${battleSize}v${battleSize} Match…` : quick ? "Finding a 2v2 Team Battle…" : mode === "createParty" ? "Create a Party" : "Join a Party"}</h1>
     <p id="socialStatus">Connecting to the online service…</p>
     ${join ? `<div class="social-code-entry"><label for="partyCodeInput">Party Code</label><input id="partyCodeInput" maxlength="5" autocomplete="off" placeholder="ABCDE"><button id="confirmPartyJoin" class="builder-primary" type="button">Join Party</button></div>` : ""}
     <div id="socialPartyPanel" class="social-party-panel hidden"></div>
@@ -157,6 +168,7 @@ function updatePartyLobby(party) {
 
 function handlePartyMatch(match) {
   if (!match?.members) return;
+  if (match.kind === "normal") return handleNormalMatch(match);
   partyState.match = match;
   const panel = document.querySelector("#socialMatchPanel");
   if (panel) {
@@ -165,6 +177,67 @@ function handlePartyMatch(match) {
   }
   if (!match.ready || partyState.battleStarted) return;
   startPartyBattle(match);
+}
+
+function handleNormalMatch(match) {
+  partyState.match = match;
+  const panel = document.querySelector("#socialMatchPanel");
+  if (panel) {
+    panel.classList.remove("hidden");
+    panel.innerHTML = `<div class="match-found-card"><div class="match-pulse"></div><span class="eyebrow">MATCH FOUND</span><h3>${match.battleSize}v${match.battleSize} Match</h3><p>Two trainers are getting ready…</p></div>`;
+  }
+  if (!match.ready || partyState.battleStarted) return;
+  startNormalMatch(match);
+}
+
+function startNormalMatch(match) {
+  if (partyState.battleStarted) return;
+  partyState.battleStarted = true;
+  const me = match.members.find(m => m.id === partyClient.identity.id);
+  if (!me) return;
+  const alpha = match.members.find(m => m.side === "alpha");
+  const beta = match.members.find(m => m.side === "beta");
+  if (!alpha || !beta) return;
+  const isCoordinator = partyClient.identity.id === match.coordinatorId;
+  if (isCoordinator) {
+    const battleSize = Math.max(1, Math.min(10, Number(match.battleSize) || 1));
+    const BattleClass = battleSize > 1 ? MultiBattle : Battle;
+    const battle = new BattleClass({
+      data,
+      playerTeam: alpha.team,
+      opponentTeam: beta.team,
+      networkRole: "host",
+      battleSize
+    });
+    window.__networkBattle = battle;
+    battle.updateNetworkState = () => partyClient?.sendPartySnapshot(serializeBattle(battle));
+    battle.onUpdate = () => {
+      renderer?.render();
+      battle.updateNetworkState?.();
+    };
+    mountBattleUI(battle, "host");
+    renderer = new Renderer({ root: document, battle });
+    renderer.bind();
+    battle.onUpdate = () => { renderer?.render(); battle.updateNetworkState?.(); };
+    renderer.render();
+    battle.updateNetworkState();
+  } else {
+    const battleSize = Math.max(1, Math.min(10, Number(match.battleSize) || 1));
+    const multi = battleSize > 1;
+    const battle = multi
+      ? new RemoteMultiBattle({ data, role: "guest", team: beta.team, battleSize })
+      : new RemoteBattle({ data, role: "guest", team: beta.team });
+    if (multi) battle.sendActions = actions => partyClient?.sendPartyAction({ kind: "normal_actions", actions });
+    else {
+      battle.sendMove = moveId => partyClient?.sendPartyAction({ kind: "normal_move", moveId });
+      battle.sendSwitch = index => partyClient?.sendPartyAction({ kind: "normal_switch", index });
+    }
+    window.__networkBattle = battle;
+    mountBattleUI(battle, "guest");
+    renderer = new Renderer({ root: document, battle });
+    renderer.bind();
+    renderer.render();
+  }
 }
 
 function startPartyBattle(match) {
