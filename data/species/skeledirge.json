@@ -1,0 +1,63 @@
+{
+  "id": "skeledirge",
+  "name": "Skeledirge",
+  "types": [
+    "Fire",
+    "Ghost"
+  ],
+  "baseStats": {
+    "hp": 104,
+    "attack": 75,
+    "defense": 100,
+    "specialAttack": 110,
+    "specialDefense": 75,
+    "speed": 66
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/skeledirge.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/skeledirge.gif"
+  },
+  "abilities": [
+    "blaze",
+    "unaware"
+  ],
+  "learnset": [
+    "ember",
+    "tackle",
+    "bite",
+    "incinerate",
+    "snarl",
+    "torch-song",
+    "shadow-ball",
+    "hex",
+    "flamethrower",
+    "fire-blast",
+    "fire-spin",
+    "heat-wave",
+    "overheat",
+    "flare-blitz",
+    "will-o-wisp",
+    "solar-beam",
+    "earth-power",
+    "earthquake",
+    "bulldoze",
+    "crunch",
+    "shadow-claw",
+    "scary-face",
+    "roar",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "ember",
+    "tackle",
+    "bite",
+    "incinerate"
+  ]
+}

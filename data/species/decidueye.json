@@ -1,0 +1,64 @@
+{
+  "id": "decidueye",
+  "name": "Decidueye",
+  "types": [
+    "Grass",
+    "Ghost"
+  ],
+  "baseStats": {
+    "hp": 78,
+    "attack": 107,
+    "defense": 75,
+    "specialAttack": 100,
+    "specialDefense": 100,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/decidueye.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/decidueye.gif"
+  },
+  "abilities": [
+    "overgrow",
+    "long-reach"
+  ],
+  "learnset": [
+    "leafage",
+    "astonish",
+    "peck",
+    "razor-leaf",
+    "spirit-shackle",
+    "leaf-blade",
+    "sucker-punch",
+    "brave-bird",
+    "shadow-sneak",
+    "shadow-claw",
+    "phantom-force",
+    "energy-ball",
+    "giga-drain",
+    "solar-beam",
+    "seed-bomb",
+    "spikes",
+    "roost",
+    "swords-dance",
+    "nasty-plot",
+    "u-turn",
+    "low-sweep",
+    "brick-break",
+    "aerial-ace",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "roar",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "leafage",
+    "astonish",
+    "peck",
+    "razor-leaf"
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "id": "quaquaval",
+  "name": "Quaquaval",
+  "types": [
+    "Water",
+    "Fighting"
+  ],
+  "baseStats": {
+    "hp": 85,
+    "attack": 120,
+    "defense": 80,
+    "specialAttack": 85,
+    "specialDefense": 75,
+    "speed": 85
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/quaquaval.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/quaquaval.gif"
+  },
+  "abilities": [
+    "torrent",
+    "moxie"
+  ],
+  "learnset": [
+    "pound",
+    "growl",
+    "water-gun",
+    "aqua-jet",
+    "double-hit",
+    "wing-attack",
+    "aqua-step",
+    "close-combat",
+    "liquidation",
+    "waterfall",
+    "hydro-pump",
+    "surf",
+    "ice-spinner",
+    "ice-beam",
+    "brave-bird",
+    "acrobatics",
+    "aerial-ace",
+    "brick-break",
+    "low-kick",
+    "low-sweep",
+    "rock-slide",
+    "earthquake",
+    "bulldoze",
+    "roost",
+    "swords-dance",
+    "bulk-up",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "u-turn",
+    "roar",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "pound",
+    "growl",
+    "water-gun",
+    "aqua-jet"
+  ]
+}

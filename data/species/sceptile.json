@@ -1,0 +1,67 @@
+{
+  "id": "sceptile",
+  "name": "Sceptile",
+  "types": [
+    "Grass"
+  ],
+  "baseStats": {
+    "hp": 70,
+    "attack": 85,
+    "defense": 65,
+    "specialAttack": 105,
+    "specialDefense": 85,
+    "speed": 120
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/sceptile.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/sceptile.gif"
+  },
+  "abilities": [
+    "overgrow",
+    "unburden"
+  ],
+  "learnset": [
+    "pound",
+    "leer",
+    "absorb",
+    "quick-attack",
+    "leafage",
+    "razor-leaf",
+    "screech",
+    "agility",
+    "leaf-blade",
+    "energy-ball",
+    "giga-drain",
+    "solar-beam",
+    "x-scissor",
+    "dragon-claw",
+    "dragon-pulse",
+    "brick-break",
+    "focus-blast",
+    "rock-slide",
+    "earthquake",
+    "bulldoze",
+    "night-slash",
+    "shadow-claw",
+    "thunder-punch",
+    "swords-dance",
+    "detect",
+    "protect",
+    "rest",
+    "substitute",
+    "facade",
+    "roar",
+    "endeavor",
+    "acrobatics",
+    "u-turn",
+    "giga-impact",
+    "hyper-beam",
+    "endure"
+  ],
+  "moveset": [
+    "pound",
+    "leer",
+    "absorb",
+    "quick-attack"
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "id": "samurott",
+  "name": "Samurott",
+  "types": [
+    "Water"
+  ],
+  "baseStats": {
+    "hp": 95,
+    "attack": 100,
+    "defense": 85,
+    "specialAttack": 108,
+    "specialDefense": 70,
+    "speed": 70
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/samurott.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/samurott.gif"
+  },
+  "abilities": [
+    "torrent",
+    "shell-armor"
+  ],
+  "learnset": [
+    "tackle",
+    "tail-whip",
+    "water-gun",
+    "razor-shell",
+    "aqua-jet",
+    "slash",
+    "fury-cutter",
+    "waterfall",
+    "liquidation",
+    "hydro-pump",
+    "surf",
+    "ice-beam",
+    "ice-spinner",
+    "megahorn",
+    "sacred-sword",
+    "aerial-ace",
+    "x-scissor",
+    "night-slash",
+    "smart-strike",
+    "iron-head",
+    "reversal",
+    "revenge",
+    "swords-dance",
+    "rain-dance",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "roar",
+    "substitute",
+    "facade",
+    "scary-face",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "tackle",
+    "tail-whip",
+    "water-gun",
+    "razor-shell"
+  ]
+}

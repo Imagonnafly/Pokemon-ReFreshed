@@ -1,0 +1,10 @@
+{
+  "id": "torch-song",
+  "name": "Torch Song",
+  "type": "Fire",
+  "category": "Special",
+  "power": 80,
+  "accuracy": 100,
+  "pp": 10,
+  "priority": 0
+}

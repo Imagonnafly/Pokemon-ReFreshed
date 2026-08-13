@@ -1,0 +1,10 @@
+{
+  "id": "hone-claws",
+  "name": "Hone Claws",
+  "type": "Dark",
+  "category": "Status",
+  "power": 0,
+  "accuracy": true,
+  "pp": 15,
+  "priority": 0
+}

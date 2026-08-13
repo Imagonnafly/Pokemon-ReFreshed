@@ -1,0 +1,66 @@
+{
+  "id": "delphox",
+  "name": "Delphox",
+  "types": [
+    "Fire",
+    "Psychic"
+  ],
+  "baseStats": {
+    "hp": 75,
+    "attack": 69,
+    "defense": 72,
+    "specialAttack": 114,
+    "specialDefense": 100,
+    "speed": 104
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/delphox.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/delphox.gif"
+  },
+  "abilities": [
+    "blaze",
+    "magician"
+  ],
+  "learnset": [
+    "scratch",
+    "ember",
+    "flame-charge",
+    "psybeam",
+    "psychic",
+    "psyshock",
+    "mystical-fire",
+    "flamethrower",
+    "fire-blast",
+    "fire-spin",
+    "heat-wave",
+    "overheat",
+    "fire-fang",
+    "solar-beam",
+    "shadow-ball",
+    "dark-pulse",
+    "focus-blast",
+    "grass-knot",
+    "calm-mind",
+    "nasty-plot",
+    "will-o-wisp",
+    "light-screen",
+    "reflect",
+    "roar",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "u-turn",
+    "zen-headbutt",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "scratch",
+    "ember",
+    "flame-charge",
+    "psybeam"
+  ]
+}

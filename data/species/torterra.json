@@ -1,0 +1,66 @@
+{
+  "id": "torterra",
+  "name": "Torterra",
+  "types": [
+    "Grass",
+    "Ground"
+  ],
+  "baseStats": {
+    "hp": 95,
+    "attack": 109,
+    "defense": 105,
+    "specialAttack": 75,
+    "specialDefense": 85,
+    "speed": 56
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/torterra.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/torterra.gif"
+  },
+  "abilities": [
+    "overgrow",
+    "shell-armor"
+  ],
+  "learnset": [
+    "tackle",
+    "withdraw",
+    "absorb",
+    "razor-leaf",
+    "bite",
+    "curse",
+    "synthesis",
+    "crunch",
+    "leech-seed",
+    "giga-drain",
+    "leaf-storm",
+    "wood-hammer",
+    "earthquake",
+    "bulldoze",
+    "stomping-tantrum",
+    "rock-slide",
+    "rock-smash",
+    "stone-edge",
+    "body-press",
+    "iron-head",
+    "solar-beam",
+    "seed-bomb",
+    "swords-dance",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "roar",
+    "substitute",
+    "facade",
+    "superpower",
+    "outrage",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "tackle",
+    "withdraw",
+    "absorb",
+    "razor-leaf"
+  ]
+}

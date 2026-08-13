@@ -18,7 +18,8 @@
     "back": "https://play.pokemonshowdown.com/sprites/ani-back/charizard.gif"
   },
   "abilities": [
-    "blaze"
+    "blaze",
+    "solar-power"
   ],
   "learnset": [
     "scratch",
@@ -26,13 +27,39 @@
     "ember",
     "flame-charge",
     "flamethrower",
-    "dragon-claw",
+    "fire-blast",
+    "fire-spin",
     "flare-blitz",
-    "quick-attack",
+    "heat-wave",
+    "overheat",
+    "fire-fang",
+    "dragon-claw",
+    "dragon-pulse",
+    "dragon-tail",
     "wing-attack",
     "gust",
     "fly",
-    "roost"
+    "dual-wingbeat",
+    "roost",
+    "air-slash",
+    "solar-beam",
+    "sunny-day",
+    "earthquake",
+    "bulldoze",
+    "brick-break",
+    "focus-blast",
+    "shadow-claw",
+    "u-turn",
+    "roar",
+    "protect",
+    "substitute",
+    "swords-dance",
+    "dragon-cheer",
+    "scale-shot",
+    "outrage",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
   ],
   "moveset": [
     "scratch",

@@ -1,0 +1,73 @@
+{
+  "id": "greninja",
+  "name": "Greninja",
+  "types": [
+    "Water",
+    "Dark"
+  ],
+  "baseStats": {
+    "hp": 72,
+    "attack": 95,
+    "defense": 67,
+    "specialAttack": 103,
+    "specialDefense": 71,
+    "speed": 122
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/greninja.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/greninja.gif"
+  },
+  "abilities": [
+    "torrent",
+    "protean"
+  ],
+  "learnset": [
+    "pound",
+    "growl",
+    "water-gun",
+    "quick-attack",
+    "lick",
+    "water-pulse",
+    "smokescreen",
+    "feint-attack",
+    "water-shuriken",
+    "night-slash",
+    "aerial-ace",
+    "surf",
+    "hydro-pump",
+    "waterfall",
+    "liquidation",
+    "dark-pulse",
+    "crunch",
+    "ice-beam",
+    "ice-spinner",
+    "gunk-shot",
+    "low-kick",
+    "low-sweep",
+    "brick-break",
+    "rock-slide",
+    "shadow-sneak",
+    "extrasensory",
+    "u-turn",
+    "taunt",
+    "spikes",
+    "toxic-spikes",
+    "acrobatics",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "swords-dance",
+    "double-team",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "pound",
+    "growl",
+    "water-gun",
+    "quick-attack"
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "id": "typhlosion",
+  "name": "Typhlosion",
+  "types": [
+    "Fire"
+  ],
+  "baseStats": {
+    "hp": 78,
+    "attack": 84,
+    "defense": 78,
+    "specialAttack": 109,
+    "specialDefense": 85,
+    "speed": 100
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/typhlosion.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/typhlosion.gif"
+  },
+  "abilities": [
+    "blaze",
+    "flash-fire"
+  ],
+  "learnset": [
+    "tackle",
+    "leer",
+    "smokescreen",
+    "ember",
+    "flame-charge",
+    "flamethrower",
+    "fire-blast",
+    "fire-spin",
+    "flare-blitz",
+    "overheat",
+    "heat-wave",
+    "fire-fang",
+    "swift",
+    "quick-attack",
+    "shadow-claw",
+    "brick-break",
+    "focus-blast",
+    "earthquake",
+    "bulldoze",
+    "solar-beam",
+    "sunny-day",
+    "will-o-wisp",
+    "roar",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "scary-face",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "tackle",
+    "leer",
+    "smokescreen",
+    "ember"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "snipe-shot",
+  "name": "Snipe Shot",
+  "type": "Water",
+  "category": "Special",
+  "power": 80,
+  "accuracy": 100,
+  "pp": 15,
+  "priority": 0
+}

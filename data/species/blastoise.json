@@ -17,20 +17,50 @@
     "back": "https://play.pokemonshowdown.com/sprites/ani-back/blastoise.gif"
   },
   "abilities": [
-    "torrent"
+    "torrent",
+    "rain-dish"
   ],
   "learnset": [
     "tackle",
-    "growl",
     "water-gun",
     "water-pulse",
     "aqua-jet",
-    "quick-attack"
+    "surf",
+    "hydro-pump",
+    "waterfall",
+    "liquidation",
+    "ice-beam",
+    "ice-fang",
+    "ice-punch",
+    "rain-dance",
+    "rapid-spin",
+    "shell-smash",
+    "body-press",
+    "body-slam",
+    "bulldoze",
+    "earthquake",
+    "rock-slide",
+    "rock-smash",
+    "iron-head",
+    "iron-defense",
+    "zen-headbutt",
+    "dark-pulse",
+    "dragon-pulse",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "roar",
+    "substitute",
+    "scary-face",
+    "hyper-beam",
+    "giga-impact",
+    "endure",
+    "helping-hand"
   ],
   "moveset": [
     "tackle",
-    "growl",
     "water-gun",
-    "water-pulse"
+    "water-pulse",
+    "aqua-jet"
   ]
 }

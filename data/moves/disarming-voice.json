@@ -1,0 +1,10 @@
+{
+  "id": "disarming-voice",
+  "name": "Disarming Voice",
+  "type": "Fairy",
+  "category": "Special",
+  "power": 40,
+  "accuracy": true,
+  "pp": 15,
+  "priority": 0
+}

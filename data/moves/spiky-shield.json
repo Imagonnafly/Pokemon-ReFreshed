@@ -1,0 +1,10 @@
+{
+  "id": "spiky-shield",
+  "name": "Spiky Shield",
+  "type": "Grass",
+  "category": "Status",
+  "power": 0,
+  "accuracy": true,
+  "pp": 10,
+  "priority": 0
+}

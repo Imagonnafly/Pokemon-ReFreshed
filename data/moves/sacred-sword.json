@@ -1,0 +1,10 @@
+{
+  "id": "sacred-sword",
+  "name": "Sacred Sword",
+  "type": "Fighting",
+  "category": "Physical",
+  "power": 90,
+  "accuracy": 100,
+  "pp": 15,
+  "priority": 0
+}

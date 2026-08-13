@@ -1,0 +1,10 @@
+{
+  "id": "sparkling-aria",
+  "name": "Sparkling Aria",
+  "type": "Water",
+  "category": "Special",
+  "power": 90,
+  "accuracy": 100,
+  "pp": 10,
+  "priority": 0
+}

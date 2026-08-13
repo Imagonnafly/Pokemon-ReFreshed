@@ -1,0 +1,65 @@
+{
+  "id": "feraligatr",
+  "name": "Feraligatr",
+  "types": [
+    "Water"
+  ],
+  "baseStats": {
+    "hp": 85,
+    "attack": 105,
+    "defense": 100,
+    "specialAttack": 79,
+    "specialDefense": 83,
+    "speed": 78
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/feraligatr.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/feraligatr.gif"
+  },
+  "abilities": [
+    "torrent",
+    "sheer-force"
+  ],
+  "learnset": [
+    "scratch",
+    "leer",
+    "water-gun",
+    "rage",
+    "bite",
+    "ice-fang",
+    "crunch",
+    "aqua-jet",
+    "waterfall",
+    "liquidation",
+    "hydro-pump",
+    "ice-beam",
+    "ice-punch",
+    "dragon-claw",
+    "dragon-tail",
+    "earthquake",
+    "bulldoze",
+    "rock-slide",
+    "rock-smash",
+    "brick-break",
+    "body-slam",
+    "swords-dance",
+    "scary-face",
+    "roar",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "superpower",
+    "outrage",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "scratch",
+    "leer",
+    "water-gun",
+    "rage"
+  ]
+}

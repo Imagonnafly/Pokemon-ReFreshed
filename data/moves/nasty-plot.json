@@ -1,0 +1,10 @@
+{
+  "id": "nasty-plot",
+  "name": "Nasty Plot",
+  "type": "Dark",
+  "category": "Status",
+  "power": 0,
+  "accuracy": true,
+  "pp": 20,
+  "priority": 0
+}

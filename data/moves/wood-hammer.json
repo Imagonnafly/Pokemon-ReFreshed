@@ -1,0 +1,10 @@
+{
+  "id": "wood-hammer",
+  "name": "Wood Hammer",
+  "type": "Grass",
+  "category": "Physical",
+  "power": 120,
+  "accuracy": 100,
+  "pp": 15,
+  "priority": 0
+}

@@ -1,0 +1,67 @@
+{
+  "id": "cinderace",
+  "name": "Cinderace",
+  "types": [
+    "Fire"
+  ],
+  "baseStats": {
+    "hp": 80,
+    "attack": 116,
+    "defense": 75,
+    "specialAttack": 65,
+    "specialDefense": 75,
+    "speed": 119
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/cinderace.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/cinderace.gif"
+  },
+  "abilities": [
+    "blaze",
+    "libero"
+  ],
+  "learnset": [
+    "tackle",
+    "ember",
+    "double-kick",
+    "flame-charge",
+    "pyro-ball",
+    "fire-fang",
+    "flamethrower",
+    "fire-blast",
+    "flare-blitz",
+    "heat-wave",
+    "overheat",
+    "quick-attack",
+    "high-jump-kick",
+    "low-kick",
+    "low-sweep",
+    "brick-break",
+    "acrobatics",
+    "aerial-ace",
+    "iron-head",
+    "gunk-shot",
+    "zen-headbutt",
+    "shadow-ball",
+    "u-turn",
+    "sucker-punch",
+    "bulk-up",
+    "swords-dance",
+    "taunt",
+    "roar",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "tackle",
+    "ember",
+    "double-kick",
+    "flame-charge"
+  ]
+}

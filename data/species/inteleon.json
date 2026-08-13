@@ -1,0 +1,61 @@
+{
+  "id": "inteleon",
+  "name": "Inteleon",
+  "types": [
+    "Water"
+  ],
+  "baseStats": {
+    "hp": 70,
+    "attack": 85,
+    "defense": 65,
+    "specialAttack": 125,
+    "specialDefense": 65,
+    "speed": 120
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/inteleon.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/inteleon.gif"
+  },
+  "abilities": [
+    "torrent",
+    "sniper"
+  ],
+  "learnset": [
+    "pound",
+    "water-gun",
+    "snipe-shot",
+    "water-pulse",
+    "aqua-jet",
+    "surf",
+    "hydro-pump",
+    "waterfall",
+    "liquidation",
+    "ice-beam",
+    "ice-spinner",
+    "dark-pulse",
+    "shadow-ball",
+    "air-slash",
+    "acrobatics",
+    "u-turn",
+    "dragon-pulse",
+    "focus-energy",
+    "agility",
+    "swords-dance",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "scary-face",
+    "roar",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "pound",
+    "water-gun",
+    "snipe-shot",
+    "water-pulse"
+  ]
+}

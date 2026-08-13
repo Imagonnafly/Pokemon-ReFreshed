@@ -1,0 +1,10 @@
+{
+  "id": "night-slash",
+  "name": "Night Slash",
+  "type": "Dark",
+  "category": "Physical",
+  "power": 70,
+  "accuracy": 100,
+  "pp": 15,
+  "priority": 0
+}

@@ -1,0 +1,10 @@
+{
+  "id": "double-team",
+  "name": "Double Team",
+  "type": "Normal",
+  "category": "Status",
+  "power": 0,
+  "accuracy": true,
+  "pp": 15,
+  "priority": 0
+}

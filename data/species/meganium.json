@@ -1,0 +1,60 @@
+{
+  "id": "meganium",
+  "name": "Meganium",
+  "types": [
+    "Grass"
+  ],
+  "baseStats": {
+    "hp": 80,
+    "attack": 82,
+    "defense": 100,
+    "specialAttack": 83,
+    "specialDefense": 100,
+    "speed": 80
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/meganium.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/meganium.gif"
+  },
+  "abilities": [
+    "overgrow",
+    "leaf-guard"
+  ],
+  "learnset": [
+    "tackle",
+    "growl",
+    "vine-whip",
+    "razor-leaf",
+    "growth",
+    "leech-seed",
+    "petal-blizzard",
+    "solar-beam",
+    "energy-ball",
+    "giga-drain",
+    "body-slam",
+    "double-edge",
+    "earthquake",
+    "bulldoze",
+    "reflect",
+    "lightscreen",
+    "swords-dance",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "roar",
+    "safeguard",
+    "sunny-day",
+    "facade",
+    "substitute",
+    "hyper-beam",
+    "giga-impact",
+    "helping-hand",
+    "endure"
+  ],
+  "moveset": [
+    "tackle",
+    "growl",
+    "vine-whip",
+    "razor-leaf"
+  ]
+}

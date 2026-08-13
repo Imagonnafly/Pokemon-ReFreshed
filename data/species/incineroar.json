@@ -1,0 +1,71 @@
+{
+  "id": "incineroar",
+  "name": "Incineroar",
+  "types": [
+    "Fire",
+    "Dark"
+  ],
+  "baseStats": {
+    "hp": 95,
+    "attack": 115,
+    "defense": 90,
+    "specialAttack": 80,
+    "specialDefense": 90,
+    "speed": 60
+  },
+  "sprites": {
+    "front": "https://play.pokemonshowdown.com/sprites/ani/incineroar.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/incineroar.gif"
+  },
+  "abilities": [
+    "blaze",
+    "intimidate"
+  ],
+  "learnset": [
+    "scratch",
+    "growl",
+    "ember",
+    "bite",
+    "fire-fang",
+    "darkest-lariat",
+    "throat-chop",
+    "flamethrower",
+    "fire-blast",
+    "flare-blitz",
+    "heat-wave",
+    "overheat",
+    "snarl",
+    "dark-pulse",
+    "crunch",
+    "fake-out",
+    "cross-chop",
+    "brick-break",
+    "close-combat",
+    "earthquake",
+    "bulldoze",
+    "rock-slide",
+    "iron-head",
+    "thunder-punch",
+    "shadow-claw",
+    "bulk-up",
+    "swords-dance",
+    "taunt",
+    "roar",
+    "protect",
+    "rest",
+    "sleep-talk",
+    "substitute",
+    "facade",
+    "parting-shot",
+    "u-turn",
+    "hyper-beam",
+    "giga-impact",
+    "endure"
+  ],
+  "moveset": [
+    "scratch",
+    "growl",
+    "ember",
+    "bite"
+  ]
+}

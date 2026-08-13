@@ -1,0 +1,10 @@
+{
+  "id": "moxie",
+  "name": "Moxie",
+  "description": "Raises Attack by 1 stage when this Pok\u00e9mon knocks out an opponent.",
+  "effect": {
+    "kind": "on_faint_boost",
+    "stat": "attack",
+    "stages": 1
+  }
+}
