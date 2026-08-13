@@ -99,12 +99,12 @@ async function loadCollection(folder, ids = []) {
   const normalized = [...new Set((ids || []).filter(Boolean))];
   if (!normalized.length) return [];
 
-  const results = [];
-  for (const id of normalized) {
-    const file = `${folder}/${id}.json`;
-    results.push(await fetchJSON(file));
-  }
-  return results;
+  // Load the collection concurrently. The previous sequential loader could
+  // take longer than the 15s startup guard on a fresh Vercel deployment
+  // because it performs one HTTP request per species/move/ability/item.
+  return Promise.all(
+    normalized.map(id => fetchJSON(`${folder}/${id}.json`))
+  );
 }
 
 function getIds(manifest, name) {

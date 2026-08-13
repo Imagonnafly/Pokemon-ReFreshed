@@ -23,7 +23,7 @@ async function boot() {
   try {
     data = await Promise.race([
       DataRepository.load(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Data loading timed out. Start the game with `npm install` then `npm start`.")), 15000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Data loading timed out. Check that the Vercel deployment is serving the /data files from the project root.")), 45000))
     ]);
     mountBuilder();
   } catch (error) {
