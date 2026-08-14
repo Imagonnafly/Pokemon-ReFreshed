@@ -2039,3 +2039,213 @@ body{
   .showdown-layout .multi-v2-field-sprite,.showdown-layout .multi-v2-field-unit.targetable{animation:none}
   .showdown-layout .multi-v2-field-unit{transition:none}
 }
+
+/* ============================================================
+   TEAM BATTLE / SHOWDOWN-STYLE FIELD HUD REWORK
+   Sprite is free on the arena; name + HP live in a compact HUD
+   plate above it. The arena/log/commands mirror the reference
+   layout without touching the 1v1 renderer.
+   ============================================================ */
+.party-battle-page{background:#e9eef5}
+.party-battle-page .party-battle-main{
+  height:calc(100dvh - 72px);
+  min-height:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) clamp(320px,26vw,410px);
+  grid-template-rows:minmax(0,1fr);
+  gap:0;
+  padding:0;
+  overflow:hidden;
+  background:#eef2f6;
+}
+.party-battle-page .party-arena-shell{
+  min-width:0;
+  min-height:0;
+  height:100%;
+  border:0;
+  border-radius:0;
+  background:#f6f8fb;
+  box-shadow:inset -1px 0 0 #d7dee8;
+  overflow:hidden;
+}
+.party-battle-page .arena-header{
+  height:56px;
+  padding:8px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  background:linear-gradient(#fbfcfe,#eef2f7);
+  border-bottom:1px solid #d4dce7;
+}
+.party-battle-page .arena-kicker{font-size:9px;letter-spacing:.13em;color:#718096;font-weight:1000}
+.party-battle-page .arena-header h2{margin:2px 0 0;font-size:20px;letter-spacing:-.02em;color:#243149}
+.party-battle-page .arena-help{font-size:9px;color:#6e7c90;white-space:nowrap}
+.party-battle-page .party-field{
+  position:relative;
+  min-height:0;
+  height:calc(100% - 56px);
+  padding:10px 14px;
+  display:grid;
+  grid-template-rows:minmax(0,1fr) 18px minmax(0,1fr);
+  gap:4px;
+  background:
+    radial-gradient(ellipse at 50% 18%,rgba(142,187,238,.23),transparent 38%),
+    radial-gradient(ellipse at 50% 82%,rgba(128,181,224,.15),transparent 42%),
+    linear-gradient(180deg,#dfeef7 0%,#eef3f7 48%,#e5edf2 100%);
+  overflow:hidden;
+}
+.party-battle-page .party-field:before{
+  content:"";position:absolute;inset:42% 4% auto 4%;height:2px;background:linear-gradient(90deg,transparent,#aeb9c8 15%,#aeb9c8 85%,transparent);opacity:.8;pointer-events:none
+}
+.party-battle-page .party-field-divider{
+  position:relative;z-index:2;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none
+}
+.party-battle-page .party-field-divider:before{content:"";width:min(70%,720px);height:2px;background:linear-gradient(90deg,transparent,#9da9b8 12%,#9da9b8 88%,transparent);opacity:.55}
+.party-battle-page .party-field-divider:after{content:"";position:absolute;width:64px;height:10px;background:radial-gradient(ellipse,#b7c2d1aa,transparent 70%);filter:blur(2px)}
+.party-battle-page .party-side-row{
+  position:relative;z-index:3;min-height:0;overflow:visible;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-auto-rows:minmax(0,1fr);
+  gap:8px 18px;
+  align-items:center;
+  justify-items:stretch;
+}
+.party-battle-page .party-enemy-row{align-items:start}
+.party-battle-page .party-ally-row{align-items:end}
+
+/* The button is now an invisible hit target; the sprite is never inside a card. */
+.party-battle-page .party-pokemon-card{
+  position:relative;
+  min-width:0;
+  min-height:0;
+  height:100%;
+  padding:0 4px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  overflow:visible;
+  isolation:auto;
+  cursor:pointer;
+  display:grid;
+  grid-template-rows:auto auto minmax(54px,1fr) auto;
+  align-items:center;
+  justify-items:center;
+  transition:transform .18s ease,filter .18s ease;
+}
+.party-battle-page .party-pokemon-card:before{display:none}
+.party-battle-page .party-pokemon-card:hover{transform:translateY(-2px)}
+.party-battle-page .party-pokemon-card.fainted{opacity:.38;filter:grayscale(.8)}
+.party-battle-page .party-pokemon-card.party-source-selected .showdown-sprite-stage img{filter:drop-shadow(0 12px 9px rgba(33,49,80,.22)) drop-shadow(0 0 15px rgba(80,112,245,.32))}
+.party-battle-page .party-pokemon-card.party-targetable{transform:translateY(-3px)}
+.party-battle-page .party-pokemon-card.party-targetable .showdown-sprite-stage img{animation:partyTargetPulse 1.2s ease-in-out infinite;filter:drop-shadow(0 10px 8px rgba(38,54,80,.22)) drop-shadow(0 0 18px rgba(84,121,245,.52))}
+@keyframes partyTargetPulse{50%{transform:translateY(-6px) scale(1.05)}}
+
+.party-battle-page .party-trainer-badge{
+  width:min(100%,220px);margin:0 0 2px;color:#718096;font-size:7px;font-weight:1000;letter-spacing:.04em
+}
+.party-battle-page .party-trainer-badge em{font-size:6px;padding:2px 5px}
+.party-battle-page .showdown-unit-hud{
+  width:min(100%,250px);
+  padding:4px 8px 5px;
+  border:1px solid rgba(194,204,217,.95);
+  border-radius:8px;
+  background:rgba(250,252,254,.94);
+  box-shadow:0 3px 8px rgba(43,60,86,.1);
+  text-align:left;
+  backdrop-filter:blur(8px);
+}
+.party-battle-page .showdown-name-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:9px;color:#26334a;line-height:1}
+.party-battle-page .showdown-name-row strong{font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.party-battle-page .showdown-name-row span{font-size:7px;color:#75839a;font-weight:900;white-space:nowrap}
+.party-battle-page .showdown-hp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;margin-top:4px;font-size:6px;color:#748198;font-weight:900}
+.party-battle-page .showdown-hp-bar{height:6px;background:#dfe5ec;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.08)}
+.party-battle-page .showdown-hp-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#48be7a,#71dc56);transition:width .28s ease}
+.party-battle-page .showdown-sprite-stage{
+  position:relative;width:100%;height:100%;min-height:58px;display:flex;align-items:center;justify-content:center;pointer-events:none
+}
+.party-battle-page .showdown-sprite-stage img{
+  position:relative;z-index:2;display:block;width:auto;height:min(90px,10vh);max-width:88%;object-fit:contain;filter:drop-shadow(0 11px 8px rgba(33,49,75,.18));animation:partySpriteFloat 3.8s ease-in-out infinite;transition:transform .2s ease,filter .2s ease
+}
+.party-battle-page .showdown-ground-shadow{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:min(42%,92px);height:10px;border-radius:50%;background:radial-gradient(ellipse,rgba(52,70,93,.24),transparent 72%);filter:blur(2px)}
+@keyframes partySpriteFloat{50%{transform:translateY(-4px)}}
+.party-battle-page .showdown-unit-meta{width:min(100%,250px);min-height:14px;display:flex;justify-content:center;align-items:center;gap:4px;flex-wrap:wrap}
+.party-battle-page .party-types{display:flex;gap:3px;justify-content:center;flex-wrap:wrap;margin:0}
+.party-battle-page .party-types span{padding:2px 5px;font-size:5px;border-radius:999px;background:#edf2f7;border:1px solid #dce3eb;color:#68788f;font-weight:1000}
+.party-battle-page .showdown-status-chip{padding:2px 5px;border-radius:999px;background:#ffe7d8;color:#ba6d32;font-size:5px;font-weight:1000;text-transform:uppercase}
+.party-battle-page .party-ready-mark{right:2px;top:2px;padding:3px 5px;font-size:6px}
+.party-battle-page .party-source-mark{right:2px;bottom:2px;padding:3px 5px;font-size:6px}
+.party-battle-page .party-empty{padding:8px;border:1px dashed #bcc6d3;border-radius:8px;color:#8a96a8;font-size:8px}
+
+/* Right-side battle dashboard, mirroring the reference layout. */
+.party-battle-page .party-side-panel{
+  min-width:0;min-height:0;display:grid;grid-template-rows:minmax(260px,42%) minmax(0,1fr);background:#eef2f5;overflow:hidden
+}
+.party-battle-page .party-command-shell{min-height:0;max-height:none;margin:0;border-radius:0;border:0;border-bottom:1px solid #cfd7e2;background:#f9fafc;box-shadow:none;overflow:hidden}
+.party-battle-page .party-command-shell .multi-target-hint{height:30px;padding:0 10px;border-bottom:1px solid #e0e5ec;font-size:7px;background:#f2f5f8}
+.party-battle-page .party-command-shell .multi-action-panel{height:calc(100% - 30px);max-height:none;padding:10px;overflow:auto}
+.party-battle-page .party-command-top{margin-bottom:8px}
+.party-battle-page .party-command-top h2{font-size:15px}
+.party-battle-page .party-action-grid{display:block}
+.party-battle-page .party-move-section{margin-bottom:12px}
+.party-battle-page .party-section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.party-battle-page .party-section-title span{font-size:7px;letter-spacing:.1em;font-weight:1000;color:#6f7d92}
+.party-battle-page .party-section-title small{font-size:6px;color:#98a2b2}
+.party-battle-page .compact-moves{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.party-battle-page .multi-move-button{min-height:56px;padding:7px 8px;border-radius:8px}
+.party-battle-page .move-name{font-size:8px}
+.party-battle-page .move-meta{font-size:6px}
+.party-battle-page .move-pp{font-size:5px}
+.party-battle-page .party-switch-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;max-height:112px;overflow:auto}
+.party-battle-page .party-switch-button{min-height:42px;padding:4px 6px;border-radius:7px;border:1px solid #dce3eb;background:#fff;display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:6px;text-align:left}
+.party-battle-page .party-switch-button img{width:28px;height:28px;object-fit:contain}
+.party-battle-page .party-switch-button strong{font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.party-battle-page .party-switch-button small{font-size:5px;color:#7d8897}
+.party-battle-page .party-no-switch{font-size:6px;color:#9099a7;padding:8px 0}
+.party-battle-page .multi-log-shell{min-height:0;max-height:none;margin:0;border:0;border-radius:0;background:#f7f9fb;box-shadow:none;overflow:hidden;display:flex;flex-direction:column}
+.party-battle-page .multi-log-shell .log-header{height:26px;flex:0 0 26px;padding:0 10px;border-bottom:1px solid #d8e0e8;font-size:7px;background:#edf1f5}
+.party-battle-page .multi-battle-log{flex:1;height:auto;margin:0;padding:8px 10px;overflow:auto;background:#f8fafc}
+.party-battle-page .multi-battle-log .log-line{padding:4px 0;font-size:8px;line-height:1.25;color:#42536a;border-bottom:1px solid rgba(210,219,229,.45)}
+.party-battle-page .multi-battle-log .log-line:last-child{font-weight:800;color:#243149}
+
+/* Compact landscape density while keeping the sprites visually prominent. */
+@media (min-width:1200px){
+  .party-battle-page .party-side-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px 14px}
+  .party-battle-page .showdown-sprite-stage img{height:min(100px,10.5vh)}
+}
+@media (max-height:820px) and (min-width:901px){
+  .party-battle-page .arena-header{height:48px;padding:6px 12px}
+  .party-battle-page .party-field{height:calc(100% - 48px);padding:8px 12px}
+  .party-battle-page .party-side-row{gap:5px 10px}
+  .party-battle-page .showdown-unit-hud{padding:3px 6px 4px}
+  .party-battle-page .showdown-sprite-stage img{height:min(82px,10vh)}
+  .party-battle-page .party-command-shell .multi-action-panel{padding:8px}
+  .party-battle-page .party-switch-grid{max-height:90px}
+}
+@media (max-width:1050px) and (min-width:761px){
+  .party-battle-page .party-battle-main{grid-template-columns:minmax(0,1fr) 310px}
+  .party-battle-page .party-side-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  .party-battle-page .showdown-unit-hud{width:min(100%,190px)}
+  .party-battle-page .showdown-sprite-stage img{height:min(78px,9vh)}
+}
+@media (max-width:760px){
+  .party-battle-page{height:auto;min-height:100dvh;overflow:auto}
+  .party-battle-page .party-battle-main{height:auto;min-height:calc(100dvh - 66px);grid-template-columns:1fr;grid-template-rows:minmax(520px,58vh) auto;overflow:visible}
+  .party-battle-page .party-side-panel{grid-template-rows:auto minmax(220px,1fr);min-height:420px}
+  .party-battle-page .party-field{height:auto;min-height:520px;padding:8px;grid-template-rows:minmax(0,1fr) 16px minmax(0,1fr)}
+  .party-battle-page .party-side-row{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(92px,1fr);gap:5px 7px}
+  .party-battle-page .showdown-sprite-stage img{height:min(68px,14vw)}
+  .party-battle-page .showdown-unit-hud{padding:3px 5px;width:min(100%,175px)}
+  .party-battle-page .showdown-name-row{font-size:7px}
+  .party-battle-page .showdown-hp-row{font-size:5px}
+  .party-battle-page .party-command-shell{max-height:310px}
+  .party-battle-page .party-command-shell .multi-action-panel{height:auto;max-height:280px}
+}
+@media (max-width:480px){
+  .party-battle-page .party-side-row{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(82px,1fr)}
+  .party-battle-page .party-field{min-height:470px}
+  .party-battle-page .showdown-sprite-stage img{height:58px}
+  .party-battle-page .party-switch-grid{grid-template-columns:1fr 1fr}
+}

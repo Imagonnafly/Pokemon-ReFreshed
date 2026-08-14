@@ -71,13 +71,21 @@ export class PartyRenderer {
           const ownerLabel = isLocalMember ? 'YOU' : (member.side === side ? 'ALLY' : 'OPPONENT');
           const interactiveHint = isLocalMember && p?.canBattle() ? 'Select' : (this.selectedMove ? 'Target' : '');
           card.setAttribute('aria-label', `${interactiveHint} ${p.name}, ${member.name}, slot ${slot + 1}`.trim());
+          const hpPct = Math.max(0, Math.min(100, (p.hp / Math.max(1, p.maxHP)) * 100));
+          const statusText = p.status ? String(p.status).replace(/-/g, ' ') : '';
           card.innerHTML = `
             <div class="party-trainer-badge"><span>${this.escape(member.name)} · Slot ${slot + 1}</span><em>${ownerLabel}</em></div>
-            <img src="${this.escape(sideSprite || '')}" alt="${this.escape(p.name)}">
-            <div class="party-pokemon-info">
-              <strong>${this.escape(p.name)}</strong>
+            <div class="showdown-unit-hud">
+              <div class="showdown-name-row"><strong>${this.escape(p.name)}</strong><span>Lv.${p.level}</span></div>
+              <div class="showdown-hp-row"><div class="showdown-hp-bar"><i style="width:${hpPct}%"></i></div><span>${Math.max(0, p.hp)}/${p.maxHP}</span></div>
+            </div>
+            <div class="showdown-sprite-stage">
+              <img src="${this.escape(sideSprite || '')}" alt="${this.escape(p.name)}">
+              <span class="showdown-ground-shadow"></span>
+            </div>
+            <div class="showdown-unit-meta">
               <div class="party-types">${(p.types || []).map(t => `<span>${this.escape(t)}</span>`).join('')}</div>
-              <div class="hp-row"><div class="hpbar"><div style="width:${Math.max(0, Math.min(100, (p.hp / p.maxHP) * 100))}%"></div></div><span class="hp-text">${Math.max(0, p.hp)}/${p.maxHP}</span></div>
+              ${statusText ? `<span class="showdown-status-chip">${this.escape(statusText)}</span>` : ''}
             </div>
             ${pending ? '<div class="party-ready-mark">✓ READY</div>' : ''}
             ${selectedSource ? '<div class="party-source-mark">ACTIVE</div>' : ''}`;
