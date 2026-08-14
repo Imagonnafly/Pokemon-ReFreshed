@@ -288,24 +288,26 @@ function startPartyBattle(match) {
 function mountPartyBattleUI(battle, role) {
   const teamSize = clampTeamSize(battle.teamSize || Number(battle.members?.length / 2) || 2, 1);
   const battleSize = clampBattleSize(battle.battleSize);
-  app.innerHTML = `<div class="battle-page sd-page sd-party-page">
-    <header class="sd-topbar">
-      <div class="sd-brand"><div class="sd-brand-mark">◉</div><div><h1>Pokémon Battle</h1><span>${teamSize} trainers/team · ${battleSize} active/trainer</span></div></div>
-      <div class="sd-top-actions"><span id="turnLabel" class="sd-pill">Turn 1</span><span id="fieldLabel" class="sd-pill">No Field</span><button id="partyLeaveButton" class="sd-button">Leave Battle</button></div>
+  app.innerHTML = `<div class="battle-page sd-v4 sd-party-v4">
+    <header class="v4-topbar">
+      <div class="v4-brand"><div class="v4-brand-mark">◉</div><div><h1>Pokémon Battle</h1><span>${teamSize} trainers/team · ${battleSize} active/trainer</span></div></div>
+      <div class="v4-top-actions"><span id="turnLabel" class="v4-pill">Turn 1</span><span id="fieldLabel" class="v4-pill">No Field</span><button id="partyLeaveButton" class="v4-button">Leave Battle</button></div>
     </header>
-    <main class="sd-main">
-      <section class="sd-battle-column">
-        <section class="sd-battle-head"><div><span class="sd-eyebrow">TEAM BATTLE</span><h2>${battleSize} ACTIVE · ${teamSize} TRAINERS / TEAM</h2></div><div id="partyCommandHint" class="sd-target-hint"><span class="sd-live-dot"></span><span>Click your Pokémon, choose a move, then click a target.</span></div></section>
-        <section class="sd-arena sd-party-arena">
-          <div class="sd-side-title"><strong>OPPONENT</strong><span>${teamSize} TRAINERS</span></div>
-          <div id="partyEnemyRow" class="sd-party-side sd-enemy-side"></div>
-          <div class="sd-arena-divider"></div>
-          <div class="sd-side-title"><strong>YOUR TEAM</strong><span>${teamSize} TRAINERS</span></div>
-          <div id="partyAllyRow" class="sd-party-side sd-ally-side"></div>
+    <main class="v4-main">
+      <section class="v4-left">
+        <section class="v4-field-panel">
+          <div class="v4-field-head"><div><span class="v4-eyebrow">TEAM BATTLE</span><h2>${battleSize} ACTIVE · ${teamSize} TRAINERS / TEAM</h2></div><div id="partyCommandHint" class="v4-hint"><span class="v4-live-dot"></span><span>Click your Pokémon, choose a move, then click a target.</span></div></div>
+          <section class="v4-arena v4-party-arena">
+            <div class="v4-side-label"><strong>OPPONENT</strong><span>${teamSize} TRAINERS</span></div>
+            <div id="partyEnemyRow" class="v4-party-side v4-enemy-side"></div>
+            <div class="v4-center-line"></div>
+            <div class="v4-side-label"><strong>YOUR TEAM</strong><span>${teamSize} TRAINERS</span></div>
+            <div id="partyAllyRow" class="v4-party-side v4-ally-side"></div>
+          </section>
         </section>
-        <section class="sd-command-panel" id="partyMovePanel"></section>
+        <section class="v4-command" id="partyMovePanel"></section>
       </section>
-      <aside class="sd-log-panel"><div class="sd-log-head"><strong>BATTLE LOG</strong><span>LIVE</span></div><div class="sd-log" id="battleLog" aria-live="polite"></div></aside>
+      <aside class="v4-log"><div class="v4-log-head"><strong>BATTLE LOG</strong><span>LIVE</span></div><div class="v4-log-body" id="battleLog" aria-live="polite"></div></aside>
     </main>
   </div>`;
   document.querySelector('#partyLeaveButton').onclick = () => { partyClient?.leave(); partyClient = null; window.__partyBattle = null; mountBuilder(); };
@@ -434,24 +436,25 @@ let renderer = null;
 
 function mountBattleUI(battle, role = "local") {
   if (battle.isMulti && battle.battleSize > 1) {
-    app.innerHTML = `<div class="battle-page sd-page">
-      <header class="sd-topbar">
-        <div class="sd-brand"><div class="sd-brand-mark">◉</div><div><h1>Pokémon Battle</h1><span>${role === "local" ? "N-vs-N Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div>
-        <div class="sd-top-actions"><span id="turnLabel" class="sd-pill">Turn 1 · ${battle.battleSize}v${battle.battleSize}</span><span id="fieldLabel" class="sd-pill">No Field</span><button id="backToBuilder" class="sd-button">← Team Builder</button></div>
+    app.innerHTML = `<div class="battle-page sd-v4">
+      <header class="v4-topbar">
+        <div class="v4-brand"><div class="v4-brand-mark">◉</div><div><h1>Pokémon Battle</h1><span>${role === "local" ? "N-vs-N Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div>
+        <div class="v4-top-actions"><span id="turnLabel" class="v4-pill">Turn 1 · ${battle.battleSize}v${battle.battleSize}</span><span id="fieldLabel" class="v4-pill">No Field</span><button id="backToBuilder" class="v4-button">← Team Builder</button></div>
       </header>
-      <main class="sd-main">
-        <section class="sd-battle-column">
-          <section class="sd-battle-head"><div><span class="sd-eyebrow">LIVE BATTLE</span><h2>${battle.battleSize}v${battle.battleSize} FIELD</h2></div><div class="sd-target-hint"><span class="sd-live-dot"></span><span>Click a Pokémon, choose a move, then click its target.</span></div></section>
-          <section class="sd-arena" id="multiArena">
-            <div class="sd-side-title"><strong>OPPONENT</strong><span>${role === "local" ? "CPU Trainer" : "Player 2"}</span></div>
-            <div class="sd-field-row"><div id="multiOpponentRail" class="sd-rail"></div><div id="multiOpponent" class="sd-field-main sd-opponent-field"></div></div>
-            <div class="sd-arena-divider"></div>
-            <div class="sd-side-title"><strong>YOU</strong><span>${role === "local" ? "Trainer" : role === "host" ? "Player 1" : "Player 2"}</span></div>
-            <div class="sd-field-row"><div id="multiPlayer" class="sd-field-main sd-player-field"></div><div id="multiPlayerRail" class="sd-rail sd-player-rail"></div></div>
+      <main class="v4-main">
+        <section class="v4-left">
+          <section class="v4-field-panel">
+            <section class="v4-arena" id="multiArena">
+              <div class="v4-side-label"><strong>OPPONENT</strong><span>${role === "local" ? "CPU Trainer" : "Player 2"}</span></div>
+              <div class="v4-field-row"><div id="multiOpponentRail" class="v4-rail"></div><div id="multiOpponent" class="v4-field-main v4-opponent-field"></div></div>
+              <div class="v4-center-line"></div>
+              <div class="v4-side-label"><strong>YOU</strong><span>${role === "local" ? "Trainer" : role === "host" ? "Player 1" : "Player 2"}</span></div>
+              <div class="v4-field-row"><div id="multiPlayer" class="v4-field-main v4-player-field"></div><div id="multiPlayerRail" class="v4-rail v4-player-rail"></div></div>
+            </section>
           </section>
-          <section class="sd-command-panel" id="multiCommand"></section>
+          <section class="v4-command" id="multiCommand"></section>
         </section>
-        <aside class="sd-log-panel"><div class="sd-log-head"><strong>BATTLE LOG</strong><span>LIVE</span></div><div class="sd-log" id="battleLog" aria-live="polite"></div></aside>
+        <aside class="v4-log"><div class="v4-log-head"><strong>BATTLE LOG</strong><span>LIVE</span></div><div class="v4-log-body" id="battleLog" aria-live="polite"></div></aside>
       </main>
     </div>`;
   } else {
