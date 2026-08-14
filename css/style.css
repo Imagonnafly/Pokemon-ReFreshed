@@ -2249,3 +2249,180 @@ body{
   .party-battle-page .showdown-sprite-stage img{height:58px}
   .party-battle-page .party-switch-grid{grid-template-columns:1fr 1fr}
 }
+
+/* ============================================================
+   Field-first HUD polish — remove every background card behind
+   battlefield Pokémon and present them as free sprites, closer
+   to the reference battle layout.
+   ============================================================ */
+.party-battle-page .party-pokemon-card{
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  padding:0 6px !important;
+  overflow:visible !important;
+}
+.party-battle-page .party-pokemon-card:before,
+.party-battle-page .party-pokemon-card:after{
+  display:none !important;
+}
+
+/* Trainer/slot label becomes a tiny field-edge marker, not a card. */
+.party-battle-page .party-trainer-badge{
+  position:absolute !important;
+  top:3px !important;
+  left:7px !important;
+  width:auto !important;
+  margin:0 !important;
+  z-index:8 !important;
+  font-size:6px !important;
+  color:#687891 !important;
+  opacity:.9;
+  pointer-events:none;
+}
+.party-battle-page .party-trainer-badge span{display:none}
+.party-battle-page .party-trainer-badge em{
+  background:rgba(246,249,253,.72) !important;
+  border:1px solid rgba(202,214,229,.72) !important;
+  padding:2px 5px !important;
+  border-radius:999px !important;
+  font-size:5px !important;
+  color:#6e7d93 !important;
+  box-shadow:none !important;
+}
+
+/* The name + HP HUD floats in the air above the sprite. */
+.party-battle-page .showdown-unit-hud{
+  position:absolute !important;
+  top:10px !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+  width:min(92%,220px) !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  z-index:10 !important;
+  pointer-events:none !important;
+}
+.party-battle-page .showdown-name-row{
+  gap:7px !important;
+  font-size:9px !important;
+  line-height:1.05 !important;
+  text-shadow:0 1px 2px rgba(255,255,255,.95) !important;
+}
+.party-battle-page .showdown-name-row strong{
+  color:#18263d !important;
+  font-size:10px !important;
+  font-weight:1000 !important;
+}
+.party-battle-page .showdown-name-row span{
+  color:#5f7088 !important;
+  font-size:7px !important;
+}
+.party-battle-page .showdown-hp-row{
+  grid-template-columns:minmax(0,1fr) auto !important;
+  gap:5px !important;
+  margin-top:3px !important;
+}
+.party-battle-page .showdown-hp-bar{
+  height:6px !important;
+  border:1px solid rgba(115,134,157,.35) !important;
+  background:rgba(255,255,255,.72) !important;
+  box-shadow:0 1px 4px rgba(46,63,87,.12) !important;
+}
+.party-battle-page .showdown-hp-row em,
+.party-battle-page .showdown-hp-row span{
+  color:#5f7088 !important;
+  font-size:6px !important;
+  text-shadow:0 1px 2px rgba(255,255,255,.95) !important;
+}
+
+/* Bigger, free-standing sprites with no containing card. */
+.party-battle-page .showdown-sprite-stage{
+  width:100% !important;
+  height:100% !important;
+  min-height:74px !important;
+  align-self:stretch !important;
+  padding-top:24px !important;
+  pointer-events:none !important;
+}
+.party-battle-page .showdown-sprite-stage img{
+  height:min(118px,14vh) !important;
+  max-width:92% !important;
+  filter:drop-shadow(0 13px 10px rgba(35,51,75,.19)) !important;
+}
+.party-battle-page .showdown-ground-shadow{
+  bottom:7px !important;
+  width:min(45%,100px) !important;
+  height:11px !important;
+}
+
+/* Type chips live directly under the sprite; they are no longer a panel. */
+.party-battle-page .showdown-unit-meta{
+  width:auto !important;
+  min-height:0 !important;
+  position:absolute !important;
+  left:50% !important;
+  bottom:4px !important;
+  transform:translateX(-50%) !important;
+  justify-content:center !important;
+  pointer-events:none !important;
+}
+.party-battle-page .party-types span{
+  background:rgba(247,250,253,.72) !important;
+  border:1px solid rgba(205,216,229,.66) !important;
+  color:#6d7c91 !important;
+  box-shadow:none !important;
+  font-size:5px !important;
+  padding:2px 5px !important;
+}
+.party-battle-page .showdown-status-chip{
+  background:rgba(255,241,232,.84) !important;
+  border:1px solid rgba(236,187,156,.6) !important;
+  color:#a66133 !important;
+}
+
+/* Selection/targeting effects should outline the sprite, not a card. */
+.party-battle-page .party-pokemon-card.party-source-selected{
+  transform:translateY(-4px) !important;
+  filter:drop-shadow(0 0 14px rgba(80,111,242,.32)) !important;
+}
+.party-battle-page .party-pokemon-card.party-targetable{
+  transform:translateY(-3px) !important;
+  filter:drop-shadow(0 0 16px rgba(80,111,242,.3)) !important;
+}
+.party-battle-page .party-pokemon-card.party-targetable .showdown-unit-hud,
+.party-battle-page .party-pokemon-card.party-source-selected .showdown-unit-hud{
+  filter:drop-shadow(0 2px 4px rgba(70,88,119,.14));
+}
+
+/* Give the arena a little more of the clean Showdown-style open space. */
+.party-battle-page .party-field{
+  padding:8px 12px !important;
+  grid-template-rows:minmax(0,1fr) 18px minmax(0,1fr) !important;
+}
+.party-battle-page .party-side-row{
+  gap:4px 12px !important;
+}
+
+@media (min-width:901px){
+  .party-battle-page .party-pokemon-card{padding-inline:3px !important}
+  .party-battle-page .party-side-row{grid-auto-rows:minmax(96px,1fr) !important}
+}
+@media (max-height:820px) and (min-width:901px){
+  .party-battle-page .showdown-unit-hud{top:4px !important}
+  .party-battle-page .showdown-sprite-stage{padding-top:20px !important;min-height:64px !important}
+  .party-battle-page .showdown-sprite-stage img{height:min(92px,12vh) !important}
+  .party-battle-page .showdown-unit-meta{bottom:1px !important}
+}
+@media (max-width:760px){
+  .party-battle-page .showdown-unit-hud{top:6px !important;width:min(96%,170px) !important}
+  .party-battle-page .showdown-name-row strong{font-size:8px !important}
+  .party-battle-page .showdown-sprite-stage{padding-top:19px !important;min-height:58px !important}
+  .party-battle-page .showdown-sprite-stage img{height:min(70px,15vw) !important}
+  .party-battle-page .showdown-unit-meta{bottom:1px !important}
+}
