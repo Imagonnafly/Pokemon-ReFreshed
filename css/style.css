@@ -3169,3 +3169,70 @@ body:has(.party-battle-page){overflow:hidden}
   .sd-page .sd-switch-grid{height:32px !important}.sd-page .sd-switch{min-width:92px !important;height:30px !important}
   .sd-page .sd-log-panel{height:132px !important}
 }
+
+/* ================================================================
+   FINAL VIEWPORT REBALANCE — MORE FIELD, LOWER SWITCH DOCK
+   Keeps 1v1 untouched. Applied only to N-vs-N multi-battle pages.
+   ================================================================ */
+@media (min-width: 901px) and (orientation: landscape){
+  .multi-battle-main{
+    grid-template-rows:minmax(0,1fr) 190px;
+    gap:8px;
+    padding:8px 16px 8px;
+  }
+
+  .multi-command-shell{min-height:190px;max-height:190px}
+  .multi-command-shell .multi-action-panel{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    overflow:hidden !important;
+    padding:8px 12px !important;
+  }
+
+  .multi-command-header{flex:0 0 auto;margin-bottom:5px}
+  .polished-moves{flex:0 0 auto}
+  .multi-switch-section{
+    margin-top:auto;
+    padding-top:6px;
+  }
+  .multi-switch-row{max-height:42px;overflow:auto}
+  .multi-switch-button{height:36px;min-width:90px}
+  .multi-switch-button img{width:26px;height:26px}
+
+  .multi-log-shell{min-height:190px;max-height:190px}
+}
+
+@media (min-width: 901px) and (orientation: portrait){
+  .multi-battle-main{
+    grid-template-rows:minmax(0,1fr) 205px 92px;
+    gap:7px;
+  }
+  .multi-command-shell{min-height:205px;max-height:205px}
+  .multi-command-shell .multi-action-panel{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    overflow:hidden !important;
+  }
+  .multi-switch-section{margin-top:auto}
+  .multi-switch-row{max-height:42px;overflow:auto}
+  .multi-log-shell{min-height:92px;max-height:92px}
+}
+
+@media (max-width: 900px){
+  .multi-battle-main{
+    grid-template-rows:minmax(0,1fr) 170px;
+    gap:6px;
+  }
+  .multi-command-shell{min-height:170px;max-height:170px}
+  .multi-command-shell .multi-action-panel{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    overflow:hidden !important;
+  }
+  .multi-switch-section{margin-top:auto}
+  .multi-switch-row{max-height:38px;overflow:auto}
+  .multi-log-shell{min-height:170px;max-height:170px}
+}
