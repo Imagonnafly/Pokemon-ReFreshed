@@ -1,10 +1,12 @@
 import { Battle } from "./engine/battle.js";
-import { MultiBattle } from "./engine/multi-battle.js";
+import { MultiBattleV2 } from "./engine/multi-battle-v2.js";
 import { DataRepository } from "./engine/data.js";
 import { Renderer } from "./ui/renderer.js";
+import { MultiRendererV2 } from "./ui/multi-renderer-v2.js";
 import { TeamBuilder } from "./ui/teambuilder.js";
-import { MultiplayerClient, RemoteBattle, RemoteMultiBattle, PartyMatchClient, RemotePartyBattle, isRealtimeConfigured } from "./network.js";
+import { MultiplayerClient, RemoteBattle, PartyMatchClient, RemotePartyBattle, isRealtimeConfigured } from "./network.js";
 import { PartyBattle } from "./engine/party-battle.js";
+import { RemoteMultiBattleV2 } from "./network/multi-network-v2.js";
 import { PartyRenderer } from "./ui/party-renderer.js";
 
 let data = null;
@@ -201,7 +203,7 @@ function startNormalMatch(match) {
   const isCoordinator = partyClient.identity.id === match.coordinatorId;
   if (isCoordinator) {
     const battleSize = Math.max(1, Math.min(10, Number(match.battleSize) || 1));
-    const BattleClass = battleSize > 1 ? MultiBattle : Battle;
+    const BattleClass = battleSize > 1 ? MultiBattleV2 : Battle;
     const battle = new BattleClass({
       data,
       playerTeam: alpha.team,
@@ -211,21 +213,25 @@ function startNormalMatch(match) {
     });
     window.__networkBattle = battle;
     battle.updateNetworkState = () => partyClient?.sendPartySnapshot(serializeBattle(battle));
-    battle.onUpdate = () => {
-      renderer?.render();
-      battle.updateNetworkState?.();
-    };
     mountBattleUI(battle, "host");
-    renderer = new Renderer({ root: document, battle });
-    renderer.bind();
-    battle.onUpdate = () => { renderer?.render(); battle.updateNetworkState?.(); };
-    renderer.render();
+    if (battle.isMulti) {
+      const multiRenderer = new MultiRendererV2({ root: document, battle });
+      window.__multiRenderer = multiRenderer;
+      multiRenderer.bind();
+      battle.onUpdate = () => { multiRenderer.render(); battle.updateNetworkState?.(); };
+      multiRenderer.render();
+    } else {
+      renderer = new Renderer({ root: document, battle });
+      renderer.bind();
+      battle.onUpdate = () => { renderer?.render(); battle.updateNetworkState?.(); };
+      renderer.render();
+    }
     battle.updateNetworkState();
   } else {
     const battleSize = Math.max(1, Math.min(10, Number(match.battleSize) || 1));
     const multi = battleSize > 1;
     const battle = multi
-      ? new RemoteMultiBattle({ data, role: "guest", team: beta.team, battleSize })
+      ? new RemoteMultiBattleV2({ data, role: "guest", team: beta.team, battleSize })
       : new RemoteBattle({ data, role: "guest", team: beta.team });
     if (multi) battle.sendActions = actions => partyClient?.sendPartyAction({ kind: "normal_actions", actions });
     else {
@@ -234,9 +240,17 @@ function startNormalMatch(match) {
     }
     window.__networkBattle = battle;
     mountBattleUI(battle, "guest");
-    renderer = new Renderer({ root: document, battle });
-    renderer.bind();
-    renderer.render();
+    if (battle.isMulti) {
+      const multiRenderer = new MultiRendererV2({ root: document, battle });
+      window.__multiRenderer = multiRenderer;
+      multiRenderer.bind();
+      battle.onUpdate = () => multiRenderer.render();
+      multiRenderer.render();
+    } else {
+      renderer = new Renderer({ root: document, battle });
+      renderer.bind();
+      renderer.render();
+    }
   }
 }
 
@@ -342,7 +356,7 @@ function startHostNetworkBattle() {
   if (multiplayerState.battleStarted) return;
   multiplayerState.battleStarted = true;
   multiplayer.send("start");
-  const BattleClass = multiplayerState.battleSize > 1 ? MultiBattle : Battle;
+  const BattleClass = multiplayerState.battleSize > 1 ? MultiBattleV2 : Battle;
   const battle = new BattleClass({
     data,
     playerTeam: multiplayerState.team,
@@ -353,13 +367,18 @@ function startHostNetworkBattle() {
   window.__networkBattle = battle;
   mountBattleUI(battle, "host");
   battle.updateNetworkState = () => multiplayer?.send("snapshot", { snapshot: serializeBattle(battle) });
-  renderer = new Renderer({ root: document, battle });
-  renderer.bind();
-  battle.onUpdate = () => {
-    renderer?.render();
-    battle.updateNetworkState?.();
-  };
-  renderer.render();
+  if (battle.isMulti) {
+    const multiRenderer = new MultiRendererV2({ root: document, battle });
+    window.__multiRenderer = multiRenderer;
+    multiRenderer.bind();
+    battle.onUpdate = () => { multiRenderer.render(); battle.updateNetworkState?.(); };
+    multiRenderer.render();
+  } else {
+    renderer = new Renderer({ root: document, battle });
+    renderer.bind();
+    battle.onUpdate = () => { renderer?.render(); battle.updateNetworkState?.(); };
+    renderer.render();
+  }
   battle.updateNetworkState();
 }
 
@@ -368,7 +387,7 @@ function startGuestNetworkBattle() {
   multiplayerState.battleStarted = true;
   const multi = multiplayerState.battleSize > 1;
   const battle = multi
-    ? new RemoteMultiBattle({ data, role: "guest", team: multiplayerState.team, battleSize: multiplayerState.battleSize })
+    ? new RemoteMultiBattleV2({ data, role: "guest", team: multiplayerState.team, battleSize: multiplayerState.battleSize })
     : new RemoteBattle({ data, role: "guest", team: multiplayerState.team });
   if (multi) {
     battle.sendActions = actions => multiplayer.sendActions(actions);
@@ -378,45 +397,48 @@ function startGuestNetworkBattle() {
   }
   window.__networkBattle = battle;
   mountBattleUI(battle, "guest");
-  renderer = new Renderer({ root: document, battle });
-  renderer.bind();
-  renderer.render();
+  if (battle.isMulti) {
+    const multiRenderer = new MultiRendererV2({ root: document, battle });
+    window.__multiRenderer = multiRenderer;
+    multiRenderer.bind();
+    battle.onUpdate = () => multiRenderer.render();
+    multiRenderer.render();
+  } else {
+    renderer = new Renderer({ root: document, battle });
+    renderer.bind();
+    renderer.render();
+  }
 }
 
 let renderer = null;
 
 function mountBattleUI(battle, role = "local") {
   if (battle.isMulti && battle.battleSize > 1) {
-    app.innerHTML = `<div class="battle-page multi-battle-page">
-      <header class="topbar battle-topbar"><div class="topbar-brand"><div class="brand-mark battle-brand-mark">◉</div><div><h1>Pokémon Battle</h1><span class="topbar-sub">${role === "local" ? "N-vs-N Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div>
-      <div class="battle-header-actions"><span id="turnLabel" class="turn-pill turn-pill-live">Turn 1</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="backToBuilder" class="header-button" type="button">← Team Builder</button></div></header>
-      <main class="multi-battle-main">
-        <section class="multi-arena-shell">
-          <div class="arena-header"><div><span class="arena-kicker">LIVE BATTLE</span><h2>${battle.battleSize}v${battle.battleSize} FIELD</h2></div><div class="arena-help"><span class="live-dot"></span> Click a move, then click its target</div></div>
-          <div class="multi-field">
-            <div class="field-depth field-depth-top"></div><div class="field-depth field-depth-bottom"></div>
-            <div class="side-label opponent-label"><span>OPPONENT</span><em>${role === "local" ? "CPU Trainer" : "Player 2"}</em></div>
-            <div id="multiOppGrid" class="multi-side-grid multi-opponent-grid"></div>
-            <div class="center-battle-lane"><span class="versus-core">VS</span><span class="field-energy"></span></div>
-            <div id="multiPlayerGrid" class="multi-side-grid player-side multi-player-grid"></div>
-            <div class="side-label player-label"><span>YOU</span><em>${role === "local" ? "Trainer" : role === "host" ? "Player 1" : "Player 2"}</em></div>
-          </div>
+    app.innerHTML = `<div class="battle-page multi-v2-page">
+      <header class="topbar battle-topbar multi-v2-topbar">
+        <div class="topbar-brand"><div class="brand-mark battle-brand-mark">◉</div><div><h1>Pokémon Battle</h1><span class="topbar-sub">${role === "local" ? "N-vs-N Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div>
+        <div class="battle-header-actions"><span id="turnLabel" class="turn-pill turn-pill-live">Turn 1 · ${battle.battleSize}v${battle.battleSize}</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="backToBuilder" class="header-button" type="button">← Team Builder</button></div>
+      </header>
+      <main class="multi-v2-main">
+        <section class="multi-v2-arena" id="multiArena">
+          <div class="multi-v2-arena-head"><div><span>LIVE BATTLE</span><h2>${battle.battleSize}v${battle.battleSize} FIELD</h2></div><div class="multi-v2-target-hint"><span class="live-dot"></span><strong id="multiTargetHint">Click one of your active Pokémon to command it.</strong></div></div>
+          <div class="multi-v2-side-head"><span>OPPONENT</span><em>${role === "local" ? "CPU Trainer" : "Player 2"}</em></div>
+          <div id="multiOpponent" class="multi-v2-grid opponent-grid"></div>
+          <div class="multi-v2-center"><span>VS</span></div>
+          <div id="multiPlayer" class="multi-v2-grid player-grid"></div>
+          <div class="multi-v2-side-foot"><span>YOU</span><em>${role === "local" ? "Trainer" : role === "host" ? "Player 1" : "Player 2"}</em></div>
         </section>
-
-        <section class="multi-command-shell">
-          <div class="multi-target-hint" id="multiTargetHint"><span class="hint-dot"></span><span>Click one of your Pokémon to command it.</span></div>
-          <div class="multi-action-panel" id="multiActionPanel"></div>
+        <section class="multi-v2-dock">
+          <div class="multi-v2-command-shell"><div id="multiCommand"></div></div>
+          <aside class="multi-v2-log-shell"><div class="multi-v2-log-head"><span>BATTLE LOG</span><span class="live-tag">LIVE</span></div><div class="battle-log" id="battleLog" aria-live="polite"></div></aside>
         </section>
-
-        <section class="multi-log-shell"><div class="log-header"><span>BATTLE FEED</span><span>Live</span></div><div class="battle-log multi-battle-log" id="battleLog" aria-live="polite"></div></section>
-        <div class="multi-footer-actions"><button id="restartButton" class="secondary control-button" type="button">Team Builder</button></div>
       </main>
     </div>`;
   } else {
     app.innerHTML = `<div class="battle-page"><header class="topbar"><div class="topbar-brand"><div class="brand-mark">◉</div><div><h1>Pokémon Battle</h1><span class="topbar-sub">${role === "local" ? "Trainer Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div><div class="battle-header-actions"><span id="turnLabel" class="turn-pill">Turn 1</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="backToBuilder" class="header-button" type="button">← Team Builder</button></div></header><main><section class="battlefield"><span class="arena-label">Battle Arena · ${role === "local" ? "Practice Match" : "Live Multiplayer"}</span><div class="side opponent"><div class="pokemon-info"><div class="sprite-box"><img id="oppSprite" alt=""></div><div class="pokemon-card"><h2 id="oppName">---</h2><div id="oppTypes" class="types"></div><div class="pokemon-meta">The opposing Pokémon</div><div class="hp-row"><div class="hpbar"><div id="oppHPFill"></div></div><span id="oppHPText" class="hp-text">0 / 0</span></div></div></div></div><div class="side player"><div class="pokemon-info"><div class="pokemon-card"><h2 id="playerName">---</h2><div id="playerTypes" class="types"></div><div class="pokemon-meta">Your Pokémon</div><div class="hp-row"><div class="hpbar"><div id="playerHPFill"></div></div><span id="playerHPText" class="hp-text">0 / 0</span></div></div><div class="sprite-box"><img id="playerSprite" alt=""></div></div></div></section><section class="battle-log" id="battleLog" aria-live="polite"></section><section class="controls"><div id="moveButtons" class="moves"></div><button id="switchButton" class="secondary control-button" type="button">Switch Pokémon</button><button id="restartButton" class="secondary control-button" type="button">Team Builder</button></section><section id="partyPanel" class="party hidden"></section></main></div>`;
   }
   document.querySelector("#backToBuilder").onclick = returnToBuilder;
-  document.querySelector("#restartButton").onclick = returnToBuilder;
+  document.querySelector("#restartButton")?.addEventListener("click", returnToBuilder);
 }
 function returnToBuilder() {
   multiplayer?.leave();
@@ -437,13 +459,21 @@ function startBattle(payload) {
     if (battleSize > team.length) {
       throw new Error(`You need at least ${battleSize} Pokémon for a ${battleSize}v${battleSize} battle.`);
     }
-    const BattleClass = battleSize > 1 ? MultiBattle : Battle;
+    const BattleClass = battleSize > 1 ? MultiBattleV2 : Battle;
     const battle = new BattleClass({ data, playerTeam: team, opponentTeam: data.teams.opponent, battleSize });
     mountBattleUI(battle, "local");
-    renderer = new Renderer({ root: document, battle });
-    renderer.bind();
-    battle.onUpdate = () => renderer.render();
-    renderer.render();
+    if (battle.isMulti) {
+      const multiRenderer = new MultiRendererV2({ root: document, battle });
+      window.__multiRenderer = multiRenderer;
+      multiRenderer.bind();
+      battle.onUpdate = () => multiRenderer.render();
+      multiRenderer.render();
+    } else {
+      renderer = new Renderer({ root: document, battle });
+      renderer.bind();
+      battle.onUpdate = () => renderer.render();
+      renderer.render();
+    }
   } catch (error) {
     console.error(error);
     setStartupMessage("Battle could not be created", error?.stack || error?.message || String(error), true);
