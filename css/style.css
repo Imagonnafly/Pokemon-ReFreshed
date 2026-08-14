@@ -1233,3 +1233,183 @@ body:has(.multi-battle-page){
 @media (max-width:760px){.multi-v2-page{overflow:auto;height:auto;min-height:100dvh}.multi-v2-main{grid-template-rows:auto auto;padding:7px}.multi-v2-arena{min-height:430px;grid-template-rows:auto auto minmax(170px,1fr) 34px minmax(170px,1fr) auto}.multi-v2-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(72px,1fr);padding:4px 7px;gap:6px}.multi-v2-card{grid-template-columns:24px 42px minmax(0,1fr);border-radius:13px}.multi-v2-sprite{height:42px}.multi-v2-name strong{font-size:.72rem}.multi-v2-card .type{font-size:.48rem;padding:2px 5px}.multi-v2-hp em{font-size:.5rem}.multi-v2-dock{grid-template-columns:1fr;gap:7px}.multi-v2-command-shell{max-height:280px}.multi-v2-log-shell{height:180px}.multi-v2-target-hint{font-size:.64rem}.multi-v2-arena-head{padding:9px 11px}.multi-v2-arena-head h2{font-size:1rem}.multi-v2-topbar{min-height:64px}.battle-header-actions .header-button{padding:.65rem .75rem}.turn-pill{font-size:.65rem;padding:.5rem .65rem}}
 @media (max-width:760px) and (orientation:landscape){.multi-v2-arena{min-height:330px}.multi-v2-grid{grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-rows:minmax(58px,1fr)}.multi-v2-card{grid-template-columns:20px 34px minmax(0,1fr);padding:4px 6px}.multi-v2-sprite{height:34px}.multi-v2-name strong{font-size:.62rem}.multi-v2-card .type{display:none}.multi-v2-hp{margin-top:2px}.multi-v2-dock{grid-template-columns:1.4fr .8fr}.multi-v2-log-shell{height:auto}.multi-v2-command-shell{max-height:210px}}
 @media (min-width:1500px){.multi-v2-card{grid-template-columns:44px 80px minmax(0,1fr)}.multi-v2-sprite{height:62px}}
+
+/* ================================================================
+   FINAL 100% ZOOM COMPACT DESKTOP LAYOUT
+   The 1v1 battle is intentionally untouched. These rules apply only
+   to the multi-battle screen and are tuned so the normal 100% browser
+   zoom resembles the compact reference layout without requiring zoom.
+   ================================================================ */
+@media (min-width: 901px){
+  body:has(.multi-v2-page){
+    overflow:hidden;
+  }
+
+  .multi-v2-page{
+    height:100dvh;
+    min-height:100dvh;
+    overflow:hidden;
+    grid-template-rows:56px minmax(0,1fr);
+  }
+
+  .multi-v2-page .multi-v2-topbar{
+    min-height:56px;
+    height:56px;
+    padding:0 18px;
+  }
+
+  .multi-v2-page .multi-v2-topbar .brand-mark{
+    width:38px;
+    height:38px;
+    border-radius:13px;
+  }
+
+  .multi-v2-page .multi-v2-topbar h1{font-size:15px}
+  .multi-v2-page .multi-v2-topbar .topbar-sub{font-size:8px}
+  .multi-v2-page .multi-v2-topbar .battle-header-actions{gap:6px}
+  .multi-v2-page .multi-v2-topbar .turn-pill{padding:7px 10px;font-size:9px}
+  .multi-v2-page .multi-v2-topbar .header-button{padding:8px 11px;font-size:10px}
+
+  .multi-v2-page .multi-v2-main{
+    height:auto;
+    min-height:0;
+    padding:6px 8px 8px;
+    gap:7px;
+    grid-template-rows:minmax(0,1fr) 220px;
+  }
+
+  .multi-v2-page .multi-v2-arena{
+    min-height:0;
+    border-radius:20px;
+    grid-template-rows:48px 20px minmax(0,1fr) 34px minmax(0,1fr) 20px;
+  }
+
+  .multi-v2-page .multi-v2-arena-head{
+    min-height:48px;
+    padding:7px 14px;
+  }
+  .multi-v2-page .multi-v2-arena-head>div:first-child span{font-size:7px}
+  .multi-v2-page .multi-v2-arena-head h2{font-size:16px}
+  .multi-v2-page .multi-v2-target-hint{padding:6px 9px;font-size:9px}
+
+  .multi-v2-page .multi-v2-side-head,
+  .multi-v2-page .multi-v2-side-foot{
+    padding:3px 12px;
+    font-size:7px;
+  }
+  .multi-v2-page .multi-v2-side-head em,
+  .multi-v2-page .multi-v2-side-foot em{font-size:7px}
+
+  .multi-v2-page .multi-v2-grid{
+    padding:3px 8px;
+    gap:5px;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    grid-auto-rows:minmax(66px,1fr);
+    align-content:stretch;
+    overflow:hidden;
+  }
+
+  .multi-v2-page .multi-v2-center span{
+    width:42px;
+    height:42px;
+    font-size:9px;
+    margin:0 10px;
+  }
+
+  .multi-v2-page .multi-v2-center::before,
+  .multi-v2-page .multi-v2-center::after{
+    opacity:.75;
+  }
+
+  .multi-v2-page .multi-v2-card{
+    grid-template-columns:26px 56px minmax(0,1fr);
+    gap:5px;
+    padding:5px 7px;
+    border-radius:12px;
+  }
+
+  .multi-v2-page .slot-badge{
+    width:21px;
+    height:21px;
+    border-radius:7px;
+    font-size:7px;
+  }
+
+  .multi-v2-page .multi-v2-sprite{
+    height:48px;
+  }
+
+  .multi-v2-page .multi-v2-name strong{font-size:10px}
+  .multi-v2-page .multi-v2-name small{font-size:6px}
+  .multi-v2-page .multi-v2-card .type{font-size:5px;padding:2px 4px}
+  .multi-v2-page .multi-v2-card .types{gap:3px;margin-top:2px}
+  .multi-v2-page .multi-v2-hp{gap:4px;margin-top:3px}
+  .multi-v2-page .multi-v2-hp>span{height:4px}
+  .multi-v2-page .multi-v2-hp em{font-size:5px}
+  .multi-v2-page .action-badge{right:6px;top:5px;width:17px;height:17px;font-size:8px}
+
+  .multi-v2-page .multi-v2-dock{
+    min-height:0;
+    height:220px;
+    grid-template-columns:minmax(0,2.05fr) minmax(250px,.85fr);
+    gap:7px;
+  }
+
+  .multi-v2-page .multi-v2-command-shell,
+  .multi-v2-page .multi-v2-log-shell{
+    border-radius:16px;
+  }
+
+  .multi-v2-page #multiCommand{padding:8px 10px}
+  .multi-v2-page .multi-v2-command-head{margin-bottom:5px}
+  .multi-v2-page .multi-v2-command-head small{font-size:6px}
+  .multi-v2-page .multi-v2-command-head h2{font-size:14px}
+  .multi-v2-page .multi-v2-progress{font-size:7px;padding:6px 8px}
+
+  .multi-v2-page .multi-v2-moves{gap:5px}
+  .multi-v2-page .multi-v2-move{
+    min-height:52px;
+    padding:7px 8px;
+    border-radius:11px;
+  }
+  .multi-v2-page .multi-v2-move strong{font-size:9px}
+  .multi-v2-page .multi-v2-move span{font-size:6px}
+  .multi-v2-page .multi-v2-move small{font-size:5px}
+
+  .multi-v2-page .multi-v2-switches{
+    margin-top:6px;
+    padding-top:5px;
+  }
+  .multi-v2-page .multi-v2-section-title{font-size:6px;margin-bottom:4px}
+  .multi-v2-page .multi-v2-switch-row{gap:5px}
+  .multi-v2-page .multi-v2-switch{
+    min-width:100px;
+    padding:4px 6px;
+    border-radius:9px;
+  }
+  .multi-v2-page .multi-v2-switch img{width:30px;height:25px}
+  .multi-v2-page .multi-v2-switch span{font-size:6px}
+
+  .multi-v2-page .multi-v2-log-head{padding:7px 10px;font-size:6px}
+  .multi-v2-page .battle-log{padding:5px 9px}
+  .multi-v2-page .v2-log-line{padding:3px 2px;font-size:7px}
+  .multi-v2-page .v2-status{padding:5px 7px;font-size:6px}
+}
+
+/* Short desktop/laptop screens: keep the same composition, make every region
+   slightly tighter instead of introducing page scrolling. */
+@media (min-width:901px) and (max-height:760px){
+  .multi-v2-page .multi-v2-topbar{height:50px;min-height:50px}
+  .multi-v2-page{grid-template-rows:50px minmax(0,1fr)}
+  .multi-v2-page .multi-v2-main{grid-template-rows:minmax(0,1fr) 190px;gap:5px;padding:5px 6px}
+  .multi-v2-page .multi-v2-arena{grid-template-rows:42px 18px minmax(0,1fr) 28px minmax(0,1fr) 18px}
+  .multi-v2-page .multi-v2-arena-head{min-height:42px;padding:5px 11px}
+  .multi-v2-page .multi-v2-arena-head h2{font-size:14px}
+  .multi-v2-page .multi-v2-grid{gap:4px;grid-auto-rows:minmax(54px,1fr)}
+  .multi-v2-page .multi-v2-card{grid-template-columns:22px 48px minmax(0,1fr);gap:4px;padding:4px 5px}
+  .multi-v2-page .multi-v2-sprite{height:40px}
+  .multi-v2-page .multi-v2-dock{height:190px}
+  .multi-v2-page #multiCommand{padding:6px 8px}
+  .multi-v2-page .multi-v2-move{min-height:45px;padding:6px 7px}
+  .multi-v2-page .multi-v2-switch{min-width:88px;height:30px}
+}
