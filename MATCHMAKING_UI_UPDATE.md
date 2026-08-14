@@ -2,8 +2,8 @@
 
 The Team Builder now uses two selectors and one matchmaking action:
 
-- Battle Size: 1v1 through 10v10 active battle size.
-- Battle Type: 1 through 10 trainers on each team.
+- Battle Size: 1v1 through 3v3 active battle size.
+- Battle Type: 1 through 3 trainers on each team.
 - Find Match: queues using both selected dimensions; only identical combinations are matched.
 
 Examples:

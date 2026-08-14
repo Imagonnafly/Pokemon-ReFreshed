@@ -3,7 +3,7 @@
 ## New online systems
 
 ### Quick Match 2v2
-A trainer enters a shared matchmaking queue. The queue groups four trainers into two teams of two. Each trainer controls one active Pokémon at a time and keeps their own bench of up to 10 Pokémon.
+A trainer enters a shared matchmaking queue. The queue groups four trainers into two teams of two. Each trainer controls one active Pokémon at a time and keeps their own bench of up to 9 Pokémon.
 
 ### Party System
 Create a two-trainer party and share the five-character party code with a friend. The party leader can queue the party for a 2v2 Team Battle once both trainers are present.
@@ -11,7 +11,7 @@ Create a two-trainer party and share the five-character party code with a friend
 ### Cooperative 2v2 rules
 - Two human trainers share each side.
 - Each trainer controls exactly one active Pokémon.
-- Each trainer can bring up to 10 Pokémon.
+- Each trainer can bring up to 9 Pokémon.
 - Each trainer chooses one move per turn and targets one opposing active Pokémon.
 - A fainted Pokémon is automatically replaced from that trainer's own bench.
 - A side wins when both trainers on the opposing side have no usable Pokémon remaining.

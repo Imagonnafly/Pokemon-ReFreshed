@@ -3,8 +3,8 @@
 The 1v1 Battle engine remains unchanged. Battles larger than 1v1 now use the rebuilt `MultiBattleV2` + `MultiRendererV2` stack.
 
 ## Rules
-- Team size: up to 10 Pokémon.
-- Battle size: 2v2 through 10v10 for this multi engine.
+- Team size: up to 9 Pokémon.
+- Battle size: 2v2 through 3v3 for this multi engine.
 - Every active slot requires exactly one action before a turn can resolve.
 - Switches are queued as actions and resolve before attacks.
 - Targets are selected directly on the field.

@@ -1,6 +1,7 @@
+import { GAME_CONFIG, clampBattleSize } from "../config.js";
 import { Battle } from './battle.js';
 
-const MAX = 10;
+const MAX = GAME_CONFIG.battle.maxSize;
 const clampN = n => Math.max(1, Math.min(MAX, Math.floor(Number(n) || 1)));
 
 export class MultiBattleV2 extends Battle {

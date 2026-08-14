@@ -1,3 +1,4 @@
+import { GAME_CONFIG } from "../config.js";
 import { BattlePokemon } from "./pokemon.js";
 import { calculateDamage, getBattleStat, calculateAccuracy, typeEffectiveness } from "./formulas.js";
 
@@ -99,7 +100,7 @@ export class Battle {
         .filter(id => allowedLearnset.has(id))
         .map(id => this.movesData.find(m => m.id === id))
         .filter(Boolean)
-        .slice(0, 4);
+        .slice(0, GAME_CONFIG.moves.maxBattleMoves);
 
       // Never allow a Pokémon to enter battle with an illegal/empty move set.
       // If a stale save or malformed network payload is received, fall back
@@ -108,7 +109,7 @@ export class Battle {
         for (const id of (species.learnset || [])) {
           const move = this.movesData.find(m => m.id === id);
           if (move) moves.push(move);
-          if (moves.length >= 4) break;
+          if (moves.length >= GAME_CONFIG.moves.maxBattleMoves) break;
         }
       }
 

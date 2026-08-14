@@ -1,20 +1,21 @@
+import { GAME_CONFIG, clampBattleSize, clampTeamSize } from "../config.js";
 import { Battle } from "./battle.js";
 
-function clampBattleSize(value) {
+function normalizeBattleSize(value) {
   const n = Number(value);
-  return Number.isFinite(n) ? Math.max(1, Math.min(10, Math.floor(n))) : 1;
+  return Number.isFinite(n) ? clampBattleSize(n) : 1;
 }
 
 /**
  * N-vs-N battle layer built on top of the existing Battle move/effect engine.
- * A team can contain up to 10 Pokémon and `battleSize` controls how many
+ * A team can contain up to 9 Pokémon and `battleSize` controls how many
  * are simultaneously active on each side.
  */
 export class MultiBattle extends Battle {
   constructor({ data, playerTeam, opponentTeam, networkRole = null, battleSize = 1 }) {
     super({ data, playerTeam, opponentTeam, networkRole });
     this.isMulti = true;
-    this.battleSize = clampBattleSize(battleSize);
+    this.battleSize = normalizeBattleSize(battleSize);
     this.battleSize = Math.min(this.battleSize, this.player.team.length, this.opponent.team.length);
 
     this.player.active = this.player.team.slice(0, this.battleSize).map((_, i) => i);
@@ -38,7 +39,7 @@ export class MultiBattle extends Battle {
   }
 
   clampSize(n) {
-    return Math.max(1, Math.min(10, Math.floor(Number(n) || 1)));
+    return normalizeBattleSize(Number(n) || 1);
   }
 
   active(side) {
@@ -185,7 +186,7 @@ export class MultiBattle extends Battle {
     if (this.networkRole !== "host" || this.over || !this.isMulti) return;
     const incoming = Array.isArray(actions) ? actions : [];
     // Never start a turn from a partial remote submission. This is critical
-    // for 2v2 through 10v10: every active slot on the remote side must have
+    // for 2v2 through 3v3: every active slot on the remote side must have
     // an action before the coordinator may resolve anything.
     if (!this.isCompleteActionSet(incoming, "opponent")) {
       this.pendingNetwork = this.pendingNetwork || {};

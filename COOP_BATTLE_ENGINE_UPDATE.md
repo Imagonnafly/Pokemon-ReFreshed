@@ -9,7 +9,7 @@ The active field size per side is `battleSize × teamSize`.
 
 Examples:
 - 3v3 + 2 trainers/team = 6 active Pokémon per side.
-- 10v10 + 10 trainers/team = up to 100 active Pokémon per side.
+- 3v3 + 3 trainers/team = up to 9 active Pokémon per side.
 
 Every trainer controls all of their own active slots. Each active Pokémon selects one move and one target every turn. A fainted active slot is refilled from that trainer's personal bench, without reusing a Pokémon already on the field.
 

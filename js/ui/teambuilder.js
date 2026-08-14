@@ -1,3 +1,5 @@
+import { GAME_CONFIG, clampBattleSize, clampTeamSize } from "../config.js";
+
 export class TeamBuilder {
   constructor({ root, data, onStart, onMultiplayer }) {
     this.root = root;
@@ -23,7 +25,7 @@ export class TeamBuilder {
             <div><h1>Build Your Team</h1>
             <p>Choose your squad, tune their loadouts, then enter the arena.</p></div>
           </div>
-          <div class="builder-count" id="builderCount">0 / 10 Pokémon</div>
+          <div class="builder-count" id="builderCount">0 / ${GAME_CONFIG.team.maxPokemon} Pokémon</div>
         </header>
 
         <section class="builder-toolbar">
@@ -61,7 +63,7 @@ export class TeamBuilder {
           <aside class="team-panel">
             <div class="section-title">
               <h2>Your Team</h2>
-              <span>Up to 10</span>
+              <span>Up to ${GAME_CONFIG.team.maxPokemon}</span>
             </div>
             <div id="teamSlots" class="team-slots"></div>
           </aside>
@@ -93,22 +95,22 @@ export class TeamBuilder {
 
     this.bind();
     const sizeSelect = this.root.querySelector("#battleSize");
-    sizeSelect.innerHTML = Array.from({length: 10}, (_, i) => `<option value="${i + 1}">${i + 1}v${i + 1} · ${i + 1} active / trainer</option>`).join("");
+    sizeSelect.innerHTML = Array.from({length: GAME_CONFIG.battle.maxSize}, (_, i) => `<option value="${i + 1}">${i + 1}v${i + 1} · ${i + 1} active / trainer</option>`).join("");
     sizeSelect.value = String(this.battleSize);
     const teamSizeSelect = this.root.querySelector("#teamSize");
-    teamSizeSelect.innerHTML = Array.from({length: 10}, (_, i) => `<option value="${i + 1}">${i + 1} trainer${i === 0 ? '' : 's'} / team</option>`).join("");
+    teamSizeSelect.innerHTML = Array.from({length: GAME_CONFIG.matchmaking.maxTrainersPerTeam}, (_, i) => `<option value="${i + 1}">${i + 1} trainer${i === 0 ? '' : 's'} / team</option>`).join("");
     teamSizeSelect.value = String(this.teamSize);
     const updateMatchLabel = () => {
       const btn = this.root.querySelector("#quickMatch");
-      if (btn) btn.textContent = `🎯 Find Match · ${this.battleSize}v${this.battleSize} · ${this.teamSize}v${this.teamSize} Trainers`;
+      if (btn) btn.textContent = `🎯 Find Match · ${this.battleSize}v${this.battleSize} · ${this.teamSize} trainers/team`;
     };
     sizeSelect.addEventListener("change", () => {
-      this.battleSize = Math.max(1, Math.min(10, Number(sizeSelect.value) || 1));
+      this.battleSize = clampBattleSize(sizeSelect.value);
       updateMatchLabel();
       this.renderTeam();
     });
     teamSizeSelect.addEventListener("change", () => {
-      this.teamSize = Math.max(1, Math.min(10, Number(teamSizeSelect.value) || 1));
+      this.teamSize = clampTeamSize(teamSizeSelect.value);
       updateMatchLabel();
       this.renderTeam();
     });
@@ -253,11 +255,11 @@ export class TeamBuilder {
 
   renderTeam() {
     const slots = this.root.querySelector("#teamSlots");
-    this.root.querySelector("#builderCount").textContent = `${this.team.length} / 10 Pokémon`;
+    this.root.querySelector("#builderCount").textContent = `${this.team.length} / ${GAME_CONFIG.team.maxPokemon} Pokémon`;
 
     slots.innerHTML = "";
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < GAME_CONFIG.team.maxPokemon; i++) {
       const p = this.team[i];
 
       if (!p) {
@@ -285,7 +287,7 @@ export class TeamBuilder {
         <div class="team-card-main">
           <strong>${this.escape(species.name)}</strong>
           <span>Lv. ${p.level}</span>
-          <small>${this.escape(ability?.name ?? "No ability")} · ${this.escape(item?.name ?? "No item")} · ${(p.moveset ?? p.moves ?? []).length} / 4 battle moves</small>
+          <small>${this.escape(ability?.name ?? "No ability")} · ${this.escape(item?.name ?? "No item")} · ${(p.moveset ?? p.moves ?? []).length} / ${GAME_CONFIG.moves.maxBattleMoves} battle moves</small>
         </div>
         <button class="edit-team-button" type="button">Edit</button>
       `;
@@ -311,8 +313,8 @@ export class TeamBuilder {
     const species = this.speciesById.get(speciesId);
     if (!species) return;
 
-    if (teamIndex === null && this.team.length >= 10) {
-      alert("Your team already has 10 Pokémon.");
+    if (teamIndex === null && this.team.length >= GAME_CONFIG.team.maxPokemon) {
+      alert("Your team already has 9 Pokémon.");
       return;
     }
 
@@ -330,9 +332,9 @@ export class TeamBuilder {
     const defaultItem = existing?.item ?? null;
     const legalMoveIds = new Set(this.availableMoves(species).map(m => m.id));
     const defaultMoves = existing
-      ? [...new Set((existing.moveset ?? existing.moves ?? []).filter(id => legalMoveIds.has(id)))].slice(0, 4)
-      : [...(species.moveset ?? [])].filter(id => legalMoveIds.has(id)).slice(0, 4);
-    if (!defaultMoves.length) defaultMoves.push(...this.availableMoves(species).slice(0, 4).map(m => m.id));
+      ? [...new Set((existing.moveset ?? existing.moves ?? []).filter(id => legalMoveIds.has(id)))].slice(0, GAME_CONFIG.moves.maxBattleMoves)
+      : [...(species.moveset ?? [])].filter(id => legalMoveIds.has(id)).slice(0, GAME_CONFIG.moves.maxBattleMoves);
+    if (!defaultMoves.length) defaultMoves.push(...this.availableMoves(species).slice(0, GAME_CONFIG.moves.maxBattleMoves).map(m => m.id));
     const level = existing?.level ?? 50;
 
     const abilityOptions = (species.abilities ?? []).map(id => {
@@ -358,7 +360,7 @@ export class TeamBuilder {
 
     this.root.querySelector("#editorTitle").textContent = `${species.name}`;
     this.root.querySelector("#editorSubtitle").textContent =
-      `${species.types.join(" / ")} · Configure level, ability, and up to 4 moves.`;
+      `${species.types.join(" / ")} · Configure level, ability, and up to ${GAME_CONFIG.moves.maxBattleMoves} moves.`;
 
     this.root.querySelector("#editorBody").innerHTML = `
       <div class="editor-pokemon-preview">
@@ -389,12 +391,12 @@ export class TeamBuilder {
       <div class="move-editor">
         <div class="move-editor-heading">
           <h3>Battle Moveset</h3>
-          <span id="moveCount">${selectedMoves.length} / 4</span>
+          <span id="moveCount">${selectedMoves.length} / ${GAME_CONFIG.moves.maxBattleMoves}</span>
         </div>
         <div id="moveRows"></div>
         <button id="addMove" class="add-move-button" type="button">+ Add Move</button>
         <small class="editor-note">
-          Learnset: ${this.escape(String(species.learnset?.length ?? 0))} moves · Move database: ${this.escape(String(this.data.moves.length))} moves · Battle moveset: up to 4 moves.<br>
+          Learnset: ${this.escape(String(species.learnset?.length ?? 0))} moves · Move database: ${this.escape(String(this.data.moves.length))} moves · Battle moveset: up to ${GAME_CONFIG.moves.maxBattleMoves} moves.<br>
           ${species.learnset?.length
             ? "Showing moves listed in this Pokémon's learnset."
             : "No learnset has been defined for this species yet, so all currently loaded moves are available."}
@@ -436,12 +438,12 @@ export class TeamBuilder {
     };
 
     const updateMoveControls = () => {
-      this.root.querySelector("#moveCount").textContent = `${selectedMoves.length} / 4`;
-      this.root.querySelector("#addMove").disabled = selectedMoves.length >= 4 || movePool.length === 0;
+      this.root.querySelector("#moveCount").textContent = `${selectedMoves.length} / ${GAME_CONFIG.moves.maxBattleMoves}`;
+      this.root.querySelector("#addMove").disabled = selectedMoves.length >= GAME_CONFIG.moves.maxBattleMoves || movePool.length === 0;
     };
 
     this.root.querySelector("#addMove").addEventListener("click", () => {
-      if (selectedMoves.length >= 4) return;
+      if (selectedMoves.length >= GAME_CONFIG.moves.maxBattleMoves) return;
       const unused = movePool.find(m => !selectedMoves.includes(m.id));
       if (!unused) return;
       selectedMoves.push(unused.id);
@@ -485,7 +487,7 @@ export class TeamBuilder {
     const entry = {
       species: state.speciesId,
       level,
-      moveset: uniqueMoves.slice(0, 4),
+      moveset: uniqueMoves.slice(0, GAME_CONFIG.moves.maxBattleMoves),
       ability,
       item
     };

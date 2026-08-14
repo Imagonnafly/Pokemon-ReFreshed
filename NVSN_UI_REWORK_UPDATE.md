@@ -11,4 +11,4 @@
 - Switch actions synchronize through the existing Supabase Realtime party/match action channel.
 - Switching resolves before normal moves, matching the intended battle-order semantics.
 - Desktop party battles are constrained to the viewport so the field and command dock are available without page scrolling.
-- 10v10 field cards are condensed automatically; mobile retains natural scrolling for usability.
+- 3v3 field cards are condensed automatically; mobile retains natural scrolling for usability.

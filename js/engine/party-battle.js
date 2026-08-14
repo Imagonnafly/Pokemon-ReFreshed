@@ -1,3 +1,4 @@
+import { GAME_CONFIG, clampBattleSize, clampTeamSize } from "../config.js";
 import { Battle } from './battle.js';
 
 function makeMember(member, battleSize = 1) {
@@ -22,15 +23,15 @@ function actionKey(memberId, slot) {
 /**
  * Cooperative team battle.
  *
- * battleSize = active Pokémon per trainer (1..10)
- * teamSize   = human trainers on each side (1..10)
+ * battleSize = active Pokémon per trainer (1..3)
+ * teamSize   = human trainers on each side (1..3)
  *
  * Therefore a 3v3 with 2 trainers/team has 6 active Pokémon per side, while
- * a 10v10 with 10 trainers/team can have 100 active Pokémon per side.
+ * a 3v3 with 3 trainers/team can have 9 active Pokémon per side.
  */
 export class PartyBattle extends Battle {
   constructor({ data, members, networkRole = null, localMemberId = null, coordinatorId = null, battleSize = 1, teamSize = null }) {
-    const normalizedBattleSize = Math.max(1, Math.min(10, Number(battleSize) || 1));
+    const normalizedBattleSize = clampBattleSize(battleSize);
     const normalized = members.map(m => makeMember(m, normalizedBattleSize));
     const firstAlpha = normalized.find(m => m.side === 'alpha') || normalized[0];
     const firstBeta = normalized.find(m => m.side === 'beta') || normalized[1] || normalized[0];
@@ -42,7 +43,7 @@ export class PartyBattle extends Battle {
     });
 
     this.isParty = true;
-    this.teamSize = Math.max(1, Math.min(10, Number(teamSize) || Math.ceil(normalized.length / 2) || 1));
+    this.teamSize = clampTeamSize(teamSize, Math.ceil(normalized.length / 2) || 1);
     this.partyMode = `${this.teamSize} trainers/team`;
     this.battleSize = normalizedBattleSize;
     this.members = normalized;

@@ -1,3 +1,4 @@
+import { GAME_CONFIG, clampBattleSize, clampTeamSize } from "./config.js";
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const SUPABASE_URL = "https://runvpplxfmoostzzpjco.supabase.co";
@@ -135,7 +136,7 @@ export class RemoteBattle {
     const species = this.data.species.find(p => p.id === raw.speciesId);
     const allowed = new Set(Array.isArray(species?.learnset) ? species.learnset : []);
     const rawMoveset = Array.isArray(raw.moveset) ? raw.moveset : (Array.isArray(raw.moves) ? raw.moves : []);
-    const moves = rawMoveset.filter(m => allowed.has(m.id)).map(m => ({ ...m })).slice(0, 4);
+    const moves = rawMoveset.filter(m => allowed.has(m.id)).map(m => ({ ...m })).slice(0, GAME_CONFIG.moves.maxBattleMoves);
     const legacyStatusMap = { Burn: "Scorch", Paralysis: "Shocked", Freeze: "Frostbite", Poison: "Haunted", "Bad Poison": "Haunted" };
     const normalizedStatus = legacyStatusMap[raw.status] || raw.status || null;
     return { ...raw, status: normalizedStatus, moves, types: [...(raw.types || [])], originalTypes: [...(raw.originalTypes || raw.types || [])], sprites: { ...(raw.sprites || {}) }, statusData: { ...(raw.statusData || {}) }, volatile: { ...(raw.volatile || {}) }, canBattle() { return this.hp > 0 && !this.fainted; } };
@@ -233,7 +234,7 @@ export class RemoteMultiBattle {
     this.data = data;
     this.networkRole = role;
     this.isMulti = true;
-    this.battleSize = Math.max(1, Math.min(10, Number(battleSize) || 1));
+    this.battleSize = clampBattleSize(battleSize);
     this.turn = 1;
     this.over = false;
     this.busy = false;
@@ -464,7 +465,7 @@ export class PartyMatchClient {
       return;
     }
     if (message?.type === "party_join_request" && this.party?.hostId === this.identity.id) {
-      if (this.party.members.length >= 2) return;
+      if (this.party.members.length >= GAME_CONFIG.matchmaking.maxTrainersPerTeam) return;
       this.party.members.push(message.member);
       this.partyChannel?.send({ type: "broadcast", event: "party", payload: { type: "party_state", party: this.party } });
       this.onParty(this.party);
@@ -491,6 +492,7 @@ export class PartyMatchClient {
   }
 
   async queueParty(mode = "match", battleSize = 1, teamSize = 2) {
+    teamSize = clampTeamSize(teamSize, 2);
     if (!this.party || this.party.members.length < 2) throw new Error("Your party needs at least two trainers before entering matchmaking.");
     if (this.party.members.length > teamSize) throw new Error(`Your party has ${this.party.members.length} trainers, but the selected battle type allows ${teamSize} trainers per team.`);
     if (this.party.hostId !== this.identity.id) {
@@ -513,8 +515,8 @@ export class PartyMatchClient {
       ticketId: `${group.groupId}:${Date.now()}`,
       groupId: group.groupId,
       mode,
-      battleSize: Math.max(1, Math.min(10, Number(battleSize) || 1)),
-      teamSize: Math.max(1, Math.min(10, Number(teamSize) || 1)),
+      battleSize: clampBattleSize(battleSize),
+      teamSize: clampTeamSize(teamSize),
       createdAt: Date.now(),
       leaderId: group.members.map(m => m.id).sort()[0],
       members: group.members
@@ -569,7 +571,7 @@ export class PartyMatchClient {
 
   attemptMatch() {
     const allTickets = [...this.queueTickets.values()]
-      .filter(t => Array.isArray(t.members) && t.members.length >= 1 && t.members.length <= 10)
+      .filter(t => Array.isArray(t.members) && t.members.length >= 1 && t.members.length <= GAME_CONFIG.matchmaking.maxTrainersPerTeam)
       .sort((a, b) => a.createdAt - b.createdAt || a.groupId.localeCompare(b.groupId));
     if (!allTickets.length || !this.queueGroup || !this.matchmakingActive) return;
 
@@ -579,8 +581,8 @@ export class PartyMatchClient {
 
     // One matchmaking queue, partitioned by the two selected dimensions:
     // battleSize = active Pokémon per trainer; teamSize = trainers per team.
-    const battleSize = Math.max(1, Math.min(10, Number(myTicket.battleSize) || 1));
-    const teamSize = Math.max(1, Math.min(10, Number(myTicket.teamSize) || 1));
+    const battleSize = clampBattleSize(myTicket.battleSize);
+    const teamSize = clampTeamSize(myTicket.teamSize);
     const candidates = allTickets.filter(t => {
       const sameMode = t.mode === myTicket.mode || (t.mode === 'team-2v2' && myTicket.mode === 'match' && Number(t.teamSize) === 2);
       return sameMode && Number(t.battleSize) === battleSize && Number(t.teamSize || 1) === teamSize;
@@ -707,8 +709,8 @@ export class RemotePartyBattle {
     this.data = data;
     this.isParty = true;
     this.partyMode = `${Math.max(1, Number(match.teamSize) || 2)} trainers/team`;
-    this.battleSize = Math.max(1, Math.min(10, Number(match.battleSize) || 1));
-    this.teamSize = Math.max(1, Math.min(10, Number(match.teamSize) || 2));
+    this.battleSize = clampBattleSize(match.battleSize);
+    this.teamSize = clampTeamSize(match.teamSize, 2);
     this.networkRole = "member";
     this.localMemberId = localMemberId;
     this.turn = 1;
@@ -826,8 +828,8 @@ export class RemotePartyBattle {
   applySnapshot(snapshot) {
     if (!snapshot?.members) return;
     this.turn = Number(snapshot.turn) || 1;
-    this.battleSize = Math.max(1, Math.min(10, Number(snapshot.battleSize) || this.battleSize || 1));
-    this.teamSize = Math.max(1, Math.min(10, Number(snapshot.teamSize) || this.teamSize || 2));
+    this.battleSize = clampBattleSize(snapshot.battleSize, this.battleSize || 1);
+    this.teamSize = clampTeamSize(snapshot.teamSize, this.teamSize || 2);
     this.over = !!snapshot.over;
     this.busy = !!snapshot.busy;
     this.locked = !!snapshot.locked;

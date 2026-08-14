@@ -1,8 +1,9 @@
+import { GAME_CONFIG, clampBattleSize } from "../config.js";
 function hydratePokemon(data, raw) {
   if (!raw) return null;
   const species = data.species.find(s => s.id === raw.speciesId);
   if (!species) return null;
-  const moves = (raw.moveset || raw.moves || []).map(m => typeof m === 'string' ? data.moves.find(x => x.id === m) : m).filter(Boolean).slice(0, 4);
+  const moves = (raw.moveset || raw.moves || []).map(m => typeof m === 'string' ? data.moves.find(x => x.id === m) : m).filter(Boolean).slice(0, GAME_CONFIG.moves.maxBattleMoves);
   return {
     ...raw,
     name: raw.name || species.name,
@@ -26,7 +27,7 @@ export class RemoteMultiBattleV2 {
     this.data = data;
     this.networkRole = role;
     this.isMulti = true;
-    this.battleSize = Math.max(2, Math.min(10, Number(battleSize) || 2));
+    this.battleSize = clampBattleSize(battleSize, 2);
     this.turn = 1;
     this.over = false;
     this.busy = false;
