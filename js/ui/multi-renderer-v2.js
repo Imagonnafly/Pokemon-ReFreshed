@@ -10,6 +10,7 @@ export class MultiRendererV2 {
 
   bind() {
     this.battle.onUpdate = () => this.render();
+    window.addEventListener('resize', () => this.renderResponsiveLabels(), { passive: true });
   }
 
   render() {
@@ -50,6 +51,8 @@ export class MultiRendererV2 {
 
   renderResponsiveLabels() {
     this.els.arena?.setAttribute('data-slots', String(this.battle.battleSize));
+    this.els.arena?.style.setProperty('--battle-count', String(this.battle.battleSize));
+    this.els.arena?.style.setProperty('--viewport-w', `${window.innerWidth}px`);
   }
 
   slotsFor(side) { return Array.isArray(this.battle[side]?.active) ? this.battle[side].active : []; }
@@ -67,7 +70,7 @@ export class MultiRendererV2 {
       const action = pending.find(a => a.slot === slot);
       const unit = document.createElement('button');
       unit.type = 'button';
-      unit.className = `multi-v2-field-unit ${side === 'player' ? 'ally-unit' : 'enemy-unit'}`;
+      unit.className = `showdown-field-unit ${side === 'player' ? 'ally-unit' : 'enemy-unit'}`;
       if (!p?.canBattle()) unit.classList.add('fainted');
       if (side === 'player' && slot === this.selectedSlot && p?.canBattle() && !this.targeting) unit.classList.add('selected');
       if (action) unit.classList.add('locked');
@@ -78,7 +81,8 @@ export class MultiRendererV2 {
       }
       const actionable = p?.canBattle() && !(side === 'player' && !!action && !this.targeting);
       unit.disabled = !actionable && !this.targeting;
-      unit.innerHTML = p ? this.fieldUnitHTML(p, side, slot, action) : `<div class="empty-slot">Empty</div>`;
+      unit.setAttribute('aria-label', p ? `${side === 'player' ? 'Select' : 'Target'} ${p.name}, slot ${slot + 1}` : 'Empty slot');
+      unit.innerHTML = p ? this.fieldUnitHTML(p, side, slot, action) : `<div class="showdown-empty-slot">Empty</div>`;
       unit.addEventListener('click', () => {
         if (this.targeting) {
           if (this.validTarget(side, teamIndex, slot)) this.commitTarget(side, teamIndex);
@@ -91,21 +95,24 @@ export class MultiRendererV2 {
       });
       box.appendChild(unit);
     });
-    if (!slots.length) box.innerHTML = '<div class="empty-slot">No active Pokémon</div>';
+    if (!slots.length) box.innerHTML = '<div class="showdown-empty-slot">No active Pokémon</div>';
   }
 
   fieldUnitHTML(p, side, slot, action) {
     const sprite = side === 'player' ? p.sprites?.back : p.sprites?.front;
     const hp = Math.max(0, Math.min(100, (p.hp / Math.max(1, p.maxHP)) * 100));
     const status = p.status ? `<span class="showdown-status-chip">${this.escape(String(p.status).replace(/-/g,' '))}</span>` : '';
-    const typeHtml = (p.types || []).map(t => `<span class="showdown-type ${this.escape(String(t).toLowerCase())}">${this.escape(t)}</span>`).join('');
+    const typeHtml = (p.types || []).slice(0, 2).map(t => `<span class="showdown-type-pill">${this.escape(t)}</span>`).join('');
+    const sideName = side === 'player' ? 'YOU' : 'OPP';
     return `
-      <span class="showdown-slot">${slot + 1}</span>
-      <div class="showdown-unit-head"><strong>${this.escape(p.name)}</strong><span>Lv.${p.level}</span></div>
-      <div class="showdown-hp-wrap"><div class="showdown-hp-bar"><i style="width:${hp}%"></i></div><span>${p.hp}/${p.maxHP}</span></div>
-      <div class="showdown-sprite-stage"><img class="multi-v2-field-sprite" src="${this.escape(sprite || '')}" alt="${this.escape(p.name)}"><span class="showdown-sprite-shadow"></span></div>
-      <div class="showdown-tags">${typeHtml}${status}</div>
-      ${action ? `<span class="showdown-ready">✓</span>` : ''}`;
+      <span class="showdown-slot-badge">${slot + 1}</span>
+      <div class="showdown-unit-hud">
+        <div class="showdown-name-row"><strong>${this.escape(p.name)}</strong><span>Lv.${p.level}</span></div>
+        <div class="showdown-hp-row"><div class="showdown-hp-bar"><i style="width:${hp}%"></i></div><span>${Math.max(0, p.hp)}/${p.maxHP}</span></div>
+        <div class="showdown-meta-row"><span>${sideName}</span><span>${typeHtml}${status}</span></div>
+      </div>
+      <div class="showdown-sprite-stage"><span class="showdown-sprite-aura"></span><img class="showdown-field-sprite" src="${this.escape(sprite || '')}" alt="${this.escape(p.name)}"><span class="showdown-ground-shadow"></span></div>
+      ${action ? '<span class="showdown-ready-mark">✓</span>' : ''}`;
   }
 
   renderRosters(side) {
@@ -117,12 +124,17 @@ export class MultiRendererV2 {
       const activeHere = active.has(index);
       const fainted = !p?.canBattle();
       const state = fainted ? 'fainted' : activeHere ? 'active' : 'bench';
-      const sprite = p?.sprites?.front || '';
-      return `<div class="showdown-roster-dot ${state}" title="${this.escape(p?.name || 'Pokémon')}"><img src="${this.escape(sprite)}" alt=""><span>${index + 1}</span></div>`;
+      const sprite = side === 'player' ? (p?.sprites?.front || '') : (p?.sprites?.front || '');
+      return `<button type="button" class="showdown-roster-dot ${state}" data-roster-index="${index}" title="${this.escape(p?.name || 'Pokémon')}"><img src="${this.escape(sprite)}" alt=""><span>${index + 1}</span></button>`;
     }).join('');
+    if (side === 'player') {
+      box.querySelectorAll('[data-roster-index]').forEach(btn => btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.rosterIndex);
+        const slot = this.battle.player.active.indexOf(idx);
+        if (slot >= 0) { this.selectedSlot = slot; this.targeting = null; this.render(); }
+      }));
+    }
   }
-
-  onCardClick() {}
 
   getTargetMode(move) {
     const explicit = String(move?.target || move?.targeting || '').toLowerCase();
@@ -133,7 +145,7 @@ export class MultiRendererV2 {
     return 'opponent';
   }
 
-  validTarget(side, teamIndex) {
+  validTarget(side, teamIndex, slot) {
     const t = this.targeting;
     if (!t) return false;
     if (t.mode === 'self') return side === 'player' && teamIndex === this.battle.player.active?.[this.selectedSlot];
@@ -159,7 +171,7 @@ export class MultiRendererV2 {
 
   commitTarget(side, teamIndex) {
     const t = this.targeting;
-    if (!t || t.mode === 'self' || !this.validTarget(side, teamIndex)) return;
+    if (!t || !this.validTarget(side, teamIndex)) return;
     this.commitAction(t.slot, t.move.id, side, teamIndex);
   }
 
@@ -216,7 +228,7 @@ export class MultiRendererV2 {
 
   renderLog() {
     if (!this.els.log) return;
-    const log = this.battle.log.slice(-30);
+    const log = this.battle.log.slice(-40);
     const need = this.battle.requiredSlots('player').length;
     const mine = this.pendingFor('player').length;
     const theirs = this.battle.networkRole ? Number(this.battle.remoteActionsCount || 0) : this.pendingFor('opponent').length;
@@ -225,6 +237,7 @@ export class MultiRendererV2 {
       if (this.battle.busy) status = `<div class="showdown-log-status live">Resolving turn…</div>`;
       else if (mine >= need) status = `<div class="showdown-log-status">Your side is ready · waiting for opponent (${theirs}/${this.battle.requiredSlots('opponent').length}).</div>`;
       else if (theirs >= this.battle.requiredSlots('opponent').length) status = `<div class="showdown-log-status">Opponent is ready · choose your remaining actions.</div>`;
+      else status = `<div class="showdown-log-status">Choose actions for ${Math.max(0, need - mine)} Pokémon.</div>`;
     }
     this.els.log.innerHTML = `<div class="showdown-log-scroll">${log.map(x => `<div class="v2-log-line">${this.escape(x)}</div>`).join('')}</div>${status}`;
     const scroll = this.els.log.querySelector('.showdown-log-scroll');
