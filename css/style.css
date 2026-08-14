@@ -2720,3 +2720,168 @@ body:has(.party-battle-page){overflow:hidden}
   .multi-v2-command-shell,.party-command-shell.showdown-party-command{height:260px}
   .multi-v2-log-shell,.party-log-shell{height:220px}
 }
+
+/* ========================================================================== */
+/* FINAL SHOWDOWN-LIKE MULTI BATTLE BOARD                                    */
+/* ========================================================================== */
+.showdown-layout .multi-v2-main{
+  height:calc(100dvh - 58px) !important;
+  display:grid !important;
+  grid-template-columns:minmax(0, 1.58fr) minmax(360px, .92fr) !important;
+  grid-template-rows:minmax(0,1fr) 230px !important;
+  grid-template-areas:
+    "arena log"
+    "command log" !important;
+  gap:8px !important;
+  padding:8px !important;
+  overflow:hidden !important;
+}
+
+.showdown-layout .showdown-arena{
+  grid-area:arena !important;
+  min-height:0 !important;
+  display:grid !important;
+  grid-template-rows:42px 22px minmax(0,1fr) 24px minmax(0,1fr) 22px !important;
+  border-radius:8px !important;
+  background:
+    linear-gradient(180deg,#b9def4 0%,#d9edf6 30%,#eef2f5 68%,#dce7ef 100%) !important;
+}
+.showdown-layout .showdown-arena-head{min-height:0 !important}
+.showdown-layout .showdown-side{min-height:0 !important; padding:0 10px !important; display:grid !important; grid-template-rows:22px minmax(0,1fr) !important}
+.showdown-layout .showdown-side-label{padding:0 4px !important; font-size:9px !important}
+.showdown-layout .showdown-side-body{min-height:0 !important; display:grid !important; grid-template-columns:34px minmax(0,1fr) !important; gap:7px !important; overflow:visible !important}
+.showdown-layout .player-side .showdown-side-body{grid-template-columns:minmax(0,1fr) 34px !important}
+.showdown-layout .showdown-team-rail{display:flex !important; flex-direction:column !important; justify-content:center !important; gap:4px !important; min-width:34px !important; padding:0 !important; overflow:hidden !important}
+.showdown-layout .showdown-roster-dot{width:30px !important;height:24px !important;border-radius:4px !important}
+.showdown-layout .showdown-roster-dot img{max-width:26px !important;max-height:20px !important}
+
+/* Free-standing field units: no rectangular Pokemon cards. */
+.showdown-layout .multi-v2-field-unit{
+  position:relative !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  padding:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  display:block !important;
+  overflow:visible !important;
+  color:var(--sd-ink) !important;
+  transform:none !important;
+}
+.showdown-layout .multi-v2-field-unit:hover:not(:disabled),
+.showdown-layout .multi-v2-field-unit.selected{background:transparent !important;box-shadow:none !important;border:0 !important}
+.showdown-layout .multi-v2-field-unit.not-targetable{opacity:.35}
+
+.showdown-layout .showdown-unit-head,
+.showdown-layout .showdown-hp-wrap,
+.showdown-layout .showdown-tags{
+  position:absolute !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+  width:min(88%,220px) !important;
+  z-index:10 !important;
+}
+.showdown-layout .showdown-unit-head{top:1px !important;height:16px !important;padding:0 !important;pointer-events:none !important}
+.showdown-layout .showdown-unit-head strong{font-size:10px !important;font-weight:1000 !important;text-shadow:0 1px 0 rgba(255,255,255,.8)}
+.showdown-layout .showdown-unit-head span{font-size:7px !important}
+.showdown-layout .showdown-hp-wrap{top:18px !important;gap:5px !important;padding:0 !important}
+.showdown-layout .showdown-hp-bar{height:6px !important;box-shadow:0 0 0 1px rgba(255,255,255,.8)}
+.showdown-layout .showdown-hp-wrap span{font-size:7px !important;font-weight:800 !important;color:#65778d !important}
+.showdown-layout .showdown-tags{top:29px !important;display:flex !important;gap:3px !important;justify-content:flex-start !important}
+.showdown-layout .showdown-type,.showdown-layout .showdown-status-chip{font-size:5px !important;padding:2px 4px !important}
+.showdown-layout .showdown-sprite-stage{
+  position:absolute !important;
+  inset:34px 0 0 !important;
+  min-height:0 !important;
+  display:flex !important;
+  align-items:flex-end !important;
+  justify-content:center !important;
+  pointer-events:none !important;
+}
+.showdown-layout .multi-v2-field-sprite{
+  width:auto !important;
+  height:min(13vh, 125px) !important;
+  max-width:88% !important;
+  max-height:125px !important;
+  object-fit:contain !important;
+  filter:drop-shadow(0 10px 6px rgba(28,45,67,.24)) !important;
+  animation:sdFloat 3.2s ease-in-out infinite !important;
+}
+.showdown-layout .showdown-sprite-shadow,
+.showdown-layout .showdown-ground-shadow{position:absolute !important;bottom:5px !important;width:38% !important;height:10px !important;border-radius:50% !important;background:rgba(74,93,115,.18) !important;filter:blur(3px) !important}
+.showdown-layout .showdown-slot{position:absolute !important;left:0 !important;top:0 !important;z-index:11 !important;font-size:6px !important;padding:2px 4px !important}
+.showdown-layout .showdown-ready{right:0 !important;top:0 !important;width:18px !important;height:18px !important}
+.showdown-layout .multi-v2-field-unit.selected .showdown-sprite-stage::after{
+  content:"";position:absolute;bottom:4px;left:28%;right:28%;height:7px;border-radius:50%;background:rgba(73,115,227,.18);box-shadow:0 0 0 2px rgba(73,115,227,.11),0 0 18px rgba(73,115,227,.2);animation:sdFloat 1.2s ease-in-out infinite;}
+.showdown-layout .multi-v2-field-unit.targetable .showdown-sprite-stage::after{
+  content:"";position:absolute;bottom:4px;left:26%;right:26%;height:7px;border-radius:50%;background:#4d8bef;box-shadow:0 0 0 2px rgba(77,139,239,.12),0 0 18px rgba(77,139,239,.42);animation:showdownTarget 1.1s ease-in-out infinite;
+}
+
+/* No center VS element: use a simple horizontal arena divider. */
+.showdown-layout .multi-v2-centerline{height:24px !important;display:flex !important;align-items:center !important;justify-content:center !important}
+.showdown-layout .multi-v2-centerline::before{content:"" !important;width:78% !important;height:1px !important;background:linear-gradient(90deg,transparent,#a5b6ca 12%,#94a9bf 50%,#a5b6ca 88%,transparent) !important}
+.showdown-layout .multi-v2-centerline span{display:none !important}
+
+/* Command panel + log match the Showdown split. */
+.showdown-layout .showdown-command{grid-area:command !important;min-height:0 !important;overflow:hidden !important}
+.showdown-layout #multiCommand{padding:9px 10px !important;overflow:hidden !important;display:grid !important;grid-template-rows:auto minmax(0,1fr) auto !important;gap:6px !important}
+.showdown-layout .showdown-moves{min-height:0 !important;grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:5px !important}
+.showdown-layout .showdown-move{min-height:0 !important;height:100% !important;padding:7px 9px !important}
+.showdown-layout .showdown-switch-section{min-height:40px !important}
+.showdown-layout .showdown-switch-row{height:31px !important;overflow-x:auto !important;overflow-y:hidden !important}
+.showdown-layout .showdown-log{grid-area:log !important;min-height:0 !important;display:grid !important;grid-template-rows:36px minmax(0,1fr) !important}
+.showdown-layout .multi-v2-log-head{height:36px !important}
+.showdown-layout .battle-log{min-height:0 !important;height:100% !important;overflow:hidden !important}
+.showdown-layout .showdown-log-scroll{height:100% !important;overflow:auto !important;padding:9px 11px 12px !important}
+.showdown-layout .v2-log-line{font-size:10px !important;line-height:1.35 !important;padding:6px 3px !important}
+
+/* 3v3 should still have enough sprite room at 100% zoom. */
+.showdown-layout .showdown-side:nth-of-type(2) .multi-v2-grid{min-height:0 !important}
+.showdown-layout .multi-v2-grid{grid-auto-rows:minmax(0,1fr) !important;align-items:stretch !important}
+
+/* Short desktop screens: keep the exact composition, scale sprites only. */
+@media (min-width:901px) and (max-height:820px){
+  .showdown-layout .multi-v2-main{grid-template-rows:minmax(0,1fr) 205px !important}
+  .showdown-layout .multi-v2-field-sprite{height:min(11vh,100px) !important;max-height:100px !important}
+  .showdown-layout .showdown-unit-head strong{font-size:9px !important}
+  .showdown-layout .showdown-hp-wrap span{font-size:6px !important}
+}
+
+/* Tablet / portrait: preserve the Showdown split vertically. */
+@media (max-width:1100px){
+  .showdown-layout .multi-v2-main{
+    grid-template-columns:minmax(0,1fr) 320px !important;
+    grid-template-rows:minmax(0,1fr) 215px !important;
+  }
+}
+@media (max-width:820px){
+  .showdown-layout .multi-v2-page{height:auto !important;min-height:100dvh !important;overflow:auto !important}
+  .showdown-layout .multi-v2-main{
+    height:auto !important;min-height:calc(100dvh - 58px) !important;
+    grid-template-columns:1fr !important;
+    grid-template-rows:minmax(470px,62dvh) 235px 260px !important;
+    grid-template-areas:"arena" "command" "log" !important;
+    overflow:visible !important;
+  }
+  .showdown-layout .showdown-arena{min-height:470px !important}
+  .showdown-layout .showdown-side-body{grid-template-columns:24px minmax(0,1fr) !important}
+  .showdown-layout .player-side .showdown-side-body{grid-template-columns:minmax(0,1fr) 24px !important}
+  .showdown-layout .showdown-roster-dot{width:22px !important;height:19px !important}
+  .showdown-layout .showdown-unit-head strong{font-size:8px !important}
+  .showdown-layout .showdown-hp-wrap span{font-size:5px !important}
+  .showdown-layout .multi-v2-field-sprite{height:80px !important;max-height:80px !important}
+}
+@media (max-width:520px){
+  .showdown-layout .multi-v2-main{grid-template-rows:minmax(390px,58dvh) 225px 240px !important}
+  .showdown-layout .showdown-arena{min-height:390px !important;grid-template-rows:38px 18px minmax(0,1fr) 22px minmax(0,1fr) 18px !important}
+  .showdown-layout .multi-v2-grid{gap:2px !important;padding:1px 3px !important}
+  .showdown-layout .showdown-unit-head strong{font-size:7px !important}
+  .showdown-layout .showdown-unit-head span{font-size:5px !important}
+  .showdown-layout .showdown-hp-wrap{top:17px !important}
+  .showdown-layout .showdown-tags{display:none !important}
+  .showdown-layout .multi-v2-field-sprite{height:65px !important;max-height:65px !important}
+  .showdown-layout .showdown-moves{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+  .showdown-layout .v2-log-line{font-size:8px !important}
+}
