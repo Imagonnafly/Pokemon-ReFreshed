@@ -10,7 +10,6 @@ export class MultiRendererV2 {
 
   bind() {
     this.battle.onUpdate = () => this.render();
-    this.els.back?.addEventListener('click', () => history.back());
   }
 
   render() {
@@ -19,8 +18,11 @@ export class MultiRendererV2 {
     this.renderHeader();
     this.renderSide('opponent');
     this.renderSide('player');
+    this.renderRosters('opponent');
+    this.renderRosters('player');
     this.renderCommandDock();
     this.renderLog();
+    this.renderResponsiveLabels();
   }
 
   cache() {
@@ -28,7 +30,8 @@ export class MultiRendererV2 {
     this.els = {
       arena:q('#multiArena'), opponent:q('#multiOpponent'), player:q('#multiPlayer'),
       command:q('#multiCommand'), log:q('#battleLog'), turn:q('#turnLabel'), field:q('#fieldLabel'),
-      targetHint:q('#multiTargetHint'), back:q('#backToBuilder')
+      targetHint:q('#multiTargetHint'), opponentRail:q('#multiOpponentRail'), playerRail:q('#multiPlayerRail'),
+      back:q('#backToBuilder')
     };
   }
 
@@ -41,8 +44,12 @@ export class MultiRendererV2 {
     if (this.els.targetHint) {
       if (this.battle.over) this.els.targetHint.textContent = 'Battle complete';
       else if (this.targeting) this.els.targetHint.textContent = `Choose a target for ${this.targeting.move.name}`;
-      else this.els.targetHint.textContent = 'Click one of your active Pokémon to command it.';
+      else this.els.targetHint.textContent = 'Select a Pokémon, choose a move, then click its target.';
     }
+  }
+
+  renderResponsiveLabels() {
+    this.els.arena?.setAttribute('data-slots', String(this.battle.battleSize));
   }
 
   slotsFor(side) { return Array.isArray(this.battle[side]?.active) ? this.battle[side].active : []; }
@@ -58,7 +65,8 @@ export class MultiRendererV2 {
     slots.forEach((teamIndex, slot) => {
       const p = this.battle[side]?.team?.[teamIndex];
       const action = pending.find(a => a.slot === slot);
-      const unit = document.createElement('div');
+      const unit = document.createElement('button');
+      unit.type = 'button';
       unit.className = `multi-v2-field-unit ${side === 'player' ? 'ally-unit' : 'enemy-unit'}`;
       if (!p?.canBattle()) unit.classList.add('fainted');
       if (side === 'player' && slot === this.selectedSlot && p?.canBattle() && !this.targeting) unit.classList.add('selected');
@@ -68,39 +76,53 @@ export class MultiRendererV2 {
         unit.classList.toggle('targetable', valid);
         unit.classList.toggle('not-targetable', !valid);
       }
-      unit.setAttribute('role', 'button');
-      unit.tabIndex = p?.canBattle() ? 0 : -1;
       const actionable = p?.canBattle() && !(side === 'player' && !!action && !this.targeting);
-      if (!actionable) unit.setAttribute('aria-disabled', 'true');
+      unit.disabled = !actionable && !this.targeting;
       unit.innerHTML = p ? this.fieldUnitHTML(p, side, slot, action) : `<div class="empty-slot">Empty</div>`;
-      const click = () => { if (actionable || this.targeting) this.onCardClick(side, slot, teamIndex); };
-      unit.addEventListener('click', click);
-      unit.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && (actionable || this.targeting)) { e.preventDefault(); click(); } });
+      unit.addEventListener('click', () => {
+        if (this.targeting) {
+          if (this.validTarget(side, teamIndex, slot)) this.commitTarget(side, teamIndex);
+          return;
+        }
+        if (actionable && side === 'player') {
+          this.selectedSlot = slot;
+          this.render();
+        }
+      });
       box.appendChild(unit);
     });
+    if (!slots.length) box.innerHTML = '<div class="empty-slot">No active Pokémon</div>';
   }
 
   fieldUnitHTML(p, side, slot, action) {
     const sprite = side === 'player' ? p.sprites?.back : p.sprites?.front;
     const hp = Math.max(0, Math.min(100, (p.hp / Math.max(1, p.maxHP)) * 100));
-    const status = p.status ? `<span class="multi-v2-status-chip">${this.escape(String(p.status).replace(/-/g,' '))}</span>` : '';
-    return `<span class="slot-badge">${slot + 1}</span><div class="multi-v2-sprite-stage"><img class="multi-v2-field-sprite" src="${this.escape(sprite || '')}" alt="${this.escape(p.name)}"><span class="multi-v2-sprite-shadow"></span></div><div class="multi-v2-info-card"><div class="multi-v2-name"><strong>${this.escape(p.name)}</strong><small>Lv.${p.level}</small></div><div class="types">${(p.types||[]).map(t=>`<span class="type">${this.escape(t)}</span>`).join('')}</div><div class="multi-v2-hp"><span><i style="width:${hp}%"></i></span><em>${p.hp}/${p.maxHP}</em></div>${status}</div>${action ? `<span class="action-badge">✓</span>` : ''}`;
+    const status = p.status ? `<span class="showdown-status-chip">${this.escape(String(p.status).replace(/-/g,' '))}</span>` : '';
+    const typeHtml = (p.types || []).map(t => `<span class="showdown-type ${this.escape(String(t).toLowerCase())}">${this.escape(t)}</span>`).join('');
+    return `
+      <span class="showdown-slot">${slot + 1}</span>
+      <div class="showdown-unit-head"><strong>${this.escape(p.name)}</strong><span>Lv.${p.level}</span></div>
+      <div class="showdown-hp-wrap"><div class="showdown-hp-bar"><i style="width:${hp}%"></i></div><span>${p.hp}/${p.maxHP}</span></div>
+      <div class="showdown-sprite-stage"><img class="multi-v2-field-sprite" src="${this.escape(sprite || '')}" alt="${this.escape(p.name)}"><span class="showdown-sprite-shadow"></span></div>
+      <div class="showdown-tags">${typeHtml}${status}</div>
+      ${action ? `<span class="showdown-ready">✓</span>` : ''}`;
   }
 
-  onCardClick(side, slot, teamIndex) {
-    if (this.battle.busy || this.battle.over) return;
-    const p = this.battle[side]?.team?.[teamIndex];
-    if (!p?.canBattle()) return;
-    if (this.targeting) {
-      if (!this.validTarget(side, teamIndex, slot)) return;
-      this.commitTarget(side, teamIndex);
-      return;
-    }
-    if (side !== 'player') return;
-    if (this.pendingForSlot('player', slot)) return;
-    this.selectedSlot = slot;
-    this.render();
+  renderRosters(side) {
+    const box = side === 'player' ? this.els.playerRail : this.els.opponentRail;
+    if (!box) return;
+    const team = this.battle[side]?.team || [];
+    const active = new Set(this.slotsFor(side));
+    box.innerHTML = team.map((p, index) => {
+      const activeHere = active.has(index);
+      const fainted = !p?.canBattle();
+      const state = fainted ? 'fainted' : activeHere ? 'active' : 'bench';
+      const sprite = p?.sprites?.front || '';
+      return `<div class="showdown-roster-dot ${state}" title="${this.escape(p?.name || 'Pokémon')}"><img src="${this.escape(sprite)}" alt=""><span>${index + 1}</span></div>`;
+    }).join('');
   }
+
+  onCardClick() {}
 
   getTargetMode(move) {
     const explicit = String(move?.target || move?.targeting || '').toLowerCase();
@@ -137,9 +159,7 @@ export class MultiRendererV2 {
 
   commitTarget(side, teamIndex) {
     const t = this.targeting;
-    if (!t) return;
-    if (t.mode === 'self') return;
-    if (!this.validTarget(side, teamIndex)) return;
+    if (!t || t.mode === 'self' || !this.validTarget(side, teamIndex)) return;
     this.commitAction(t.slot, t.move.id, side, teamIndex);
   }
 
@@ -173,37 +193,41 @@ export class MultiRendererV2 {
     if (!panel) return;
     panel.innerHTML = '';
     if (this.battle.over) {
-      panel.innerHTML = `<div class="multi-v2-result"><strong>${this.battle.result?.winnerRole === 'local' || this.battle.result?.winnerRole === 'host' ? 'Victory!' : 'Defeat'}</strong><span>Return to Team Builder to play again.</span></div>`;
+      panel.innerHTML = `<div class="showdown-result"><strong>${this.battle.result?.winnerRole === 'local' || this.battle.result?.winnerRole === 'host' ? 'Victory!' : 'Defeat'}</strong><span>Return to Team Builder to play again.</span></div>`;
       return;
     }
-    const activeIndex=this.battle.player.active?.[this.selectedSlot];
-    const pokemon=this.battle.player.team?.[activeIndex];
-    if (!pokemon?.canBattle()) { panel.innerHTML=`<div class="multi-v2-empty-command">Select a living Pokémon on the field.</div>`; return; }
-    const pending=this.pendingForSlot('player',this.selectedSlot);
-    const allLocked=this.pendingFor('player').length>=this.battle.requiredSlots('player').length;
-    const moves=this.battle.getAvailableMovesFor(pokemon);
-    const moveCards=moves.map(m=>`<button class="multi-v2-move" data-move="${this.escape(m.id)}" ${pending||this.battle.busy||allLocked?'disabled':''}><strong>${this.escape(m.name)}</strong><span>${this.escape((m.types||[]).join(' / '))} · ${this.escape(m.category||'status')}</span><small>${m.pp??'—'} PP</small></button>`).join('');
-    const activeSet=new Set(this.battle.player.active||[]);
-    const bench=this.battle.player.team.map((p,i)=>({p,i})).filter(x=>x.p?.canBattle()&&!activeSet.has(x.i));
-    const switches=bench.map(x=>`<button class="multi-v2-switch" data-switch="${x.i}" ${pending||this.battle.busy||allLocked?'disabled':''}><img src="${this.escape(x.p.sprites?.front||'')}" alt=""><span>${this.escape(x.p.name)}</span></button>`).join('');
-    panel.innerHTML=`<div class="multi-v2-command-head"><div><small>COMMANDING</small><h2>${this.escape(pokemon.name)}</h2></div><div class="multi-v2-progress">${this.pendingFor('player').length}/${this.battle.requiredSlots('player').length} ready</div></div>${this.targeting?`<div class="multi-v2-targeting">Select a valid target on the battlefield for <b>${this.escape(this.targeting.move.name)}</b>.</div>`:`<div class="multi-v2-moves">${moveCards}</div>`}<div class="multi-v2-switches"><div class="multi-v2-section-title">SWITCH</div><div class="multi-v2-switch-row">${switches||'<span class="multi-v2-no-switch">No healthy bench Pokémon available.</span>'}</div></div>`;
-    panel.querySelectorAll('[data-move]').forEach(btn=>btn.addEventListener('click',()=>this.beginMove(moves.find(m=>m.id===btn.dataset.move))));
-    panel.querySelectorAll('[data-switch]').forEach(btn=>btn.addEventListener('click',()=>this.commitSwitch(Number(btn.dataset.switch))));
+    const activeIndex = this.battle.player.active?.[this.selectedSlot];
+    const pokemon = this.battle.player.team?.[activeIndex];
+    if (!pokemon?.canBattle()) { panel.innerHTML = `<div class="showdown-empty-command">Select one of your active Pokémon.</div>`; return; }
+    const pending = this.pendingForSlot('player', this.selectedSlot);
+    const allLocked = this.pendingFor('player').length >= this.battle.requiredSlots('player').length;
+    const moves = this.battle.getAvailableMovesFor(pokemon);
+    const moveCards = moves.map(m => `<button class="multi-v2-move showdown-move" data-move="${this.escape(m.id)}" ${pending || this.battle.busy || allLocked ? 'disabled' : ''}><span class="showdown-move-name">${this.escape(m.name)}</span><small>${this.escape((m.types || []).join(' / '))} · ${this.escape(m.category || 'status')} · ${m.pp ?? '—'} PP</small></button>`).join('');
+    const activeSet = new Set(this.battle.player.active || []);
+    const bench = this.battle.player.team.map((p,i) => ({p,i})).filter(x => x.p?.canBattle() && !activeSet.has(x.i));
+    const switches = bench.map(x => `<button class="multi-v2-switch showdown-switch" data-switch="${x.i}" ${pending || this.battle.busy || allLocked ? 'disabled' : ''}><img src="${this.escape(x.p.sprites?.front || '')}" alt=""><span>${this.escape(x.p.name)}</span></button>`).join('');
+    panel.innerHTML = `
+      <div class="showdown-command-top"><div><span class="eyebrow">WHAT WILL ${this.escape(pokemon.name.toUpperCase())} DO?</span><h2>${this.escape(pokemon.name)}</h2></div><div class="showdown-ready-count">${this.pendingFor('player').length}/${this.battle.requiredSlots('player').length} ready</div></div>
+      ${this.targeting ? `<div class="showdown-target-banner">Choose a target on the field for <strong>${this.escape(this.targeting.move.name)}</strong>.</div>` : `<div class="showdown-moves">${moveCards}</div>`}
+      <div class="showdown-switch-section"><div class="showdown-switch-title">SWITCH</div><div class="showdown-switch-row">${switches || '<span class="showdown-no-switch">No healthy bench Pokémon.</span>'}</div></div>`;
+    panel.querySelectorAll('[data-move]').forEach(btn => btn.addEventListener('click', () => this.beginMove(moves.find(m => m.id === btn.dataset.move))));
+    panel.querySelectorAll('[data-switch]').forEach(btn => btn.addEventListener('click', () => this.commitSwitch(Number(btn.dataset.switch))));
   }
 
   renderLog() {
     if (!this.els.log) return;
-    const log=this.battle.log.slice(-14);
-    let status='';
-    const need=this.battle.requiredSlots('player').length;
-    const mine=this.pendingFor('player').length;
-    const theirs=this.battle.networkRole ? Number(this.battle.remoteActionsCount || 0) : this.pendingFor('opponent').length;
-    if(!this.battle.over){
-      if(mine>=need&&!this.battle.busy) status=`<div class="v2-status">Your side is locked in — waiting for the opponent (${theirs}/${this.battle.requiredSlots('opponent').length}).</div>`;
-      else if(theirs>=this.battle.requiredSlots('opponent').length&&mine<need&&!this.battle.busy) status=`<div class="v2-status">The opponent is ready — choose the remaining ${need-mine} action${need-mine===1?'':'s'}.</div>`;
-      else if(this.battle.busy) status=`<div class="v2-status live">Resolving turn…</div>`;
+    const log = this.battle.log.slice(-30);
+    const need = this.battle.requiredSlots('player').length;
+    const mine = this.pendingFor('player').length;
+    const theirs = this.battle.networkRole ? Number(this.battle.remoteActionsCount || 0) : this.pendingFor('opponent').length;
+    let status = '';
+    if (!this.battle.over) {
+      if (this.battle.busy) status = `<div class="showdown-log-status live">Resolving turn…</div>`;
+      else if (mine >= need) status = `<div class="showdown-log-status">Your side is ready · waiting for opponent (${theirs}/${this.battle.requiredSlots('opponent').length}).</div>`;
+      else if (theirs >= this.battle.requiredSlots('opponent').length) status = `<div class="showdown-log-status">Opponent is ready · choose your remaining actions.</div>`;
     }
-    this.els.log.innerHTML=log.map(x=>`<div class="v2-log-line">${this.escape(x)}</div>`).join('')+status;
-    this.els.log.scrollTop=this.els.log.scrollHeight;
+    this.els.log.innerHTML = `<div class="showdown-log-scroll">${log.map(x => `<div class="v2-log-line">${this.escape(x)}</div>`).join('')}</div>${status}`;
+    const scroll = this.els.log.querySelector('.showdown-log-scroll');
+    if (scroll) scroll.scrollTop = scroll.scrollHeight;
   }
 }

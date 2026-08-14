@@ -415,23 +415,28 @@ let renderer = null;
 
 function mountBattleUI(battle, role = "local") {
   if (battle.isMulti && battle.battleSize > 1) {
-    app.innerHTML = `<div class="battle-page multi-v2-page">
+    app.innerHTML = `<div class="battle-page multi-v2-page showdown-layout">
       <header class="topbar battle-topbar multi-v2-topbar">
         <div class="topbar-brand"><div class="brand-mark battle-brand-mark">◉</div><div><h1>Pokémon Battle</h1><span class="topbar-sub">${role === "local" ? "N-vs-N Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div>
         <div class="battle-header-actions"><span id="turnLabel" class="turn-pill turn-pill-live">Turn 1 · ${battle.battleSize}v${battle.battleSize}</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="backToBuilder" class="header-button" type="button">← Team Builder</button></div>
       </header>
       <main class="multi-v2-main">
-        <section class="multi-v2-arena" id="multiArena">
-          <div class="multi-v2-arena-head"><div><span>LIVE BATTLE</span><h2>${battle.battleSize}v${battle.battleSize} FIELD</h2></div><div class="multi-v2-target-hint"><span class="live-dot"></span><strong id="multiTargetHint">Click one of your active Pokémon to command it.</strong></div></div>
-          <div class="multi-v2-side-head"><span>OPPONENT</span><em>${role === "local" ? "CPU Trainer" : "Player 2"}</em></div>
-          <div id="multiOpponent" class="multi-v2-grid opponent-grid"></div>
-          <div id="multiPlayer" class="multi-v2-grid player-grid"></div>
-          <div class="multi-v2-side-foot"><span>YOU</span><em>${role === "local" ? "Trainer" : role === "host" ? "Player 1" : "Player 2"}</em></div>
+        <section class="multi-v2-arena showdown-arena" id="multiArena">
+          <div class="showdown-arena-head">
+            <div><span>LIVE BATTLE</span><h2>${battle.battleSize}v${battle.battleSize} FIELD</h2></div>
+            <div class="multi-v2-target-hint"><span class="live-dot"></span><strong id="multiTargetHint">Click one of your active Pokémon to command it.</strong></div>
+          </div>
+          <div class="showdown-side opponent-side">
+            <div class="showdown-side-label"><strong>OPPONENT</strong><span>${role === "local" ? "CPU Trainer" : "Player 2"}</span></div>
+            <div class="showdown-side-body"><div id="multiOpponentRail" class="showdown-team-rail opponent-rail"></div><div id="multiOpponent" class="multi-v2-grid opponent-grid"></div></div>
+          </div>
+          <div class="showdown-side player-side">
+            <div class="showdown-side-label"><strong>YOU</strong><span>${role === "local" ? "Trainer" : role === "host" ? "Player 1" : "Player 2"}</span></div>
+            <div class="showdown-side-body"><div id="multiPlayer" class="multi-v2-grid player-grid"></div><div id="multiPlayerRail" class="showdown-team-rail player-rail"></div></div>
+          </div>
         </section>
-        <section class="multi-v2-dock">
-          <div class="multi-v2-command-shell"><div id="multiCommand"></div></div>
-          <aside class="multi-v2-log-shell"><div class="multi-v2-log-head"><span>BATTLE LOG</span><span class="live-tag">LIVE</span></div><div class="battle-log" id="battleLog" aria-live="polite"></div></aside>
-        </section>
+        <section class="multi-v2-command-shell showdown-command"><div id="multiCommand"></div></section>
+        <aside class="multi-v2-log-shell showdown-log"><div class="multi-v2-log-head"><span>BATTLE LOG</span><span class="live-tag">LIVE</span></div><div class="battle-log" id="battleLog" aria-live="polite"></div></aside>
       </main>
     </div>`;
   } else {
@@ -440,6 +445,7 @@ function mountBattleUI(battle, role = "local") {
   document.querySelector("#backToBuilder").onclick = returnToBuilder;
   document.querySelector("#restartButton")?.addEventListener("click", returnToBuilder);
 }
+
 function returnToBuilder() {
   multiplayer?.leave();
   multiplayer = null;
