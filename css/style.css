@@ -1413,3 +1413,60 @@ body:has(.multi-battle-page){
   .multi-v2-page .multi-v2-move{min-height:45px;padding:6px 7px}
   .multi-v2-page .multi-v2-switch{min-width:88px;height:30px}
 }
+
+/* ---------- field sprite/card separation ---------- */
+.multi-v2-grid{align-items:end}
+.multi-v2-field-unit{
+  position:relative; min-width:0; min-height:0; display:grid; grid-template-rows:minmax(42px,1fr) auto;
+  align-items:end; justify-items:center; cursor:pointer; outline:none; border-radius:18px; padding:4px 5px 0;
+  transition:transform .22s ease, filter .22s ease, opacity .22s ease;
+}
+.multi-v2-field-unit[aria-disabled="true"]{cursor:default}
+.multi-v2-field-unit:hover:not([aria-disabled="true"]){transform:translateY(-3px)}
+.multi-v2-field-unit:focus-visible{box-shadow:0 0 0 3px rgba(83,113,238,.32);border-radius:18px}
+.multi-v2-sprite-stage{position:relative; width:100%; min-height:0; display:grid; place-items:end center; pointer-events:none;}
+.multi-v2-field-sprite{position:relative; z-index:2; width:auto; height:clamp(48px,7.4vh,92px); max-width:78%; object-fit:contain; transform-origin:center bottom; filter:drop-shadow(0 12px 10px rgba(39,56,84,.16)); transition:transform .25s ease, filter .25s ease}
+.multi-v2-sprite-shadow{position:absolute; z-index:1; bottom:1px; left:50%; width:min(72%,100px); height:10px; transform:translateX(-50%); border-radius:50%; background:radial-gradient(ellipse,rgba(56,76,104,.20),transparent 72%); filter:blur(2px)}
+.multi-v2-info-card{
+  position:relative; z-index:3; width:100%; min-width:0; padding:7px 9px 8px; border:1px solid rgba(211,221,235,.95);
+  border-radius:14px; background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(241,246,253,.96));
+  box-shadow:0 8px 18px rgba(33,49,77,.08), inset 0 1px 0 rgba(255,255,255,.95); backdrop-filter:blur(8px);
+}
+.multi-v2-info-card .multi-v2-name{display:flex;align-items:center;justify-content:space-between;gap:5px;min-width:0}
+.multi-v2-info-card .multi-v2-name strong{font-size:clamp(9px,.78vw,12px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.multi-v2-info-card .multi-v2-name small{font-size:7px;color:#8190a4;font-weight:900;white-space:nowrap}
+.multi-v2-info-card .types{display:flex;gap:3px;flex-wrap:nowrap;overflow:hidden;margin:4px 0 5px}
+.multi-v2-info-card .type{font-size:6px;padding:3px 5px}
+.multi-v2-info-card .multi-v2-hp{display:flex;align-items:center;gap:5px;min-width:0}
+.multi-v2-info-card .multi-v2-hp>span{height:5px;flex:1;min-width:0;border-radius:999px;background:#e4eaf2;overflow:hidden}
+.multi-v2-info-card .multi-v2-hp i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#54cd78,#6de75c)}
+.multi-v2-info-card .multi-v2-hp em{font-style:normal;font-size:7px;color:#77869b;white-space:nowrap;font-weight:900}
+.multi-v2-status-chip{display:inline-flex;margin-top:4px;padding:2px 5px;border-radius:999px;background:#f0f4fa;color:#64748b;font-size:6px;font-weight:1000;text-transform:uppercase;letter-spacing:.06em}
+.multi-v2-field-unit .slot-badge{position:absolute;z-index:5;top:5px;left:7px;width:23px;height:23px;display:grid;place-items:center;border:1px solid #dce5f1;border-radius:8px;background:#f2f6fb;color:#71829a;font-size:8px;font-weight:1000;box-shadow:0 3px 7px rgba(44,61,88,.06)}
+.multi-v2-field-unit .action-badge{position:absolute;z-index:6;top:7px;right:7px;width:23px;height:23px;display:grid;place-items:center;border-radius:50%;background:#5fce82;color:#fff;font-size:11px;font-weight:1000;box-shadow:0 7px 16px rgba(72,176,103,.25)}
+.multi-v2-field-unit.selected .multi-v2-sprite-stage{transform:translateY(-5px)}
+.multi-v2-field-unit.selected .multi-v2-field-sprite{filter:drop-shadow(0 15px 12px rgba(74,104,205,.26))}
+.multi-v2-field-unit.selected .multi-v2-info-card{border-color:#6d8af4;box-shadow:0 0 0 3px rgba(109,138,244,.12),0 12px 24px rgba(54,84,178,.14)}
+.multi-v2-field-unit.targetable .multi-v2-field-sprite{animation:fieldTargetPulse 1.25s ease-in-out infinite}
+.multi-v2-field-unit.targetable .multi-v2-info-card{border-color:#7690ee;box-shadow:0 0 0 3px rgba(118,144,238,.13),0 14px 26px rgba(59,87,173,.16)}
+.multi-v2-field-unit.target-hover .multi-v2-field-sprite{transform:translateY(-8px) scale(1.05)}
+.multi-v2-field-unit.not-targetable{opacity:.46;filter:saturate(.65)}
+.multi-v2-field-unit.fainted{opacity:.33;filter:grayscale(.8)}
+.multi-v2-field-unit.locked .multi-v2-info-card{background:linear-gradient(145deg,#f5fff8,#eef9f1)}
+@keyframes fieldTargetPulse{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.03)}}
+
+/* Separate the visual battlefield from information cards on larger screens. */
+@media (min-width:901px){
+  .multi-v2-grid{padding-top:3px}
+  .multi-v2-field-unit{grid-template-rows:minmax(54px,1fr) auto}
+  .multi-v2-field-sprite{height:clamp(54px,8.5vh,98px)}
+}
+@media (max-width:900px){
+  .multi-v2-field-unit{grid-template-rows:minmax(40px,1fr) auto;padding-inline:2px}
+  .multi-v2-field-sprite{height:clamp(40px,10vw,68px);max-width:82%}
+  .multi-v2-info-card{padding:5px 6px 6px;border-radius:11px}
+  .multi-v2-info-card .multi-v2-name strong{font-size:8px}.multi-v2-info-card .multi-v2-name small{font-size:6px}
+  .multi-v2-info-card .type{font-size:5px;padding:2px 4px}.multi-v2-info-card .multi-v2-hp em{font-size:6px}
+  .multi-v2-field-unit .slot-badge{width:19px;height:19px;font-size:7px;top:2px;left:3px}
+  .multi-v2-field-unit .action-badge{width:20px;height:20px;font-size:9px;top:3px;right:3px}
+}

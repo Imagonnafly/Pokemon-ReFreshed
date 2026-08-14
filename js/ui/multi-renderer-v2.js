@@ -57,29 +57,34 @@ export class MultiRendererV2 {
     box.innerHTML = '';
     slots.forEach((teamIndex, slot) => {
       const p = this.battle[side]?.team?.[teamIndex];
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = `multi-v2-card ${side === 'player' ? 'ally-card' : 'enemy-card'}`;
-      if (!p?.canBattle()) card.classList.add('fainted');
       const action = pending.find(a => a.slot === slot);
-      if (side === 'player' && slot === this.selectedSlot && p?.canBattle() && !this.targeting) card.classList.add('selected');
-      if (action) card.classList.add('locked');
+      const unit = document.createElement('div');
+      unit.className = `multi-v2-field-unit ${side === 'player' ? 'ally-unit' : 'enemy-unit'}`;
+      if (!p?.canBattle()) unit.classList.add('fainted');
+      if (side === 'player' && slot === this.selectedSlot && p?.canBattle() && !this.targeting) unit.classList.add('selected');
+      if (action) unit.classList.add('locked');
       if (this.targeting) {
         const valid = this.validTarget(side, teamIndex, slot);
-        if (valid) card.classList.add('targetable');
-        else card.classList.add('not-targetable');
+        unit.classList.toggle('targetable', valid);
+        unit.classList.toggle('not-targetable', !valid);
       }
-      card.disabled = !p?.canBattle() || (side === 'player' && !!action && !this.targeting);
-      card.innerHTML = p ? this.cardHTML(p, side, slot, action) : `<div class="empty-slot">Empty</div>`;
-      card.addEventListener('click', () => this.onCardClick(side, slot, teamIndex));
-      box.appendChild(card);
+      unit.setAttribute('role', 'button');
+      unit.tabIndex = p?.canBattle() ? 0 : -1;
+      const actionable = p?.canBattle() && !(side === 'player' && !!action && !this.targeting);
+      if (!actionable) unit.setAttribute('aria-disabled', 'true');
+      unit.innerHTML = p ? this.fieldUnitHTML(p, side, slot, action) : `<div class="empty-slot">Empty</div>`;
+      const click = () => { if (actionable || this.targeting) this.onCardClick(side, slot, teamIndex); };
+      unit.addEventListener('click', click);
+      unit.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && (actionable || this.targeting)) { e.preventDefault(); click(); } });
+      box.appendChild(unit);
     });
   }
 
-  cardHTML(p, side, slot, action) {
+  fieldUnitHTML(p, side, slot, action) {
     const sprite = side === 'player' ? p.sprites?.back : p.sprites?.front;
     const hp = Math.max(0, Math.min(100, (p.hp / Math.max(1, p.maxHP)) * 100));
-    return `<span class="slot-badge">${slot + 1}</span><img class="multi-v2-sprite" src="${this.escape(sprite || '')}" alt=""><div class="multi-v2-info"><div class="multi-v2-name"><strong>${this.escape(p.name)}</strong><small>Lv.${p.level}</small></div><div class="types">${(p.types||[]).map(t=>`<span class="type">${this.escape(t)}</span>`).join('')}</div><div class="multi-v2-hp"><span><i style="width:${hp}%"></i></span><em>${p.hp}/${p.maxHP}</em></div></div>${action ? `<span class="action-badge">✓</span>` : ''}`;
+    const status = p.status ? `<span class="multi-v2-status-chip">${this.escape(String(p.status).replace(/-/g,' '))}</span>` : '';
+    return `<span class="slot-badge">${slot + 1}</span><div class="multi-v2-sprite-stage"><img class="multi-v2-field-sprite" src="${this.escape(sprite || '')}" alt="${this.escape(p.name)}"><span class="multi-v2-sprite-shadow"></span></div><div class="multi-v2-info-card"><div class="multi-v2-name"><strong>${this.escape(p.name)}</strong><small>Lv.${p.level}</small></div><div class="types">${(p.types||[]).map(t=>`<span class="type">${this.escape(t)}</span>`).join('')}</div><div class="multi-v2-hp"><span><i style="width:${hp}%"></i></span><em>${p.hp}/${p.maxHP}</em></div>${status}</div>${action ? `<span class="action-badge">✓</span>` : ''}`;
   }
 
   onCardClick(side, slot, teamIndex) {
