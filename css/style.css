@@ -3013,3 +3013,159 @@ body:has(.party-battle-page){overflow:hidden}
   .sd-page .sd-log-entry{font-size:8px !important;padding:4px 1px !important}
   .sd-page .sd-command-panel{padding:6px !important}
 }
+
+
+/* ================================================================
+   MULTI-BATTLE STABLE SHOWDOWN LAYOUT (FINAL OVERRIDE)
+   This replaces the conflicting older .sd-page sizing rules without
+   touching the working 1v1 renderer.
+   ================================================================ */
+.sd-page .sd-main{
+  height:calc(100% - 58px) !important;
+  min-height:0 !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 292px !important;
+  grid-template-rows:minmax(0,1fr) !important;
+  gap:8px !important;
+  padding:8px !important;
+  overflow:hidden !important;
+}
+.sd-page .sd-battle-column{
+  min-width:0 !important;
+  min-height:0 !important;
+  height:100% !important;
+  display:grid !important;
+  grid-template-rows:minmax(0,1fr) 224px !important;
+  gap:8px !important;
+  overflow:hidden !important;
+}
+.sd-page .sd-battle-head{display:none !important}
+.sd-page .sd-arena{
+  min-width:0 !important;
+  min-height:0 !important;
+  height:100% !important;
+  padding:8px 10px 7px !important;
+  display:grid !important;
+  grid-template-rows:20px minmax(0,1fr) 10px 20px minmax(0,1fr) !important;
+  gap:3px !important;
+  overflow:hidden !important;
+}
+.sd-page .sd-field-row{min-height:0 !important;height:100% !important;display:flex !important;gap:6px !important;align-items:stretch !important}
+.sd-page .sd-field-main{
+  min-width:0 !important;
+  min-height:0 !important;
+  height:100% !important;
+  flex:1 1 auto !important;
+  display:grid !important;
+  grid-template-columns:repeat(var(--battle-count,2),minmax(0,1fr)) !important;
+  grid-auto-rows:minmax(0,1fr) !important;
+  align-items:stretch !important;
+  justify-items:center !important;
+  gap:6px !important;
+}
+.sd-page .sd-field-unit{
+  width:100% !important;
+  max-width:none !important;
+  height:100% !important;
+  min-height:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+}
+.sd-page .sd-unit-hud{
+  width:min(180px,90%) !important;
+  padding:2px 3px !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  flex:0 0 auto !important;
+}
+.sd-page .sd-name-row strong{font-size:11px !important;text-shadow:0 1px 2px rgba(255,255,255,.85)}
+.sd-page .sd-name-row span{font-size:9px !important;font-weight:900}
+.sd-page .sd-hp{margin-top:2px !important}
+.sd-page .sd-hp-track{height:6px !important;background:rgba(255,255,255,.58) !important;border:1px solid rgba(132,151,170,.45) !important}
+.sd-page .sd-hp>span{font-size:8px !important;font-weight:900}
+.sd-page .sd-meta-row{margin-top:2px !important}
+.sd-page .sd-chip,.sd-page .sd-status{font-size:6px !important;padding:2px 4px !important;background:rgba(245,248,251,.68) !important;border:1px solid rgba(176,190,205,.45) !important}
+.sd-page .sd-sprite-stage{
+  position:relative !important;
+  flex:1 1 auto !important;
+  width:100% !important;
+  min-height:0 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+.sd-page .sd-field-sprite{
+  max-width:86% !important;
+  max-height:clamp(78px,18vh,150px) !important;
+  object-fit:contain !important;
+  transform:none !important;
+}
+.sd-page .sd-field-unit:hover .sd-field-sprite{transform:translateY(-3px) scale(1.025) !important}
+.sd-page .sd-shadow{bottom:7% !important;width:32% !important;height:9px !important}
+.sd-page .sd-slot-badge{top:2px !important;left:2px !important;width:18px !important;height:18px !important;background:rgba(255,255,255,.56) !important;border:1px solid rgba(180,193,208,.5) !important}
+.sd-page .sd-command-panel{
+  min-height:0 !important;
+  height:224px !important;
+  overflow:hidden !important;
+  padding:8px 10px !important;
+}
+.sd-page .sd-command-body{min-height:0 !important;display:grid !important;grid-template-rows:minmax(0,1fr) auto !important;gap:7px !important}
+.sd-page .sd-move-grid{grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:6px !important}
+.sd-page .sd-move{min-height:56px !important;padding:7px 8px !important}
+.sd-page .sd-switch-block{min-height:44px !important}
+.sd-page .sd-switch-grid{height:36px !important;overflow-x:auto !important;overflow-y:hidden !important}
+.sd-page .sd-switch{min-width:104px !important;height:34px !important;padding:4px 6px !important}
+.sd-page .sd-switch img{width:30px !important;height:24px !important}
+.sd-page .sd-log-panel{
+  min-width:0 !important;
+  width:100% !important;
+  height:100% !important;
+  overflow:hidden !important;
+}
+.sd-page .sd-log{min-height:0 !important;overflow:auto !important}
+
+@media (min-width:901px){
+  .sd-page .sd-main{grid-template-columns:minmax(0,1fr) 292px !important}
+  .sd-page .sd-battle-column{grid-template-rows:minmax(0,1fr) 224px !important}
+}
+
+@media (max-width:900px){
+  .sd-page .sd-main{
+    height:calc(100% - 54px) !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    grid-template-rows:minmax(0,1fr) 150px !important;
+    gap:6px !important;
+    padding:6px !important;
+  }
+  .sd-page .sd-battle-column{grid-template-rows:minmax(0,1fr) 218px !important;gap:6px !important}
+  .sd-page .sd-arena{grid-template-rows:18px minmax(0,1fr) 8px 18px minmax(0,1fr) !important;padding:6px !important}
+  .sd-page .sd-field-main{grid-template-columns:repeat(2,minmax(0,1fr)) !important;grid-auto-rows:minmax(0,1fr) !important;gap:5px !important}
+  .sd-page .sd-field-sprite{max-height:clamp(58px,18vw,110px) !important}
+  .sd-page .sd-command-panel{height:218px !important}
+  .sd-page .sd-log-panel{height:150px !important}
+}
+
+@media (max-width:640px){
+  .sd-page .sd-main{height:calc(100% - 50px) !important;grid-template-rows:minmax(0,1fr) 132px !important;padding:5px !important;gap:5px !important}
+  .sd-page .sd-battle-column{grid-template-rows:minmax(0,1fr) 206px !important;gap:5px !important}
+  .sd-page .sd-arena{grid-template-rows:16px minmax(0,1fr) 7px 16px minmax(0,1fr) !important;padding:5px !important}
+  .sd-page .sd-field-main{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:4px !important}
+  .sd-page .sd-unit-hud{width:min(150px,95%) !important}
+  .sd-page .sd-name-row strong{font-size:8px !important}.sd-page .sd-name-row span{font-size:7px !important}
+  .sd-page .sd-hp-track{height:5px !important}.sd-page .sd-hp>span{font-size:6px !important}
+  .sd-page .sd-chip,.sd-page .sd-status{font-size:5px !important;padding:2px 3px !important}
+  .sd-page .sd-field-sprite{max-height:74px !important}
+  .sd-page .sd-command-panel{height:206px !important;padding:6px !important}
+  .sd-page .sd-move-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:4px !important}
+  .sd-page .sd-move{min-height:50px !important;padding:6px !important}.sd-page .sd-move-name{font-size:9px !important}
+  .sd-page .sd-switch-grid{height:32px !important}.sd-page .sd-switch{min-width:92px !important;height:30px !important}
+  .sd-page .sd-log-panel{height:132px !important}
+}
