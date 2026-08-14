@@ -2969,3 +2969,47 @@ body:has(.party-battle-page){overflow:hidden}
   .sd-page .sd-name-row span{font-size:7px}
   .sd-page .sd-field-sprite{max-height:70px}
 }
+
+
+/* ===== MULTI-BATTLE 100% VIEWPORT REFINEMENT =====
+   Hide the redundant battle-title panel for N-vs-N pages, give the arena the freed
+   vertical space, tighten the log width, and keep commands fully visible.
+*/
+.sd-page .sd-battle-head{display:none !important}
+.sd-page .sd-main{grid-template-columns:minmax(0,1fr) 300px !important;gap:8px !important;padding:8px !important}
+.sd-page .sd-battle-column{grid-template-rows:0 minmax(0,1fr) 214px !important;gap:8px !important}
+.sd-page .sd-arena{min-height:0 !important;padding:8px 10px 6px !important}
+.sd-page .sd-field-row{min-height:0 !important}
+.sd-page .sd-field-sprite{max-height:132px !important}
+.sd-page .sd-unit-hud{width:min(180px,92%) !important}
+.sd-page .sd-log-panel{width:auto !important}
+.sd-page .sd-log-head{height:38px !important;padding:0 11px !important}
+.sd-page .sd-log-entry{font-size:10px !important;padding:5px 1px !important}
+.sd-page .sd-command-panel{padding:8px 10px !important}
+.sd-page .sd-command-body{margin-top:6px !important;gap:6px !important}
+.sd-page .sd-switch-grid{max-height:44px !important;overflow-x:auto !important;overflow-y:hidden !important}
+
+@media (max-height:820px) and (min-width:901px){
+  .sd-page .sd-main{grid-template-columns:minmax(0,1fr) 290px !important;padding:7px !important;gap:7px !important}
+  .sd-page .sd-battle-column{grid-template-rows:0 minmax(0,1fr) 202px !important;gap:7px !important}
+  .sd-page .sd-field-sprite{max-height:108px !important}
+  .sd-page .sd-command-panel{padding:7px 9px !important}
+}
+
+@media (max-width:900px){
+  .sd-page .sd-main{grid-template-columns:1fr !important;grid-template-rows:minmax(0,1fr) 145px !important;gap:7px !important;padding:7px !important}
+  .sd-page .sd-battle-column{grid-template-rows:0 minmax(0,1fr) 216px !important;gap:7px !important}
+  .sd-page .sd-field-sprite{max-height:106px !important}
+  .sd-page .sd-unit-hud{width:min(160px,94%) !important}
+}
+
+@media (max-width:640px){
+  .sd-page .sd-main{grid-template-rows:minmax(0,1fr) 132px !important;padding:5px !important;gap:5px !important}
+  .sd-page .sd-battle-column{grid-template-rows:0 minmax(0,1fr) 205px !important;gap:5px !important}
+  .sd-page .sd-arena{padding:6px 6px 5px !important}
+  .sd-page .sd-field-sprite{max-height:82px !important}
+  .sd-page .sd-unit-hud{width:min(142px,96%) !important}
+  .sd-page .sd-log-head{height:32px !important}
+  .sd-page .sd-log-entry{font-size:8px !important;padding:4px 1px !important}
+  .sd-page .sd-command-panel{padding:6px !important}
+}
