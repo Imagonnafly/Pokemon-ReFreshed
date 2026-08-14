@@ -425,7 +425,6 @@ function mountBattleUI(battle, role = "local") {
           <div class="multi-v2-arena-head"><div><span>LIVE BATTLE</span><h2>${battle.battleSize}v${battle.battleSize} FIELD</h2></div><div class="multi-v2-target-hint"><span class="live-dot"></span><strong id="multiTargetHint">Click one of your active Pokémon to command it.</strong></div></div>
           <div class="multi-v2-side-head"><span>OPPONENT</span><em>${role === "local" ? "CPU Trainer" : "Player 2"}</em></div>
           <div id="multiOpponent" class="multi-v2-grid opponent-grid"></div>
-          <div class="multi-v2-center"><span>VS</span></div>
           <div id="multiPlayer" class="multi-v2-grid player-grid"></div>
           <div class="multi-v2-side-foot"><span>YOU</span><em>${role === "local" ? "Trainer" : role === "host" ? "Player 1" : "Player 2"}</em></div>
         </section>

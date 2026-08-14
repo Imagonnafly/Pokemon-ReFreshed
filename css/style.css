@@ -1634,3 +1634,194 @@ body{
   .multi-v2-page .multi-v2-grid{grid-template-columns:1fr;grid-auto-rows:minmax(82px,1fr)}
   .multi-v2-page .multi-v2-dock{grid-template-columns:1fr;height:auto;max-height:none}
 }
+
+/* ========================================================================== */
+/* CHAMPIONS-INSPIRED MULTI BATTLE VISUAL OVERHAUL                            */
+/* ========================================================================== */
+.multi-v2-page{
+  --champ-navy:#162235;
+  --champ-navy-2:#243554;
+  --champ-blue:#4f7cff;
+  --champ-cyan:#65d7ff;
+  --champ-orange:#ff9b4a;
+  --champ-green:#48d487;
+  --champ-ink:#17243a;
+  --champ-muted:#70809a;
+  --champ-line:rgba(113,139,181,.20);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(101,215,255,.14), transparent 28%),
+    radial-gradient(circle at 88% 0%, rgba(255,155,74,.11), transparent 24%),
+    linear-gradient(180deg,#f7faff 0%,#edf3fb 100%);
+}
+.multi-v2-page .multi-v2-topbar{
+  background:linear-gradient(180deg,#17253a 0%,#1d2e49 100%);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  color:#fff;
+  box-shadow:0 8px 26px rgba(13,25,43,.18);
+}
+.multi-v2-page .multi-v2-topbar h1{color:#fff;letter-spacing:-.02em}
+.multi-v2-page .multi-v2-topbar .topbar-sub{color:#b9c8de}
+.multi-v2-page .multi-v2-topbar .brand-mark{
+  background:linear-gradient(145deg,#4f7cff,#65d7ff);
+  color:#fff;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 24px rgba(74,113,235,.32)
+}
+.multi-v2-page .multi-v2-topbar .turn-pill,
+.multi-v2-page .multi-v2-topbar .field-pill{
+  background:rgba(255,255,255,.09);
+  border-color:rgba(255,255,255,.14);
+  color:#e9f0fb;
+}
+.multi-v2-page .multi-v2-topbar .header-button{
+  background:#fff;color:var(--champ-navy);border-color:transparent;box-shadow:0 8px 20px rgba(0,0,0,.16)
+}
+
+.multi-v2-page .multi-v2-main{
+  grid-template-rows:minmax(0,1fr) clamp(250px,31dvh,300px);
+  gap:10px;padding:10px 12px 12px;
+}
+.multi-v2-page .multi-v2-arena{
+  border-radius:22px;
+  border:1px solid rgba(95,121,164,.18);
+  background:
+    radial-gradient(circle at 50% 50%,rgba(255,255,255,.76),transparent 38%),
+    linear-gradient(180deg,#eaf7ff 0%,#edf6ef 100%);
+  box-shadow:0 20px 50px rgba(28,52,83,.14), inset 0 1px 0 rgba(255,255,255,.82);
+  grid-template-rows:50px 22px minmax(0,1fr) 22px minmax(0,1fr) 20px;
+}
+.multi-v2-page .multi-v2-arena::after{
+  content:"";position:absolute;left:7%;right:7%;top:50%;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(82,112,164,.22) 18%,rgba(82,112,164,.22) 82%,transparent);
+  box-shadow:0 18px 0 rgba(255,255,255,.22),0 -18px 0 rgba(255,255,255,.18);
+  pointer-events:none;z-index:1;
+}
+.multi-v2-page .multi-v2-arena-head{
+  background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(244,249,255,.74));
+  border-bottom:1px solid var(--champ-line);
+  padding:7px 16px;
+}
+.multi-v2-page .multi-v2-arena-head>div:first-child span{color:#6f809a}
+.multi-v2-page .multi-v2-arena-head h2{color:var(--champ-ink);font-weight:1000}
+.multi-v2-page .multi-v2-target-hint{
+  background:rgba(255,255,255,.84);border-color:rgba(79,124,255,.18);color:#53647d;box-shadow:0 6px 18px rgba(72,103,153,.08)
+}
+.multi-v2-page .multi-v2-side-head,
+.multi-v2-page .multi-v2-side-foot{color:#5b6e8c;padding:3px 14px;z-index:3}
+.multi-v2-page .multi-v2-grid{z-index:3;padding:4px 10px;gap:6px;align-content:stretch;overflow:hidden}
+
+/* Cards become compact HUD plates; sprites remain visually dominant. */
+.multi-v2-page .multi-v2-field-unit{grid-template-rows:minmax(0,1fr) auto;padding:2px 4px 0;border-radius:15px}
+.multi-v2-page .multi-v2-sprite-stage{min-height:0}
+.multi-v2-page .multi-v2-field-sprite{height:clamp(58px,8.6vh,96px);max-width:88%;filter:drop-shadow(0 12px 10px rgba(32,50,79,.17))}
+.multi-v2-page .multi-v2-info-card{
+  padding:5px 7px 6px;border-radius:11px;background:rgba(255,255,255,.90);box-shadow:0 5px 13px rgba(31,50,80,.07);backdrop-filter:blur(10px)
+}
+.multi-v2-page .multi-v2-info-card .multi-v2-name strong{font-size:clamp(8px,.72vw,11px)}
+.multi-v2-page .multi-v2-info-card .multi-v2-name small{font-size:6px}
+.multi-v2-page .multi-v2-info-card .types{margin:2px 0 3px;gap:3px}
+.multi-v2-page .multi-v2-info-card .type{font-size:5px;padding:2px 4px}
+.multi-v2-page .multi-v2-info-card .multi-v2-hp{gap:4px}
+.multi-v2-page .multi-v2-info-card .multi-v2-hp>span{height:4px}
+.multi-v2-page .multi-v2-info-card .multi-v2-hp em{font-size:6px}
+.multi-v2-page .multi-v2-field-unit .slot-badge{width:21px;height:21px;border-radius:7px;top:4px;left:5px;font-size:7px;background:rgba(242,247,255,.88);border-color:rgba(117,140,178,.24)}
+.multi-v2-page .multi-v2-field-unit .action-badge{width:21px;height:21px;top:5px;right:5px;font-size:9px;background:linear-gradient(145deg,#59d58a,#36ba6e)}
+.multi-v2-page .multi-v2-field-unit.selected .multi-v2-info-card{border-color:#5e7df7;box-shadow:0 0 0 2px rgba(94,125,247,.16),0 9px 18px rgba(60,90,171,.12)}
+.multi-v2-page .multi-v2-field-unit.targetable .multi-v2-info-card{border-color:#5d84ee;box-shadow:0 0 0 2px rgba(93,132,238,.14),0 10px 20px rgba(60,95,174,.15)}
+
+/* Remove the giant center VS treatment. A faint stadium line remains via ::after. */
+.multi-v2-page .multi-v2-center{display:none!important}
+
+/* Larger, more useful command/log dock. */
+.multi-v2-page .multi-v2-dock{
+  min-height:0;height:auto;
+  grid-template-columns:minmax(0,1.45fr) minmax(320px,.95fr);
+  gap:10px;
+}
+.multi-v2-page .multi-v2-command-shell,
+.multi-v2-page .multi-v2-log-shell{
+  border-radius:18px;border:1px solid rgba(110,136,178,.20);
+  background:rgba(255,255,255,.94);
+  box-shadow:0 14px 34px rgba(31,51,83,.10);
+}
+.multi-v2-page .multi-v2-command-shell{overflow:auto}
+.multi-v2-page .multi-v2-log-shell{display:grid;grid-template-rows:38px minmax(0,1fr);min-width:0}
+.multi-v2-page .multi-v2-log-head{
+  padding:0 14px;background:linear-gradient(180deg,#f8fbff,#eef4fb);border-bottom:1px solid var(--champ-line);font-size:.68rem;color:#647691
+}
+.multi-v2-page .battle-log{
+  min-height:0;height:auto!important;overflow:auto;padding:9px 13px;
+  background:linear-gradient(180deg,#f8fbff,#eef4fb);
+}
+.multi-v2-page .v2-log-line{padding:6px 3px;font-size:.72rem;color:#54657e;border-bottom:1px solid rgba(104,128,165,.10)}
+.multi-v2-page .v2-log-line:nth-last-child(1){color:#1f2e46;font-weight:900}
+.multi-v2-page .v2-status{margin:6px 0 0;padding:8px 10px;border-radius:11px;background:#edf3ff;color:#536d9e}
+
+/* Command dock: 2x2 moves, wider log. */
+.multi-v2-page #multiCommand{padding:10px 12px}
+.multi-v2-page .multi-v2-command-head{margin-bottom:7px}
+.multi-v2-page .multi-v2-command-head small{font-size:6px;letter-spacing:.15em;color:#8190a4}
+.multi-v2-page .multi-v2-command-head h2{font-size:18px;color:#1c2a41}
+.multi-v2-page .multi-v2-progress{background:#eff4ff;border:1px solid rgba(94,125,247,.16);color:#5a6e9d;font-size:8px;padding:6px 9px}
+.multi-v2-page .multi-v2-moves{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.multi-v2-page .multi-v2-move{min-height:58px;padding:8px 10px;border-radius:12px;background:linear-gradient(180deg,#ffffff,#f6f9fd);border:1px solid rgba(108,132,172,.17);box-shadow:0 4px 12px rgba(32,51,82,.06)}
+.multi-v2-page .multi-v2-move:hover:not(:disabled){transform:translateY(-2px);border-color:rgba(79,124,255,.34);box-shadow:0 9px 18px rgba(66,101,177,.11)}
+.multi-v2-page .multi-v2-switches{margin-top:7px;padding-top:6px;border-top:1px solid rgba(110,136,178,.13)}
+.multi-v2-page .multi-v2-switch-row{max-height:56px;overflow:auto}
+
+@media (min-width:901px){
+  .multi-v2-page .multi-v2-main{grid-template-rows:minmax(0,1fr) 270px}
+}
+@media (min-width:901px) and (max-height:780px){
+  .multi-v2-page .multi-v2-main{grid-template-rows:minmax(0,1fr) 245px}
+  .multi-v2-page .multi-v2-arena{grid-template-rows:46px 18px minmax(0,1fr) 18px minmax(0,1fr) 18px}
+  .multi-v2-page .multi-v2-field-sprite{height:clamp(52px,7.8vh,84px)}
+  .multi-v2-page .multi-v2-dock{grid-template-columns:minmax(0,1.4fr) minmax(300px,.95fr)}
+}
+@media (max-width:900px){
+  .multi-v2-page .multi-v2-main{grid-template-rows:minmax(0,1fr) auto}
+  .multi-v2-page .multi-v2-dock{grid-template-columns:1fr;}
+  .multi-v2-page .multi-v2-log-shell{min-height:210px;max-height:260px}
+}
+
+/* Champion-style mobile refinement */
+@media (max-width:760px){
+  .multi-v2-page .multi-v2-arena{grid-template-rows:44px 18px minmax(150px,1fr) 18px minmax(150px,1fr) 18px}
+  .multi-v2-page .multi-v2-arena-head{padding:6px 10px}
+  .multi-v2-page .multi-v2-target-hint{font-size:7px;padding:5px 7px}
+  .multi-v2-page .multi-v2-field-sprite{height:clamp(44px,14vw,72px)}
+  .multi-v2-page .multi-v2-info-card{padding:4px 5px 5px}
+  .multi-v2-page .multi-v2-info-card .multi-v2-name strong{font-size:7px}
+  .multi-v2-page .multi-v2-info-card .multi-v2-name small{font-size:5px}
+  .multi-v2-page .multi-v2-info-card .type{font-size:4px}
+  .multi-v2-page .multi-v2-command-shell{max-height:310px}
+  .multi-v2-page .multi-v2-log-shell{min-height:190px}
+  .multi-v2-page .multi-v2-moves{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* Final geometry correction: with the center VS element removed, use five
+   actual arena rows so the two formations share the field cleanly. */
+.multi-v2-page .multi-v2-arena{
+  grid-template-rows:50px 22px minmax(0,1fr) minmax(0,1fr) 20px;
+}
+.multi-v2-page .multi-v2-dock{
+  grid-template-columns:minmax(0,1.2fr) minmax(340px,.95fr);
+}
+.multi-v2-page .multi-v2-arena::before{
+  inset:58px 5% 32px;
+  border-radius:28px;
+  background:
+    radial-gradient(ellipse at 50% 50%,rgba(255,255,255,.92) 0 20%,rgba(205,231,255,.24) 50%,transparent 72%),
+    repeating-linear-gradient(0deg,rgba(111,139,181,.045) 0 1px,transparent 1px 34px),
+    repeating-linear-gradient(90deg,rgba(111,139,181,.035) 0 1px,transparent 1px 34px);
+}
+.multi-v2-page .multi-v2-side-foot{
+  align-self:center;
+  padding-top:0;
+}
+@media (min-width:901px) and (max-height:780px){
+  .multi-v2-page .multi-v2-arena{grid-template-rows:46px 18px minmax(0,1fr) minmax(0,1fr) 18px}
+  .multi-v2-page .multi-v2-dock{grid-template-columns:minmax(0,1.18fr) minmax(320px,.95fr)}
+}
+@media (max-width:760px){
+  .multi-v2-page .multi-v2-arena{grid-template-rows:44px 18px minmax(140px,1fr) minmax(140px,1fr) 18px}
+  .multi-v2-page .multi-v2-dock{grid-template-columns:1fr}
+}
