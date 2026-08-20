@@ -1,15 +1,15 @@
 {
-  "id": "flamethrower",
-  "name": "Flamethrower",
-  "type": "Fire",
+  "id": "ice-beam",
+  "name": "Ice Beam",
+  "type": "Ice",
   "category": "special",
   "power": 90,
   "accuracy": 100,
-  "pp": 15,
+  "pp": 10,
   "priority": 0,
   "effects": [
     {
-      "kind": "burn",
+      "kind": "freeze",
       "value": 0.1
     }
   ]

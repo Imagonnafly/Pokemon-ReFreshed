@@ -1,14 +1,15 @@
 {
   "id": "roar",
   "name": "Roar",
-  "types": [
-    "Normal"
-  ],
+  "type": "Normal",
   "category": "status",
   "power": 0,
-  "accuracy": 0,
+  "accuracy": 100,
   "pp": 20,
-  "effects": [],
-  "target": "opponent",
-  "priority": -6
+  "priority": 0,
+  "effects": [
+    {
+      "kind": "force-switch"
+    }
+  ]
 }

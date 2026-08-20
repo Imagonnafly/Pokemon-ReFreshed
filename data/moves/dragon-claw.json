@@ -1,13 +1,11 @@
 {
   "id": "dragon-claw",
   "name": "Dragon Claw",
-  "types": [
-    "Dragon"
-  ],
+  "type": "Dragon",
   "category": "physical",
   "power": 80,
   "accuracy": 100,
   "pp": 15,
-  "effects": [],
-  "target": "opponent"
+  "priority": 0,
+  "effects": []
 }

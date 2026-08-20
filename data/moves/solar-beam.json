@@ -1,16 +1,11 @@
 {
   "id": "solar-beam",
   "name": "Solar Beam",
-  "types": [
-    "Grass"
-  ],
+  "type": "Grass",
   "category": "special",
   "power": 120,
   "accuracy": 100,
   "pp": 10,
-  "effects": [],
-  "target": "opponent",
-  "battleFlags": [
-    "charge"
-  ]
+  "priority": 0,
+  "effects": []
 }

@@ -1,13 +1,16 @@
 {
   "id": "shadow-claw",
   "name": "Shadow Claw",
-  "types": [
-    "Ghost"
-  ],
+  "type": "Ghost",
   "category": "physical",
   "power": 70,
   "accuracy": 100,
   "pp": 15,
-  "effects": [],
-  "target": "opponent"
+  "priority": 0,
+  "effects": [
+    {
+      "kind": "crit",
+      "value": "high"
+    }
+  ]
 }

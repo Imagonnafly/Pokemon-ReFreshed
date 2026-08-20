@@ -1,13 +1,11 @@
 {
   "id": "scratch",
   "name": "Scratch",
-  "types": [
-    "Normal"
-  ],
+  "type": "Normal",
   "category": "physical",
   "power": 40,
   "accuracy": 100,
-  "pp": 25,
-  "effects": [],
-  "target": "opponent"
+  "pp": 35,
+  "priority": 0,
+  "effects": []
 }

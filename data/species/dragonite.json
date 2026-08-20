@@ -14,8 +14,8 @@
     "speed": 80
   },
   "sprites": {
-    "front": "https://play.pokemonshowdown.com/sprites/ani/dragonite.gif",
-    "back": "https://play.pokemonshowdown.com/sprites/ani-back/dragonite.gif"
+    "front": "https://play.pokemonshowdown.com/sprites/ani/koraidon.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/koraidon.gif"
   },
   "abilities": [
     "multiscale"

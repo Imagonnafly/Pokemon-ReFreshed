@@ -1,0 +1,8 @@
+{
+  "burn": {"label":"Burn","damageFraction":0.0625,"attackMultiplier":0.5},
+  "poison": {"label":"Poison","damageFraction":0.125},
+  "bad-poison": {"label":"Badly Poisoned","damageFraction":0.0625,"escalating":true},
+  "paralysis": {"label":"Paralysis","speedMultiplier":0.5,"skipChance":0.25},
+  "sleep": {"label":"Sleep","maxTurns":3},
+  "freeze": {"label":"Freeze","thawChance":0.2}
+}

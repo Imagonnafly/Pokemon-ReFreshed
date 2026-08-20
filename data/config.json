@@ -1,0 +1,30 @@
+{
+  "game": { "name": "Pokémon ReFreshed", "version": "rewrite-1" },
+  "battle": {
+    "allowedSizes": [1, 2, 3],
+    "defaultSize": 1,
+    "maxTeamSize": 9,
+    "defaultLevel": 50,
+    "maxBattleMoves": 4,
+    "speedTiePolicy": "player-first",
+    "playerSide": "player",
+    "opponentSide": "opponent"
+  },
+  "damage": {
+    "criticalChance": 0.0625,
+    "criticalMultiplier": 1.5,
+    "randomMin": 0.85,
+    "randomMax": 1.0,
+    "stabMultiplier": 1.5,
+    "superEffectiveMessage": "It's super effective!",
+    "notVeryEffectiveMessage": "It's not very effective..."
+  },
+  "statuses": {
+    "burn": { "label": "Burn", "damageFraction": 0.0625, "attackMultiplier": 0.5, "volatile": false },
+    "poison": { "label": "Poison", "damageFraction": 0.125, "volatile": false },
+    "bad-poison": { "label": "Badly Poisoned", "damageFraction": 0.0625, "escalating": true, "volatile": false },
+    "paralysis": { "label": "Paralysis", "speedMultiplier": 0.5, "skipChance": 0.25, "volatile": false },
+    "sleep": { "label": "Sleep", "maxTurns": 3, "volatile": false },
+    "freeze": { "label": "Freeze", "thawChance": 0.2, "volatile": false }
+  }
+}

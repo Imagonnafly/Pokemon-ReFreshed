@@ -1,13 +1,16 @@
 {
   "id": "swords-dance",
   "name": "Swords Dance",
-  "types": [
-    "Normal"
-  ],
+  "type": "Normal",
   "category": "status",
   "power": 0,
-  "accuracy": 0,
+  "accuracy": 100,
   "pp": 20,
-  "effects": [],
-  "target": "self"
+  "priority": 0,
+  "effects": [
+    {
+      "kind": "attack",
+      "value": 2.0
+    }
+  ]
 }

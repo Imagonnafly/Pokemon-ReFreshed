@@ -1,13 +1,16 @@
 {
   "id": "water-pulse",
   "name": "Water Pulse",
-  "types": [
-    "Water"
-  ],
+  "type": "Water",
   "category": "special",
   "power": 60,
   "accuracy": 100,
-  "pp": 25,
-  "effects": [],
-  "target": "opponent"
+  "pp": 20,
+  "priority": 0,
+  "effects": [
+    {
+      "kind": "confusion",
+      "value": 0.2
+    }
+  ]
 }

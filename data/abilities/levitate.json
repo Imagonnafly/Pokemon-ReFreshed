@@ -1,9 +1,0 @@
-{
-  "id": "levitate",
-  "name": "Levitate",
-  "effect": {
-    "kind": "immunity",
-    "type": "Ground"
-  },
-  "description": "Grants immunity to Ground-type moves."
-}

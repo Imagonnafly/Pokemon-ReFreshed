@@ -1,15 +1,15 @@
 {
-  "id": "flamethrower",
-  "name": "Flamethrower",
-  "type": "Fire",
+  "id": "psychic",
+  "name": "Psychic",
+  "type": "Psychic",
   "category": "special",
   "power": 90,
   "accuracy": 100,
-  "pp": 15,
+  "pp": 10,
   "priority": 0,
   "effects": [
     {
-      "kind": "burn",
+      "kind": "specialDefense",
       "value": 0.1
     }
   ]

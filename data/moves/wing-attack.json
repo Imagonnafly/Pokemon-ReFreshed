@@ -1,13 +1,11 @@
 {
   "id": "wing-attack",
   "name": "Wing Attack",
-  "types": [
-    "Flying"
-  ],
+  "type": "Flying",
   "category": "physical",
   "power": 60,
   "accuracy": 100,
-  "pp": 25,
-  "effects": [],
-  "target": "opponent"
+  "pp": 35,
+  "priority": 0,
+  "effects": []
 }

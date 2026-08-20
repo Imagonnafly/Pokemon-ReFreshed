@@ -1,19 +1,16 @@
 {
   "id": "thunderbolt",
   "name": "Thunderbolt",
-  "types": [
-    "Electric"
-  ],
+  "type": "Electric",
   "category": "special",
   "power": 90,
   "accuracy": 100,
   "pp": 15,
+  "priority": 0,
   "effects": [
     {
-      "kind": "status",
-      "status": "Paralysis",
-      "chance": 0.1
+      "kind": "paralysis",
+      "value": 0.1
     }
-  ],
-  "target": "opponent"
+  ]
 }

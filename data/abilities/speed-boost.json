@@ -1,8 +1,0 @@
-{
-  "id": "speed-boost",
-  "name": "Speed Boost",
-  "effect": {
-    "kind": "none"
-  },
-  "description": "Speed Boost."
-}

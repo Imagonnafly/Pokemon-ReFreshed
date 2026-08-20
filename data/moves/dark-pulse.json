@@ -1,15 +1,15 @@
 {
-  "id": "crunch",
-  "name": "Crunch",
+  "id": "dark-pulse",
+  "name": "Dark Pulse",
   "type": "Dark",
-  "category": "physical",
+  "category": "special",
   "power": 80,
   "accuracy": 100,
   "pp": 15,
   "priority": 0,
   "effects": [
     {
-      "kind": "defense",
+      "kind": "flinch",
       "value": 0.2
     }
   ]

@@ -1,18 +1,16 @@
 {
   "id": "roost",
   "name": "Roost",
-  "types": [
-    "Flying"
-  ],
+  "type": "Flying",
   "category": "status",
   "power": 0,
   "accuracy": 100,
   "pp": 5,
+  "priority": 0,
   "effects": [
     {
       "kind": "heal",
-      "percent": 0.5
+      "value": 0.5
     }
-  ],
-  "target": "self"
+  ]
 }

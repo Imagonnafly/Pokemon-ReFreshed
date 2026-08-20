@@ -1,14 +1,15 @@
 {
   "id": "protect",
   "name": "Protect",
-  "types": [
-    "Normal"
-  ],
+  "type": "Normal",
   "category": "status",
   "power": 0,
-  "accuracy": 0,
+  "accuracy": 100,
   "pp": 10,
-  "effects": [],
-  "target": "self",
-  "priority": 4
+  "priority": 0,
+  "effects": [
+    {
+      "kind": "protect"
+    }
+  ]
 }

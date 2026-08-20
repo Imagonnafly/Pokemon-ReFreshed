@@ -1,9 +1,0 @@
-{
-  "id": "flash-fire",
-  "name": "Flash Fire",
-  "effect": {
-    "kind": "immunity",
-    "type": "Fire"
-  },
-  "description": "Flash Fire."
-}

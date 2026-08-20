@@ -1,9 +1,0 @@
-{
-  "id": "multiscale",
-  "name": "Multiscale",
-  "effect": {
-    "kind": "damage_reduction_full_hp",
-    "multiplier": 0.5
-  },
-  "description": "Reduces damage while at full HP."
-}

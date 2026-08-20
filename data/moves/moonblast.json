@@ -1,0 +1,16 @@
+{
+  "id": "moonblast",
+  "name": "Moonblast",
+  "type": "Fairy",
+  "category": "special",
+  "power": 95,
+  "accuracy": 100,
+  "pp": 15,
+  "priority": 0,
+  "effects": [
+    {
+      "kind": "specialAttack",
+      "value": 0.3
+    }
+  ]
+}

@@ -1,13 +1,16 @@
 {
   "id": "ember",
   "name": "Ember",
-  "types": [
-    "Fire"
-  ],
+  "type": "Fire",
   "category": "special",
   "power": 40,
   "accuracy": 100,
   "pp": 25,
-  "effects": [],
-  "target": "opponent"
+  "priority": 0,
+  "effects": [
+    {
+      "kind": "burn",
+      "value": 0.1
+    }
+  ]
 }

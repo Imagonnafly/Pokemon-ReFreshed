@@ -1,13 +1,16 @@
 {
   "id": "fire-blast",
   "name": "Fire Blast",
-  "types": [
-    "Fire"
-  ],
+  "type": "Fire",
   "category": "special",
   "power": 110,
   "accuracy": 85,
   "pp": 5,
-  "effects": [],
-  "target": "opponent"
+  "priority": 0,
+  "effects": [
+    {
+      "kind": "burn",
+      "value": 0.1
+    }
+  ]
 }

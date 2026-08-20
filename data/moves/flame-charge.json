@@ -1,13 +1,16 @@
 {
   "id": "flame-charge",
   "name": "Flame Charge",
-  "types": [
-    "Fire"
-  ],
+  "type": "Fire",
   "category": "physical",
   "power": 50,
   "accuracy": 100,
-  "pp": 25,
-  "effects": [],
-  "target": "opponent"
+  "pp": 20,
+  "priority": 0,
+  "effects": [
+    {
+      "kind": "self-speed",
+      "value": 1.0
+    }
+  ]
 }

@@ -1,13 +1,11 @@
 {
   "id": "leafage",
   "name": "Leafage",
-  "types": [
-    "Grass"
-  ],
+  "type": "Grass",
   "category": "physical",
   "power": 40,
   "accuracy": 100,
-  "pp": 25,
-  "effects": [],
-  "target": "opponent"
+  "pp": 40,
+  "priority": 0,
+  "effects": []
 }

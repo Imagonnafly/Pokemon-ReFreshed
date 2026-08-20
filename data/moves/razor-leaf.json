@@ -1,13 +1,16 @@
 {
   "id": "razor-leaf",
   "name": "Razor Leaf",
-  "types": [
-    "Grass"
-  ],
+  "type": "Grass",
   "category": "physical",
   "power": 55,
   "accuracy": 95,
   "pp": 25,
-  "effects": [],
-  "target": "opponent"
+  "priority": 0,
+  "effects": [
+    {
+      "kind": "crit",
+      "value": "high"
+    }
+  ]
 }

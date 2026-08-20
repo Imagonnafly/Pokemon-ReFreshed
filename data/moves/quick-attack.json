@@ -1,14 +1,16 @@
 {
   "id": "quick-attack",
   "name": "Quick Attack",
-  "types": [
-    "Normal"
-  ],
+  "type": "Normal",
   "category": "physical",
   "power": 40,
   "accuracy": 100,
-  "pp": 25,
-  "effects": [],
-  "target": "opponent",
-  "priority": 1
+  "pp": 30,
+  "priority": 1,
+  "effects": [
+    {
+      "kind": "priority",
+      "value": 1.0
+    }
+  ]
 }

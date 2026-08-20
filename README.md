@@ -1,41 +1,42 @@
-# Pokémon Battle Engine
+# Pokémon ReFreshed — Clean Rewrite
 
-A browser-based Pokémon-style battle engine with a soft-coded, data-driven rules layer, modern responsive battle UI, and optional real-time multiplayer.
+Ground-up replacement for the previous battle project.
 
 ## Run locally
 
-Multiplayer requires the included Node server.
-
-```bash
-npm install
+```powershell
 npm start
 ```
+Open http://localhost:8000
 
-Then open `http://localhost:3000` in two browser tabs/windows.
+Or directly:
 
-> Do not open `index.html` directly with `file://` if you want multiplayer.
+```powershell
+python -m http.server 8000
+```
 
-## Multiplayer
+## Architecture
 
-1. Build a team.
-2. Click **Create Multiplayer Room**.
-3. Send the 5-character room code to another player.
-4. The other player builds a team and clicks **Join Room**.
-5. Both players then battle in real time.
+- `data/` — configurable game data.
+- `src/engine/` — battle state machine and battle rules.
+- `src/ui/` — renderer and controls.
+- `css/` — presentation only.
 
-The host currently acts as the lightweight authoritative battle simulator and broadcasts battle snapshots to the guest. The server relays moves/switches and does not need to know Pokémon rules.
+A turn does not depend on an unresolved network promise. Every living active slot must have a choice. Once both sides are ready, the same resolver runs and the battle returns to `choosing`, or becomes `finished`/`error`.
 
-## Battle readability QOL
+## Soft-coded locations
 
-Battle messages now distinguish sides, for example:
+- Battle sizes/team cap/damage tuning: `data/config.json`
+- Status definitions: `data/statuses.json`
+- Official 18-type list + chart: `data/types.json`
+- Species typing/stats/sprites/moves: `data/species/*.json`
+- Move type/power/accuracy/PP/effects: `data/moves/*.json`
+- Demo teams: `data/teams.json`
 
-- `Your Pokémon Charizard used Flamethrower!`
-- `The opposing Pokémon Charizard used Flamethrower!`
-- `The opposing side sent out Blastoise!`
+## Test
 
-This makes mirror matches much easier to follow.
-"# Pokemon-ReFreshed" 
+```powershell
+node smoke-test.mjs
+```
 
-## Data-driven rules
-
-Species types live in `data/species/*.json`, move types/targets/flags live in `data/moves/*.json`, and the official type chart, statuses, and battlefield fields live in `data/types.json`. The battle renderer reads those definitions instead of carrying a separate custom type table.
+This exercises 1v1, 2v2 and 3v3 turn resolution.

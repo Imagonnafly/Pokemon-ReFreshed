@@ -1,8 +1,0 @@
-{
-  "id": "shell-armor",
-  "name": "Shell Armor",
-  "effect": {
-    "kind": "none"
-  },
-  "description": "Shell Armor."
-}
