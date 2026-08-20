@@ -2,10 +2,15 @@
   "id": "fly",
   "name": "Fly",
   "types": [
-    "Air"
+    "Flying"
   ],
   "category": "physical",
   "power": 90,
   "accuracy": 95,
-  "pp": 15
+  "pp": 15,
+  "effects": [],
+  "target": "opponent",
+  "battleFlags": [
+    "charge"
+  ]
 }

@@ -2,7 +2,7 @@
   "id": "serperior",
   "name": "Serperior",
   "types": [
-    "Nature"
+    "Grass"
   ],
   "baseStats": {
     "hp": 75,

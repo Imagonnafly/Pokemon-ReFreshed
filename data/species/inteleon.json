@@ -2,8 +2,7 @@
   "id": "inteleon",
   "name": "Inteleon",
   "types": [
-    "Water",
-    "Air"
+    "Water"
   ],
   "baseStats": {
     "hp": 70,

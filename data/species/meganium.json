@@ -2,8 +2,7 @@
   "id": "meganium",
   "name": "Meganium",
   "types": [
-    "Nature",
-    "Light"
+    "Grass"
   ],
   "baseStats": {
     "hp": 80,

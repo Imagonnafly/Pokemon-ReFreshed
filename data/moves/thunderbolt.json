@@ -11,8 +11,9 @@
   "effects": [
     {
       "kind": "status",
-      "status": "Shocked",
+      "status": "Paralysis",
       "chance": 0.1
     }
-  ]
+  ],
+  "target": "opponent"
 }

@@ -2,10 +2,12 @@
   "id": "facade",
   "name": "Facade",
   "types": [
-    "Time"
+    "Normal"
   ],
   "category": "physical",
   "power": 70,
   "accuracy": 100,
-  "pp": 20
+  "pp": 20,
+  "effects": [],
+  "target": "opponent"
 }

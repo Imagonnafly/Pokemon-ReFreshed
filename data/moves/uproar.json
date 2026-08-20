@@ -2,10 +2,12 @@
   "id": "uproar",
   "name": "Uproar",
   "types": [
-    "Time"
+    "Normal"
   ],
   "category": "special",
   "power": 90,
   "accuracy": 100,
-  "pp": 10
+  "pp": 10,
+  "effects": [],
+  "target": "opponent"
 }

@@ -2,10 +2,12 @@
   "id": "growl",
   "name": "Growl",
   "types": [
-    "Time"
+    "Normal"
   ],
   "category": "status",
   "power": 0,
   "accuracy": 100,
-  "pp": 25
+  "pp": 25,
+  "effects": [],
+  "target": "opponent"
 }

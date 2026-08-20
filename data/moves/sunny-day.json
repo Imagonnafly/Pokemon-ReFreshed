@@ -11,8 +11,9 @@
   "effects": [
     {
       "kind": "field",
-      "field": "Inferno",
+      "field": "Sun",
       "duration": 5
     }
-  ]
+  ],
+  "target": "self"
 }

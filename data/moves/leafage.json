@@ -2,10 +2,12 @@
   "id": "leafage",
   "name": "Leafage",
   "types": [
-    "Nature"
+    "Grass"
   ],
   "category": "physical",
   "power": 40,
   "accuracy": 100,
-  "pp": 25
+  "pp": 25,
+  "effects": [],
+  "target": "opponent"
 }

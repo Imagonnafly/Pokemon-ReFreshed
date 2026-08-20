@@ -3,7 +3,7 @@
   "name": "Overgrow",
   "effect": {
     "kind": "boost_low_hp",
-    "type": "Nature",
+    "type": "Grass",
     "multiplier": 1.5,
     "threshold": 0.3333333333333333
   },

@@ -3,7 +3,7 @@
   "name": "Quaquaval",
   "types": [
     "Water",
-    "Air"
+    "Fighting"
   ],
   "baseStats": {
     "hp": 85,

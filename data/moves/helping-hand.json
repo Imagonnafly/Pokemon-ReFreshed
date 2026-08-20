@@ -2,10 +2,13 @@
   "id": "helping-hand",
   "name": "Helping Hand",
   "types": [
-    "Time"
+    "Normal"
   ],
   "category": "status",
   "power": 0,
   "accuracy": 0,
-  "pp": 20
+  "pp": 20,
+  "effects": [],
+  "target": "ally",
+  "priority": 5
 }

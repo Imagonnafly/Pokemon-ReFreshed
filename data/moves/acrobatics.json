@@ -2,10 +2,12 @@
   "id": "acrobatics",
   "name": "Acrobatics",
   "types": [
-    "Air"
+    "Flying"
   ],
   "category": "physical",
   "power": 55,
   "accuracy": 100,
-  "pp": 15
+  "pp": 15,
+  "effects": [],
+  "target": "opponent"
 }

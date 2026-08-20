@@ -3,7 +3,7 @@
   "name": "Levitate",
   "effect": {
     "kind": "immunity",
-    "type": "Earth"
+    "type": "Ground"
   },
   "description": "Grants immunity to Ground-type moves."
 }

@@ -2,10 +2,12 @@
   "id": "dragon-pulse",
   "name": "Dragon Pulse",
   "types": [
-    "Cosmos"
+    "Dragon"
   ],
   "category": "special",
   "power": 85,
   "accuracy": 100,
-  "pp": 10
+  "pp": 10,
+  "effects": [],
+  "target": "opponent"
 }

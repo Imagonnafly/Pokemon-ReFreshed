@@ -2,10 +2,13 @@
   "id": "double-kick",
   "name": "Double Kick",
   "types": [
-    "Earth"
+    "Fighting"
   ],
   "category": "physical",
   "power": 30,
   "accuracy": 100,
-  "pp": 25
+  "pp": 25,
+  "effects": [],
+  "target": "opponent",
+  "multiHit": 2
 }

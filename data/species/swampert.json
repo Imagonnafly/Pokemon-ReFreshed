@@ -3,7 +3,7 @@
   "name": "Swampert",
   "types": [
     "Water",
-    "Earth"
+    "Ground"
   ],
   "baseStats": {
     "hp": 100,

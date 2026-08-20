@@ -2,10 +2,12 @@
   "id": "breaking-swipe",
   "name": "Breaking Swipe",
   "types": [
-    "Cosmos"
+    "Dragon"
   ],
   "category": "physical",
   "power": 60,
   "accuracy": 100,
-  "pp": 15
+  "pp": 15,
+  "effects": [],
+  "target": "opponent"
 }

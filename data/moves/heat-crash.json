@@ -7,5 +7,7 @@
   "category": "physical",
   "power": 0,
   "accuracy": 100,
-  "pp": 10
+  "pp": 10,
+  "effects": [],
+  "target": "opponent"
 }

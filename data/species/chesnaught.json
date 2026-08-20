@@ -2,8 +2,8 @@
   "id": "chesnaught",
   "name": "Chesnaught",
   "types": [
-    "Nature",
-    "Metal"
+    "Grass",
+    "Fighting"
   ],
   "baseStats": {
     "hp": 88,

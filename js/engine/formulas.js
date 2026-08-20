@@ -85,9 +85,6 @@ export function calculateDamage({ attacker, defender, move, typeChart, rng = Mat
     }
   } else {
     // Legacy compatibility for older snapshots.
-    if (weather === "Sun" && move.types.includes("Fire")) environmentalModifier *= 1.5;
-    if (weather === "Sun" && move.types.includes("Water")) environmentalModifier *= 0.5;
-    if (terrain === "Electric" && move.types.includes("Electric") && !attacker.types.includes("Air")) environmentalModifier *= 1.3;
   }
 
   const signatureModifier = move.effects?.find(e => e.kind === "signature_super_effective_boost" && effectiveness > 1)?.multiplier ?? 1;

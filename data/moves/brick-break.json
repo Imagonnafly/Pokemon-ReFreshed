@@ -2,10 +2,12 @@
   "id": "brick-break",
   "name": "Brick Break",
   "types": [
-    "Earth"
+    "Fighting"
   ],
   "category": "physical",
   "power": 75,
   "accuracy": 100,
-  "pp": 15
+  "pp": 15,
+  "effects": [],
+  "target": "opponent"
 }

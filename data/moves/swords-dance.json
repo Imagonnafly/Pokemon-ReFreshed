@@ -2,10 +2,12 @@
   "id": "swords-dance",
   "name": "Swords Dance",
   "types": [
-    "Time"
+    "Normal"
   ],
   "category": "status",
   "power": 0,
   "accuracy": 0,
-  "pp": 20
+  "pp": 20,
+  "effects": [],
+  "target": "self"
 }

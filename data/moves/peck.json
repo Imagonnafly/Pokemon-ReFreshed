@@ -2,10 +2,12 @@
   "id": "peck",
   "name": "Peck",
   "types": [
-    "Air"
+    "Flying"
   ],
   "category": "physical",
   "power": 35,
   "accuracy": 100,
-  "pp": 25
+  "pp": 25,
+  "effects": [],
+  "target": "opponent"
 }

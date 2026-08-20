@@ -2,8 +2,8 @@
   "id": "dragonite",
   "name": "Dragonite",
   "types": [
-    "Cosmos",
-    "Air"
+    "Dragon",
+    "Flying"
   ],
   "baseStats": {
     "hp": 91,
@@ -14,8 +14,8 @@
     "speed": 80
   },
   "sprites": {
-    "front": "https://play.pokemonshowdown.com/sprites/ani/koraidon.gif",
-    "back": "https://play.pokemonshowdown.com/sprites/ani-back/koraidon.gif"
+    "front": "https://play.pokemonshowdown.com/sprites/ani/dragonite.gif",
+    "back": "https://play.pokemonshowdown.com/sprites/ani-back/dragonite.gif"
   },
   "abilities": [
     "multiscale"

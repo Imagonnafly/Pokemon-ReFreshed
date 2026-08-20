@@ -2,10 +2,16 @@
   "id": "scale-shot",
   "name": "Scale Shot",
   "types": [
-    "Cosmos"
+    "Dragon"
   ],
   "category": "physical",
   "power": 25,
   "accuracy": 90,
-  "pp": 20
+  "pp": 20,
+  "effects": [],
+  "target": "opponent",
+  "multiHit": {
+    "min": 2,
+    "max": 5
+  }
 }

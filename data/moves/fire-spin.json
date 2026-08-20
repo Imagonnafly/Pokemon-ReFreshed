@@ -7,5 +7,7 @@
   "category": "special",
   "power": 35,
   "accuracy": 85,
-  "pp": 15
+  "pp": 15,
+  "effects": [],
+  "target": "opponent"
 }

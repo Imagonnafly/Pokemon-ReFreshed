@@ -137,8 +137,7 @@ export class RemoteBattle {
     const allowed = new Set(Array.isArray(species?.learnset) ? species.learnset : []);
     const rawMoveset = Array.isArray(raw.moveset) ? raw.moveset : (Array.isArray(raw.moves) ? raw.moves : []);
     const moves = rawMoveset.filter(m => allowed.has(m.id)).map(m => ({ ...m })).slice(0, GAME_CONFIG.moves.maxBattleMoves);
-    const legacyStatusMap = { Burn: "Scorch", Paralysis: "Shocked", Freeze: "Frostbite", Poison: "Haunted", "Bad Poison": "Haunted" };
-    const normalizedStatus = legacyStatusMap[raw.status] || raw.status || null;
+    const normalizedStatus = raw.status || null;
     return { ...raw, status: normalizedStatus, moves, types: [...(raw.types || [])], originalTypes: [...(raw.originalTypes || raw.types || [])], sprites: { ...(raw.sprites || {}) }, statusData: { ...(raw.statusData || {}) }, volatile: { ...(raw.volatile || {}) }, canBattle() { return this.hp > 0 && !this.fainted; } };
   }
 

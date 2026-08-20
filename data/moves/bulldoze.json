@@ -2,10 +2,12 @@
   "id": "bulldoze",
   "name": "Bulldoze",
   "types": [
-    "Earth"
+    "Ground"
   ],
   "category": "physical",
   "power": 60,
   "accuracy": 100,
-  "pp": 20
+  "pp": 20,
+  "effects": [],
+  "target": "opponent"
 }

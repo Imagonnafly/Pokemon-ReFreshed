@@ -2,10 +2,12 @@
   "id": "reversal",
   "name": "Reversal",
   "types": [
-    "Earth"
+    "Fighting"
   ],
   "category": "physical",
   "power": 0,
   "accuracy": 100,
-  "pp": 15
+  "pp": 15,
+  "effects": [],
+  "target": "opponent"
 }

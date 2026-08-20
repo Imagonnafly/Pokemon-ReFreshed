@@ -2,8 +2,7 @@
   "id": "rillaboom",
   "name": "Rillaboom",
   "types": [
-    "Nature",
-    "Earth"
+    "Grass"
   ],
   "baseStats": {
     "hp": 100,

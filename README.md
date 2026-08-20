@@ -1,6 +1,6 @@
 # Pokémon Battle Engine
 
-A browser-based Pokémon-style battle engine with a modern game UI and optional real-time multiplayer.
+A browser-based Pokémon-style battle engine with a soft-coded, data-driven rules layer, modern responsive battle UI, and optional real-time multiplayer.
 
 ## Run locally
 
@@ -35,3 +35,7 @@ Battle messages now distinguish sides, for example:
 
 This makes mirror matches much easier to follow.
 "# Pokemon-ReFreshed" 
+
+## Data-driven rules
+
+Species types live in `data/species/*.json`, move types/targets/flags live in `data/moves/*.json`, and the official type chart, statuses, and battlefield fields live in `data/types.json`. The battle renderer reads those definitions instead of carrying a separate custom type table.

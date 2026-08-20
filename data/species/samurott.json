@@ -2,8 +2,7 @@
   "id": "samurott",
   "name": "Samurott",
   "types": [
-    "Water",
-    "Metal"
+    "Water"
   ],
   "baseStats": {
     "hp": 95,

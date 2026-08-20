@@ -2,10 +2,12 @@
   "id": "rest",
   "name": "Rest",
   "types": [
-    "Mind"
+    "Psychic"
   ],
   "category": "status",
   "power": 0,
   "accuracy": 0,
-  "pp": 5
+  "pp": 5,
+  "effects": [],
+  "target": "self"
 }

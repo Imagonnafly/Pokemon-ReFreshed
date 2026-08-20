@@ -1,23 +1,9 @@
-# New Type System
+# Battle Data Model
 
-The game now uses the 14 custom types and the supplied matchup chart:
+The game now uses the official 18 Pokémon types:
 
-Fire, Water, Earth, Air, Electric, Ice, Nature, Metal, Light, Dark, Mind, Spirit, Cosmos, Time.
+Normal, Fire, Water, Electric, Grass, Ice, Fighting, Poison, Ground, Flying, Psychic, Bug, Rock, Ghost, Dragon, Dark, Steel, Fairy.
 
-Legacy type conversion used for the existing data:
-- Normal -> Time
-- Fighting -> Earth
-- Poison -> Dark
-- Ground -> Earth
-- Flying -> Air
-- Psychic -> Mind
-- Bug -> Nature
-- Rock -> Earth
-- Ghost -> Spirit
-- Dragon -> Cosmos
-- Steel -> Metal
-- Fairy -> Light
-- Grass -> Nature
-- Fire, Water, Electric, Ice, Dark remain unchanged.
+Type matchups live in `data/types.json`; species and moves carry their own type data. Battle UI and engine logic do not define a custom type system.
 
-All species, move definitions, ability type references, and the battle engine's type-specific checks were migrated.
+Move targets and common battle flags are stored directly on move JSON objects, so those properties can be edited without changing the UI renderer.

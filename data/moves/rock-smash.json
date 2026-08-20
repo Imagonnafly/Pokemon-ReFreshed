@@ -2,10 +2,12 @@
   "id": "rock-smash",
   "name": "Rock Smash",
   "types": [
-    "Earth"
+    "Fighting"
   ],
   "category": "physical",
   "power": 40,
   "accuracy": 100,
-  "pp": 15
+  "pp": 15,
+  "effects": [],
+  "target": "opponent"
 }

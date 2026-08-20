@@ -2,10 +2,12 @@
   "id": "ancient-power",
   "name": "Ancient Power",
   "types": [
-    "Earth"
+    "Rock"
   ],
   "category": "special",
   "power": 60,
   "accuracy": 100,
-  "pp": 5
+  "pp": 5,
+  "effects": [],
+  "target": "opponent"
 }

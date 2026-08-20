@@ -2,10 +2,12 @@
   "id": "tackle",
   "name": "Tackle",
   "types": [
-    "Time"
+    "Normal"
   ],
   "category": "physical",
   "power": 40,
   "accuracy": 100,
-  "pp": 35
+  "pp": 35,
+  "effects": [],
+  "target": "opponent"
 }

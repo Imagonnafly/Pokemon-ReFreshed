@@ -2,8 +2,8 @@
   "id": "torterra",
   "name": "Torterra",
   "types": [
-    "Nature",
-    "Earth"
+    "Grass",
+    "Ground"
   ],
   "baseStats": {
     "hp": 95,

@@ -2,10 +2,12 @@
   "id": "dragon-claw",
   "name": "Dragon Claw",
   "types": [
-    "Cosmos"
+    "Dragon"
   ],
   "category": "physical",
   "power": 80,
   "accuracy": 100,
-  "pp": 15
+  "pp": 15,
+  "effects": [],
+  "target": "opponent"
 }

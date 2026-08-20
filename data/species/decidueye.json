@@ -2,8 +2,8 @@
   "id": "decidueye",
   "name": "Decidueye",
   "types": [
-    "Nature",
-    "Spirit"
+    "Grass",
+    "Ghost"
   ],
   "baseStats": {
     "hp": 78,

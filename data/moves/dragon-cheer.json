@@ -2,10 +2,12 @@
   "id": "dragon-cheer",
   "name": "Dragon Cheer",
   "types": [
-    "Cosmos"
+    "Dragon"
   ],
   "category": "status",
   "power": 0,
   "accuracy": 0,
-  "pp": 15
+  "pp": 15,
+  "effects": [],
+  "target": "opponent"
 }

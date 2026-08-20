@@ -2,8 +2,8 @@
   "id": "venusaur",
   "name": "Venusaur",
   "types": [
-    "Nature",
-    "Dark"
+    "Grass",
+    "Poison"
   ],
   "baseStats": {
     "hp": 80,

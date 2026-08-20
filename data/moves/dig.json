@@ -2,10 +2,15 @@
   "id": "dig",
   "name": "Dig",
   "types": [
-    "Earth"
+    "Ground"
   ],
   "category": "physical",
   "power": 80,
   "accuracy": 100,
-  "pp": 10
+  "pp": 10,
+  "effects": [],
+  "target": "opponent",
+  "battleFlags": [
+    "charge"
+  ]
 }

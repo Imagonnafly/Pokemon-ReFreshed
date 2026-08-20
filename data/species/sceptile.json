@@ -2,8 +2,7 @@
   "id": "sceptile",
   "name": "Sceptile",
   "types": [
-    "Nature",
-    "Air"
+    "Grass"
   ],
   "baseStats": {
     "hp": 70,

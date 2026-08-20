@@ -2,10 +2,12 @@
   "id": "take-down",
   "name": "Take Down",
   "types": [
-    "Time"
+    "Normal"
   ],
   "category": "physical",
   "power": 90,
   "accuracy": 85,
-  "pp": 20
+  "pp": 20,
+  "effects": [],
+  "target": "opponent"
 }

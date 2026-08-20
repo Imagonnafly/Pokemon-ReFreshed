@@ -2,7 +2,7 @@
   "id": "close-combat",
   "name": "Close Combat",
   "types": [
-    "Earth"
+    "Fighting"
   ],
   "category": "physical",
   "power": 120,
@@ -21,5 +21,6 @@
       "stat": "specialDefense",
       "stages": -1
     }
-  ]
+  ],
+  "target": "opponent"
 }

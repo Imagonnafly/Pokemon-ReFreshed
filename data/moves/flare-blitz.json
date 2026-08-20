@@ -15,8 +15,9 @@
     },
     {
       "kind": "status",
-      "status": "Scorch",
+      "status": "Burn",
       "chance": 0.1
     }
-  ]
+  ],
+  "target": "opponent"
 }

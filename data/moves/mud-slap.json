@@ -2,10 +2,12 @@
   "id": "mud-slap",
   "name": "Mud-Slap",
   "types": [
-    "Earth"
+    "Ground"
   ],
   "category": "special",
   "power": 20,
   "accuracy": 100,
-  "pp": 10
+  "pp": 10,
+  "effects": [],
+  "target": "opponent"
 }

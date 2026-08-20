@@ -2,10 +2,12 @@
   "id": "sleep-talk",
   "name": "Sleep Talk",
   "types": [
-    "Time"
+    "Normal"
   ],
   "category": "status",
   "power": 0,
   "accuracy": 0,
-  "pp": 10
+  "pp": 10,
+  "effects": [],
+  "target": "self"
 }

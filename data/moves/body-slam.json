@@ -2,10 +2,12 @@
   "id": "body-slam",
   "name": "Body Slam",
   "types": [
-    "Time"
+    "Normal"
   ],
   "category": "physical",
   "power": 85,
   "accuracy": 100,
-  "pp": 15
+  "pp": 15,
+  "effects": [],
+  "target": "opponent"
 }

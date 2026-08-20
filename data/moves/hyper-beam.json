@@ -2,10 +2,15 @@
   "id": "hyper-beam",
   "name": "Hyper Beam",
   "types": [
-    "Time"
+    "Normal"
   ],
   "category": "special",
   "power": 150,
   "accuracy": 90,
-  "pp": 5
+  "pp": 5,
+  "effects": [],
+  "target": "opponent",
+  "battleFlags": [
+    "recharge"
+  ]
 }

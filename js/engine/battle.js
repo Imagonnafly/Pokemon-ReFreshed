@@ -1,4 +1,5 @@
 import { GAME_CONFIG } from "../config.js";
+import { moveTarget, STANDARD_STATUSES } from "./rules.js";
 import { BattlePokemon } from "./pokemon.js";
 import { calculateDamage, getBattleStat, calculateAccuracy, typeEffectiveness } from "./formulas.js";
 
@@ -35,22 +36,6 @@ const SPECIES_WEIGHTS_KG = {
   popplio: 7.5, quaxly: 6.1, rowlet: 1.5, scorbunny: 4.5, snivy: 8.1,
   sobble: 4.0, sprigatito: 4.1, tepig: 9.9, torchic: 2.5, totodile: 9.5,
   treecko: 5.0, turtwig: 10.2
-};
-const STATUS_MOVES = new Set([
-  "agility","bulk-up","dragon-cheer","endure","growl","helping-hand","meteor-beam",
-  "protect","rest","roar","roost","scary-face","screech","sleep-talk","solar-beam",
-  "substitute","sunny-day","swords-dance","taunt","uproar"
-]);
-const CHARGE_MOVES = new Set(["dig","fly","meteor-beam","solar-beam"]);
-const RECHARGE_MOVES = new Set(["giga-impact","hyper-beam"]);
-const MULTI_HIT_MOVES = new Set(["double-kick","dual-wingbeat","scale-shot"]);
-const CONTACT_STATUS = new Set(["body-slam","ember","fire-blast","fire-fang","flamethrower","flare-blitz","ice-fang","iron-head","rock-smash","thunder-fang","thunderbolt","water-pulse","zen-headbutt"]);
-const LEGACY_STATUS_MAP = {
-  "Burn": "Scorch",
-  "Paralysis": "Shocked",
-  "Freeze": "Frostbite",
-  "Poison": "Haunted",
-  "Bad Poison": "Haunted"
 };
 
 
@@ -139,6 +124,10 @@ export class Battle {
 
   pause(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  hasMoveFlag(move, flag) {
+    return Array.isArray(move?.battleFlags) && move.battleFlags.includes(flag);
   }
 
   getAvailableMoves() {
@@ -506,13 +495,13 @@ export class Battle {
       return;
     }
 
-    if (attacker.status === "Frostbite") {
+    if (attacker.status === "Freeze") {
       if (Math.random() < 0.2 || ["flare-blitz","fire-blast","flamethrower","fire-fang","ember","heat-wave","overheat","flame-charge","temper-flare"].includes(move.id)) {
         attacker.status = null;
         attacker.statusData = {};
         this.write(`${attacker.name} thawed out!`);
       } else {
-        this.write(`${attacker.name} is frostbitten solid!`);
+        this.write(`${attacker.name} is frozen solid!`);
         this.turnContext.moveFailed.set(attacker, true);
         return;
       }
@@ -543,7 +532,7 @@ export class Battle {
       if (Math.random() < 1 / 3) {
         const selfDamage = Math.max(1, Math.floor(calculateDamage({
           attacker, defender: attacker,
-          move: { ...move, types: ["Time"], category: "physical", power: 40 },
+          move: { ...move, types: ["Normal"], category: "physical", power: 40 },
           typeChart: this.typeChart,
           rng: Math.random
         }).damage));
@@ -566,8 +555,8 @@ export class Battle {
     }
 
     // Two-turn moves: the first action charges, the second action attacks.
-    if (CHARGE_MOVES.has(move.id) && attacker.volatile?.charging !== move.id) {
-      const sunny = this.field === "Inferno";
+    if (this.hasMoveFlag(move, "charge") && attacker.volatile?.charging !== move.id) {
+      const sunny = this.field === "Sun";
       if (move.id === "solar-beam" && sunny) {
         // Sun removes Solar Beam's charge turn.
       } else {
@@ -612,7 +601,7 @@ export class Battle {
     this.turnContext.moveFailed.set(attacker, !succeeded);
 
     // Giga Impact / Hyper Beam require a recharge turn after a successful attack.
-    if (RECHARGE_MOVES.has(move.id) && attacker.canBattle()) {
+    if (REthis.hasMoveFlag(move, "charge") && attacker.canBattle()) {
       attacker.volatile.recharge = true;
     }
 
@@ -782,9 +771,12 @@ export class Battle {
     });
 
     let hitCount = 1;
-    if (MULTI_HIT_MOVES.has(move.id)) {
-      if (move.id === "double-kick" || move.id === "dual-wingbeat") hitCount = 2;
-      else hitCount = 2 + Math.floor(Math.random() * 4); // Scale Shot: 2–5
+    if (typeof move.multiHit === "number") {
+      hitCount = move.multiHit;
+    } else if (move.multiHit && typeof move.multiHit === "object") {
+      const min = Number(move.multiHit.min ?? 2);
+      const max = Number(move.multiHit.max ?? min);
+      hitCount = min + Math.floor(Math.random() * Math.max(1, max - min + 1));
     }
 
     let totalDamage = 0;
@@ -908,7 +900,7 @@ export class Battle {
   getEffectiveMove(attacker, defender, move) {
     const actual = { ...move, effects: [...(move.effects ?? [])] };
     if (move.id === "gust" && defender.volatile?.charging === "fly") actual.power = Number(actual.power ?? 40) * 2;
-    if (move.id === "facade" && ["Scorch","Shocked","Frostbite","Soaked","Fractured","Winded","Entangled","Rusted","Dazzled","Weakened","Confounded","Haunted","Starstruck","Time-Lagged"].includes(attacker.status)) actual.power = 140;
+    if (move.id === "facade" && ["Burn","Paralysis","Freeze","Poison","Bad Poison"].includes(attacker.status)) actual.power = 140;
     if (move.id === "acrobatics" && (!attacker.item || attacker.itemUsed)) actual.power = 110;
     if (move.id === "temper-flare" && attacker.volatile?.lastMoveFailed) actual.power = 150;
     if (move.id === "stomping-tantrum" && attacker.volatile?.lastMoveFailed) actual.power = 150;
@@ -946,7 +938,7 @@ export class Battle {
       if (ratio >= 0.04) return 120;
       return 150;
     }
-    if (move.id === "facade" && ["Scorch","Shocked","Frostbite","Soaked","Fractured","Winded","Entangled","Rusted","Dazzled","Weakened","Confounded","Haunted","Starstruck","Time-Lagged"].includes(attacker.status)) return 140;
+    if (move.id === "facade" && ["Burn","Paralysis","Freeze","Poison","Bad Poison"].includes(attacker.status)) return 140;
     if (move.id === "acrobatics" && (!attacker.item || attacker.itemUsed)) return 110;
     if (move.id === "temper-flare" && attacker.volatile?.lastMoveFailed) return 150;
     if (move.id === "stomping-tantrum" && attacker.volatile?.lastMoveFailed) return 150;
@@ -1006,7 +998,7 @@ export class Battle {
       }
     }
 
-    if (!blockedBySubstitute && move.id === "body-slam" && Math.random() < 0.30) this.inflictStatus(defender, "Shocked", `${attacker.name}'s Body Slam`);
+    if (!blockedBySubstitute && move.id === "body-slam" && Math.random() < 0.30) this.inflictStatus(defender, "Paralysis", `${attacker.name}'s Body Slam`);
     if (!blockedBySubstitute && move.id === "fire-spin" && defender.canBattle() && defender.volatile.trapTurns <= 0) {
       defender.volatile.trapTurns = 4 + Math.floor(Math.random() * 2);
       defender.volatile.trapSource = attacker.speciesId;
@@ -1052,27 +1044,24 @@ export class Battle {
   }
 
   inflictStatus(pokemon, status, source = null) {
-    status = LEGACY_STATUS_MAP[status] || status;
+    if (!STANDARD_STATUSES.includes(status)) return false;
     if (!pokemon?.canBattle() || pokemon.status) return false;
     if (pokemon.volatile?.substitute > 0) return false;
 
     const def = this.getStatusDef(status);
     if (!def) return false;
 
-    const statusEffect = def.statusEffect || {};
-    const immuneType = def.immuneType || Object.entries(this.data.types?.statuses || {}).find(([, d]) => d?.status === status)?.[0];
-    if (immuneType && pokemon.types.includes(immuneType)) {
+    const immuneTypes = def.immuneTypes || [];
+    if (immuneTypes.some(type => pokemon.types.includes(type))) {
       this.write(`${pokemon.name} is immune to ${status}!`);
       return false;
     }
 
     pokemon.status = status;
     pokemon.statusData = { turns: 0 };
+    if (status === "Sleep") pokemon.statusData.sleepTurns = 1 + Math.floor(Math.random() * 3);
 
     this.write(`${pokemon.name} was afflicted with ${status}!`);
-    // Status conditions affect the individual Pokémon only. They NEVER
-    // create or change the battlefield field. Fields must be created by an
-    // explicit move effect or an ability.
     return true;
   }
 
@@ -1123,15 +1112,14 @@ export class Battle {
   }
 
   getStatusDef(pokemonOrStatus) {
-    const raw = typeof pokemonOrStatus === "string" ? pokemonOrStatus : pokemonOrStatus?.status;
-    const status = LEGACY_STATUS_MAP[raw] || raw;
+    const status = typeof pokemonOrStatus === "string" ? pokemonOrStatus : pokemonOrStatus?.status;
     if (!status) return null;
-    return Object.values(this.data.types?.statuses || {}).find(def => def?.status === status) || null;
+    return this.data.types?.statuses?.[status] || null;
   }
 
   getFieldDef(field = this.field) {
     if (!field) return null;
-    return Object.values(this.data.types?.fields || {}).find(def => def?.name === field) || null;
+    return this.data.types?.fields?.[field] || null;
   }
 
   setField(field, turns = 5, source = null) {
@@ -1308,7 +1296,7 @@ export class Battle {
       case "bulk-up":
         this.changeStage(attacker, "attack", 1); this.changeStage(attacker, "defense", 1); return true;
       case "dragon-cheer":
-        attacker.volatile.critStage = Math.min(3, (attacker.volatile.critStage ?? 0) + (attacker.types.includes("Cosmos") ? 2 : 1));
+        attacker.volatile.critStage = Math.min(3, (attacker.volatile.critStage ?? 0) + (attacker.types.includes("Dragon") ? 2 : 1));
         this.write(`${attacker.name}'s critical-hit ratio rose!`);
         return true;
       case "endure": {
@@ -1346,7 +1334,7 @@ export class Battle {
       case "swords-dance":
         this.changeStage(attacker, "attack", 2); return true;
       case "sunny-day":
-        this.setField("Inferno", 5, attacker.name);
+        this.setField("Sun", 5, attacker.name);
         return true;
       case "taunt":
         if (defender.volatile.tauntTurns > 0) {
@@ -1391,8 +1379,8 @@ export class Battle {
           return false;
         }
         attacker.hp = Math.min(attacker.maxHP, attacker.hp + Math.floor(attacker.maxHP / 2));
-        if (attacker.types.includes("Air")) {
-          attacker.types = attacker.types.filter(t => t !== "Air");
+        if (attacker.types.includes("Flying")) {
+          attacker.types = attacker.types.filter(t => t !== "Flying");
           attacker.volatile.roosted = true;
         }
         this.write(`${attacker.name} restored HP!`);

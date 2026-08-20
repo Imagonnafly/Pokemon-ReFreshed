@@ -2,10 +2,12 @@
   "id": "agility",
   "name": "Agility",
   "types": [
-    "Mind"
+    "Psychic"
   ],
   "category": "status",
   "power": 0,
   "accuracy": 0,
-  "pp": 30
+  "pp": 30,
+  "effects": [],
+  "target": "self"
 }

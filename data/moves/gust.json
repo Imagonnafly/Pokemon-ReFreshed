@@ -2,10 +2,12 @@
   "id": "gust",
   "name": "Gust",
   "types": [
-    "Air"
+    "Flying"
   ],
   "category": "special",
   "power": 40,
   "accuracy": 100,
-  "pp": 25
+  "pp": 25,
+  "effects": [],
+  "target": "opponent"
 }

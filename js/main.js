@@ -435,33 +435,42 @@ function startGuestNetworkBattle() {
 let renderer = null;
 
 function mountBattleUI(battle, role = "local") {
-  if (battle.isMulti && battle.battleSize > 1) {
-    app.innerHTML = `<div class="battle-page sd-v4">
-      <header class="v4-topbar">
-        <div class="v4-brand"><div class="v4-brand-mark">◉</div><div><h1>Pokémon Battle</h1><span>${role === "local" ? "N-vs-N Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div>
-        <div class="v4-top-actions"><span id="turnLabel" class="v4-pill">Turn 1 · ${battle.battleSize}v${battle.battleSize}</span><span id="fieldLabel" class="v4-pill">No Field</span><button id="backToBuilder" class="v4-button">← Team Builder</button></div>
+  const multi = !!battle.isMulti && Number(battle.battleSize || 1) > 1;
+  const count = multi ? Number(battle.battleSize) : 1;
+  app.innerHTML = `
+    <div class="battle-page modern-battle" data-count="${count}">
+      <header class="battle-topbar">
+        <div class="brand">
+          <div class="brand-icon">P</div>
+          <div><strong>Pokémon Battle</strong><span>${role === "local" ? (multi ? "N-vs-N Arena" : "Practice Arena") : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div>
+        </div>
+        <div class="battle-top-actions">
+          <span id="turnLabel" class="battle-pill">Turn 1${multi ? ` · ${count}v${count}` : ""}</span>
+          <span id="fieldLabel" class="battle-pill">No Field</span>
+          <button id="battleBack" class="battle-button ghost" type="button">← Team Builder</button>
+        </div>
       </header>
-      <main class="v4-main">
-        <section class="v4-left">
-          <section class="v4-field-panel">
-            <section class="v4-arena" id="multiArena">
-              <div class="v4-side-label"><strong>OPPONENT</strong><span>${role === "local" ? "CPU Trainer" : "Player 2"}</span></div>
-              <div class="v4-field-row"><div id="multiOpponentRail" class="v4-rail"></div><div id="multiOpponent" class="v4-field-main v4-opponent-field"></div></div>
-              <div class="v4-center-line"></div>
-              <div class="v4-side-label"><strong>YOU</strong><span>${role === "local" ? "Trainer" : role === "host" ? "Player 1" : "Player 2"}</span></div>
-              <div class="v4-field-row"><div id="multiPlayer" class="v4-field-main v4-player-field"></div><div id="multiPlayerRail" class="v4-rail v4-player-rail"></div></div>
-            </section>
+
+      <main class="battle-layout">
+        <section class="battle-main">
+          <section class="battle-arena" id="battleArena">
+            <div class="arena-grid enemy" id="enemyField"></div>
+            <div class="arena-divider"><span>VS</span></div>
+            <div class="arena-grid self" id="selfField"></div>
           </section>
-          <section class="v4-command" id="multiCommand"></section>
+          <section class="battle-commands" id="battleCommands"></section>
         </section>
-        <aside class="v4-log"><div class="v4-log-head"><strong>BATTLE LOG</strong><span>LIVE</span></div><div class="v4-log-body" id="battleLog" aria-live="polite"></div></aside>
+
+        <aside class="battle-sidebar">
+          <div class="sidebar-title"><strong>BATTLE LOG</strong><span>LIVE</span></div>
+          <div class="battle-log" id="battleLog" aria-live="polite"></div>
+        </aside>
       </main>
+
+      <section id="partyPanel" class="party-layer hidden"></section>
     </div>`;
-  } else {
-    app.innerHTML = `<div class="battle-page"><header class="topbar"><div class="topbar-brand"><div class="brand-mark">◉</div><div><h1>Pokémon Battle</h1><span class="topbar-sub">${role === "local" ? "Trainer Arena" : `Online Match · ${role === "host" ? "Host" : "Guest"}`}</span></div></div><div class="battle-header-actions"><span id="turnLabel" class="turn-pill">Turn 1</span><span id="fieldLabel" class="turn-pill field-pill">No Field</span><button id="backToBuilder" class="header-button" type="button">← Team Builder</button></div></header><main><section class="battlefield"><span class="arena-label">Battle Arena · ${role === "local" ? "Practice Match" : "Live Multiplayer"}</span><div class="side opponent"><div class="pokemon-info"><div class="sprite-box"><img id="oppSprite" alt=""></div><div class="pokemon-card"><h2 id="oppName">---</h2><div id="oppTypes" class="types"></div><div class="pokemon-meta">The opposing Pokémon</div><div class="hp-row"><div class="hpbar"><div id="oppHPFill"></div></div><span id="oppHPText" class="hp-text">0 / 0</span></div></div></div></div><div class="side player"><div class="pokemon-info"><div class="pokemon-card"><h2 id="playerName">---</h2><div id="playerTypes" class="types"></div><div class="pokemon-meta">Your Pokémon</div><div class="hp-row"><div class="hpbar"><div id="playerHPFill"></div></div><span id="playerHPText" class="hp-text">0 / 0</span></div></div><div class="sprite-box"><img id="playerSprite" alt=""></div></div></div></section><section class="battle-log" id="battleLog" aria-live="polite"></section><section class="controls"><div id="moveButtons" class="moves"></div><button id="switchButton" class="secondary control-button" type="button">Switch Pokémon</button><button id="restartButton" class="secondary control-button" type="button">Team Builder</button></section><section id="partyPanel" class="party hidden"></section></main></div>`;
-  }
-  document.querySelector("#backToBuilder").onclick = returnToBuilder;
-  document.querySelector("#restartButton")?.addEventListener("click", returnToBuilder);
+
+  document.querySelector("#battleBack")?.addEventListener("click", returnToBuilder);
 }
 
 function returnToBuilder() {

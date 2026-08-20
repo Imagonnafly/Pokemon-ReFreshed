@@ -2,10 +2,12 @@
   "id": "screech",
   "name": "Screech",
   "types": [
-    "Time"
+    "Normal"
   ],
   "category": "status",
   "power": 0,
   "accuracy": 85,
-  "pp": 40
+  "pp": 40,
+  "effects": [],
+  "target": "opponent"
 }

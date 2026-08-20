@@ -2,10 +2,13 @@
   "id": "dual-wingbeat",
   "name": "Dual Wingbeat",
   "types": [
-    "Air"
+    "Flying"
   ],
   "category": "physical",
   "power": 40,
   "accuracy": 90,
-  "pp": 10
+  "pp": 10,
+  "effects": [],
+  "target": "opponent",
+  "multiHit": 2
 }

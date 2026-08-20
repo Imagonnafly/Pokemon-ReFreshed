@@ -2,10 +2,12 @@
   "id": "shadow-claw",
   "name": "Shadow Claw",
   "types": [
-    "Spirit"
+    "Ghost"
   ],
   "category": "physical",
   "power": 70,
   "accuracy": 100,
-  "pp": 15
+  "pp": 15,
+  "effects": [],
+  "target": "opponent"
 }

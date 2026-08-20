@@ -2,7 +2,7 @@
   "id": "collision-course",
   "name": "Collision Course",
   "types": [
-    "Earth"
+    "Fighting"
   ],
   "category": "physical",
   "power": 100,
@@ -13,5 +13,6 @@
       "kind": "signature_super_effective_boost",
       "multiplier": 1.3
     }
-  ]
+  ],
+  "target": "opponent"
 }

@@ -13,5 +13,6 @@
       "kind": "drain",
       "percent": 0.5
     }
-  ]
+  ],
+  "target": "opponent"
 }

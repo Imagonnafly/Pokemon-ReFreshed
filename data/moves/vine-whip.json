@@ -2,10 +2,12 @@
   "id": "vine-whip",
   "name": "Vine Whip",
   "types": [
-    "Nature"
+    "Grass"
   ],
   "category": "physical",
   "power": 45,
   "accuracy": 100,
-  "pp": 25
+  "pp": 25,
+  "effects": [],
+  "target": "opponent"
 }

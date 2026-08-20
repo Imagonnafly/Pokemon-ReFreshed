@@ -2,8 +2,7 @@
   "id": "feraligatr",
   "name": "Feraligatr",
   "types": [
-    "Water",
-    "Dark"
+    "Water"
   ],
   "baseStats": {
     "hp": 85,

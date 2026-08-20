@@ -2,10 +2,13 @@
   "id": "focus-punch",
   "name": "Focus Punch",
   "types": [
-    "Earth"
+    "Fighting"
   ],
   "category": "physical",
   "power": 150,
   "accuracy": 100,
-  "pp": 20
+  "pp": 20,
+  "effects": [],
+  "target": "opponent",
+  "priority": -3
 }

@@ -13,5 +13,6 @@
       "kind": "signature_super_effective_boost",
       "multiplier": 1.3
     }
-  ]
+  ],
+  "target": "opponent"
 }

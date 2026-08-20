@@ -2,10 +2,13 @@
   "id": "dragon-tail",
   "name": "Dragon Tail",
   "types": [
-    "Cosmos"
+    "Dragon"
   ],
   "category": "physical",
   "power": 60,
   "accuracy": 90,
-  "pp": 10
+  "pp": 10,
+  "effects": [],
+  "target": "opponent",
+  "priority": -6
 }
